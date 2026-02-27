@@ -1,0 +1,466 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "./light.css";
+@import "./dark.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@plugin './hero.ts';
+@source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: 'ArkPixel';
+  src: url('/fonts/ark-pixel/ark-pixel-12px-proportional-zh_cn.otf.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===== Tailwind v4 主题变量覆盖 ===== */
+/* 让 Tailwind 的 text-* 类使用动态字体大小 */
+@theme inline {
+  --text-xs: calc(var(--theme-font-size, 14px) * 0.75);
+  --text-sm: calc(var(--theme-font-size, 14px) * 0.875);
+  --text-base: var(--theme-font-size, 14px);
+  --text-lg: calc(var(--theme-font-size, 14px) * 1.125);
+  --text-xl: calc(var(--theme-font-size, 14px) * 1.25);
+  --text-2xl: calc(var(--theme-font-size, 14px) * 1.5);
+  --text-3xl: calc(var(--theme-font-size, 14px) * 1.875);
+  --text-4xl: calc(var(--theme-font-size, 14px) * 2.25);
+  --text-5xl: calc(var(--theme-font-size, 14px) * 3);
+  --text-6xl: calc(var(--theme-font-size, 14px) * 3.75);
+  --text-7xl: calc(var(--theme-font-size, 14px) * 4.5);
+  --text-8xl: calc(var(--theme-font-size, 14px) * 6);
+  --text-9xl: calc(var(--theme-font-size, 14px) * 8);
+
+  /* 自定义字体 */
+  --font-pixel: 'ArkPixel', monospace;
+
+  /* 确保 Tailwind 使用 CSS 变量作为颜色值，而不是静态 Hex */
+  --color-primary: var(--color-primary);
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-200: var(--color-primary-200);
+  --color-primary-300: var(--color-primary-300);
+  --color-primary-400: var(--color-primary-400);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-700: var(--color-primary-700);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-900: var(--color-primary-900);
+  --color-primary-foreground: var(--color-primary-foreground);
+  
+  /* react bits 设置*/
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+/**
+ * 全局样式 - 包含重置样式和通用样式
+ */
+
+/* ===== CSS重置 ===== */
+/* Tailwind CSS 已经包含了重置样式，这里不需要重复 */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  line-height: 1.5;
+  color: var(--color-foreground);
+  background-color: var(--color-background);
+  overflow-x: hidden;
+}
+
+/* ===== 滚动条样式 ===== */
+/* 全局滚动条设置 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+/* Firefox滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+/* ===== HeroUI Tabs 滚动条隐藏 ===== */
+/* 隐藏 Tabs 组件的滚动条 */
+div[data-slot="tab-list"]::-webkit-scrollbar,
+div[data-slot="list"]::-webkit-scrollbar,
+div[data-slot="base"] .overflow-x-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+[role="tablist"]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+div[data-slot="tab-list"],
+div[data-slot="list"],
+div[data-slot="base"] .overflow-x-auto,
+.overflow-x-auto,
+[role="tablist"] {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* ===== 组件内容溢出修复 ===== */
+/* 确保 Chip, Code, Input, Tabs 内容有适当的内边距并自动扩展 */
+[data-slot="chip"],
+[data-slot="code"],
+[data-slot="input-wrapper"],
+[data-slot="tab-content"] {
+  box-sizing: border-box;
+}
+
+/* ===== 链接样式 ===== */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-duration) var(--transition-timing);
+}
+
+a:hover {
+  color: var(--color-primary-600);
+}
+
+/* ===== 图片响应式 ===== */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ===== 标题样式 ===== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-foreground);
+}
+
+/* ===== Prose 样式覆盖 ===== */
+/* 减小段落间距 */
+.prose p {
+  margin-top: 0.6em !important;
+  margin-bottom: 0.6em !important;
+}
+
+/* 减小标题间距 */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5 {
+  margin-top: 1.2em !important;
+  margin-bottom: 0.6em !important;
+}
+
+/* 减小列表间距 */
+.prose ul,
+.prose ol {
+  margin-top: 0.6em !important;
+  margin-bottom: 0.6em !important;
+}
+
+.prose li {
+  margin-top: 0.4em !important;
+  margin-bottom: 0.4em !important;
+}
+
+.prose li p {
+  margin-top: 0.2em !important;
+  margin-bottom: 0.2em !important;
+}
+
+/* ===== 动态主题变量 ===== */
+/* 全局字体大小 - 由主题设置控制 */
+html {
+  --theme-font-size: 14px;
+  --theme-border-radius: 12px;
+}
+
+/* 应用字体大小 */
+body {
+  font-size: var(--theme-font-size, var(--font-size, 14px));
+}
+
+/* 应用全局圆角到常见组件 */
+.rounded-theme,
+.card,
+.btn,
+button,
+input,
+select,
+textarea,
+[data-slot="button"],
+[data-slot="card"],
+[data-slot="input"],
+[data-slot="select"],
+[data-slot="textarea"],
+[data-slot="modal"],
+[data-slot="drawer"],
+[data-slot="popover"],
+[data-slot="dropdown"],
+[data-slot="menu"],
+[data-slot="menu-trigger"] {
+  border-radius: var(--theme-border-radius, var(--border-radius, 12px));
+}
+
+/* ===== 后台管理边框样式 ===== */
+/* 仅在后台布局中应用边框 */
+[data-admin-layout] .admin-border {
+  border: var(--border-style);
+}
+
+/* ===== 后台管理阴影样式 ===== */
+/* 仅在后台布局中应用阴影 */
+[data-admin-layout] .admin-shadow {
+  box-shadow: var(--shadow-style);
+}
+
+/* ===== 后台管理通用容器样式 ===== */
+[data-admin-layout] .admin-card {
+  border: var(--border-style);
+  border-radius: var(--theme-border-radius, var(--border-radius, 12px));
+  box-shadow: var(--shadow-style);
+}
+
+/* 亮色模式下后台卡片、侧边栏、顶部导航背景色与搜索框一致 */
+:root:not(.dark) [data-admin-layout] .admin-card,
+:root:not(.dark) [data-admin-layout] .admin-border,
+:root:not(.dark) [data-admin-layout] header,
+:root:not(.dark) [data-admin-layout] aside,
+:root:not(.dark) [data-admin-layout] .bg-content1 {
+  background-color: var(--color-default-100);
+}
+
+[data-admin-layout] .admin-card-light {
+  border: var(--border-style);
+  border-radius: var(--theme-border-radius, var(--border-radius, 12px));
+  box-shadow: var(--shadow-style);
+  transition: box-shadow 0.3s ease;
+}
+
+[data-admin-layout] .admin-card-light:hover {
+  box-shadow: var(--shadow-style);
+}
+
+/* ===== View Transition 动画 ===== */
+/* Magic UI 主题切换动画 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 深色模式切换时的覆盖层 */
+::view-transition-new(root) {
+  isolation: isolate;
+}
+
+/* 允许 View Transition 在所有元素上工作 */
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 0.3s;
+}
+
+/* ===== Tiptap 编辑器自定义样式 ===== */
+
+/* 占位符样式 */
+.tiptap p.is-editor-empty:first-child::before {
+  color: hsl(var(--heroui-default-400));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* 编辑器容器样式 */
+.tiptap {
+  outline: none;
+  min-height: 150px;
+}
+
+/* 调整段落间距 */
+.tiptap p {
+  margin-top: 0.4em !important;
+  margin-bottom: 0.4em !important;
+}
+
+.tiptap p:first-child,
+.tiptap h1:first-child,
+.tiptap h2:first-child,
+.tiptap h3:first-child,
+.tiptap h4:first-child,
+.tiptap h5:first-child {
+  margin-top: 0 !important;
+}
+
+.tiptap p:last-child,
+.tiptap h1:last-child,
+.tiptap h2:last-child,
+.tiptap h3:last-child,
+.tiptap h4:last-child,
+.tiptap h5:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* 调整标题间距 */
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5 {
+  margin-top: 0.8em !important;
+  margin-bottom: 0.4em !important;
+}
+
+/* 调整列表间距 */
+.tiptap ul,
+.tiptap ol {
+  margin-top: 0.4em !important;
+  margin-bottom: 0.4em !important;
+  padding-left: 1.2em !important;
+}
+
+.tiptap li {
+  margin-top: 0.25em !important;
+  margin-bottom: 0.25em !important;
+}
+
+/* 表格选中样式 */
+.tiptap .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(200, 200, 255, 0.4);
+  pointer-events: none;
+}
+
+/* 图片选中样式 */
+.tiptap img.ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--heroui-primary));
+  outline-offset: 2px;
+}
+
+/* 链接样式 */
+.tiptap a {
+  cursor: pointer;
+}
+
+/* 代码块样式 */
+.tiptap pre {
+  background: #0d0d0d;
+  color: #fff;
+  font-family: 'JetBrainsMono', monospace;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.tiptap pre code {
+  color: inherit;
+  padding: 0;
+  background: none;
+  font-size: 0.8rem;
+}
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ===== Lenis 平滑滚动支持 ===== */
+html.lenis,
+html.lenis body {
+  height: auto;
+  will-change: transform;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}

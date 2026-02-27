@@ -1,0 +1,77 @@
+{
+  "app": {
+    "name": "Knowledge Base",
+    "slogan": "Share knowledge, deliver value"
+  },
+  "actions": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "loadMore": "Load More",
+    "noData": "No Data",
+    "submit": "Submit",
+    "reset": "Reset",
+    "back": "Back",
+    "close": "Close",
+    "refresh": "Refresh",
+    "menu": "Menu",
+    "themeSettings": "Theme Settings",
+    "toggleTheme": "Toggle Theme",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
+    "notifications": "Notifications",
+    "searchMenu": "Search Menu...",
+    "selectMenuToViewChildren": "Select a menu to view submenus"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "user": {
+    "anonymous": "Anonymous"
+  },
+  "footer": {
+    "followUs": "Follow Us",
+    "location": "China · Beijing"
+  },
+  "home": {
+    "building": "Frontend framework building...",
+    "explore": "Explore Now"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "desc": "The page does not exist or has been removed",
+    "backHome": "Back Home",
+    "lost": "404 Page Lost"
+  },
+  "errors": {
+    "noMatchingMenu": "No matching menu found",
+    "networkError": "Network error, please try again later",
+    "serverError": "Server Error",
+    "notFound": "Page Not Found",
+    "unauthorized": "Unauthorized Access",
+    "forbidden": "Access Forbidden",
+    "unknownError": "Unknown Error"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow"
+  },
+  "status": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info"
+  }
+}

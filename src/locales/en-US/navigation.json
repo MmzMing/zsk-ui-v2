@@ -1,0 +1,46 @@
+{
+  "menu": {
+    "home": "Home",
+    "resume": "Resume Editor",
+    "ai": "AI Features",
+    "about": "About",
+    "profile": "Profile",
+    "admin": "Admin",
+    "dashboard": "Dashboard",
+    "user": "User Management",
+    "users": "User List",
+    "articles": "Articles",
+    "categories": "Categories",
+    "myArticles": "My Articles",
+    "comments": "Comments",
+    "content": "Content",
+    "roles": "Roles",
+    "interaction": "Interaction",
+    "messages": "Messages",
+    "analysis": "Analysis",
+    "system": "System",
+    "general": "General",
+    "theme": "Theme",
+    "language": "Language",
+    "test": "Test"
+  },
+  "user": {
+    "login": "Login",
+    "settings": "Settings",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "footer": {
+    "browse": "Browse",
+    "home": "Home",
+    "articles": "Articles",
+    "categories": "Categories",
+    "about": "About",
+    "law": "Law",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact",
+    "feedback": "Feedback",
+    "cooperation": "Cooperation"
+  }
+}

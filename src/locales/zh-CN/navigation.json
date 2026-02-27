@@ -1,0 +1,46 @@
+{
+  "menu": {
+    "home": "首页",
+    "resume": "简历编辑",
+    "ai": "AI功能",
+    "about": "关于博主",
+    "profile": "个人中心",
+    "admin": "后台管理",
+    "dashboard": "仪表盘",
+    "user": "用户管理",
+    "users": "用户列表",
+    "articles": "文章管理",
+    "categories": "分类管理",
+    "myArticles": "我的文章",
+    "comments": "评论管理",
+    "content": "内容管理",
+    "roles": "角色管理",
+    "interaction": "互动管理",
+    "messages": "留言管理",
+    "analysis": "数据分析",
+    "system": "系统设置",
+    "general": "基础设置",
+    "theme": "主题设置",
+    "language": "语言",
+    "test": "测试"
+  },
+  "user": {
+    "login": "登录",
+    "settings": "设置",
+    "logout": "退出登录",
+    "profile": "个人资料"
+  },
+  "footer": {
+    "browse": "浏览",
+    "home": "首页",
+    "articles": "文章",
+    "categories": "分类",
+    "about": "关于",
+    "law": "法律",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "contact": "联系",
+    "feedback": "反馈建议",
+    "cooperation": "广告合作"
+  }
+}

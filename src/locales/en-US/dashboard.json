@@ -1,0 +1,27 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome back, today is {{date}}",
+  "stats": {
+    "articles": "Total Articles",
+    "users": "Total Users",
+    "visits": "Today's Visits",
+    "comments": "Total Comments"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "writeArticle": "Write Article",
+    "writeArticleDesc": "Create new article",
+    "manageUsers": "Manage Users",
+    "manageUsersDesc": "Manage user permissions",
+    "systemSettings": "System Settings",
+    "systemSettingsDesc": "Configure system parameters",
+    "dataAnalysis": "Data Analysis",
+    "dataAnalysisDesc": "View statistics reports"
+  },
+  "latestArticles": {
+    "title": "Latest Articles"
+  },
+  "latestComments": {
+    "title": "Latest Comments"
+  }
+}

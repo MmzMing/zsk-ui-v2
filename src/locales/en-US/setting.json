@@ -1,0 +1,51 @@
+{
+  "title": "Theme Settings",
+  "reset": "Reset theme settings",
+  "close": "Close theme settings panel",
+  "themeMode": {
+    "title": "Theme Mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "primaryColor": {
+    "title": "Primary Color",
+    "default": "Default Blue",
+    "green": "Fresh Green",
+    "purple": "Mystic Purple",
+    "orange": "Vibrant Orange",
+    "pink": "Girl Pink"
+  },
+  "menuLayout": {
+    "title": "Menu Layout",
+    "vertical": "Vertical",
+    "horizontal": "Horizontal",
+    "mixed": "Mixed",
+    "dual": "Dual",
+    "dock": "Dock"
+  },
+  "pageTransition": {
+    "title": "Page Transition",
+    "none": "None",
+    "fade": "Fade",
+    "slide": "Slide",
+    "zoom": "Zoom",
+    "layered": "Layered"
+  },
+  "layoutSettings": {
+    "title": "Layout Settings",
+    "multiTab": "Multi-tab",
+    "breadcrumb": "Breadcrumb",
+    "sidebarAccordion": "Sidebar Accordion",
+    "enableBorder": "Enable Border",
+    "enableShadow": "Enable Shadow"
+  },
+  "animationSettings": {
+    "title": "Animation Settings",
+    "clickSpark": "Click Spark",
+    "colorWeak": "Color Blind Mode"
+  },
+  "menuWidth": "Menu Width",
+  "globalRadius": "Global Radius",
+  "fontSize": "Font Size"
+}

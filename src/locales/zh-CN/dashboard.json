@@ -1,0 +1,27 @@
+{
+  "title": "仪表盘",
+  "welcome": "欢迎回来，今天是 {{date}}",
+  "stats": {
+    "articles": "文章总数",
+    "users": "用户数量",
+    "visits": "今日访问",
+    "comments": "评论数量"
+  },
+  "quickActions": {
+    "title": "快捷操作",
+    "writeArticle": "写文章",
+    "writeArticleDesc": "创建新的文章",
+    "manageUsers": "用户管理",
+    "manageUsersDesc": "管理用户权限",
+    "systemSettings": "系统设置",
+    "systemSettingsDesc": "配置系统参数",
+    "dataAnalysis": "数据分析",
+    "dataAnalysisDesc": "查看统计报表"
+  },
+  "latestArticles": {
+    "title": "最新文章"
+  },
+  "latestComments": {
+    "title": "最新评论"
+  }
+}
