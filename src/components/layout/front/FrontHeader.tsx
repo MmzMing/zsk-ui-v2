@@ -470,7 +470,7 @@ export default function FrontHeader({
                     variant="light"
                     isIconOnly
                     size="sm"
-                    className="min-w-8 w-8 h-8 rounded-full"
+                    className="min-w-8 w-8 h-8 rounded-full !text-default-600 hover:!text-default-900"
                     onPress={() => setIsSearchOpen(true)}
                   >
                     <HiOutlineSearch className="text-base" />

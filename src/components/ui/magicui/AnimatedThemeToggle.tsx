@@ -99,7 +99,7 @@ export function AnimatedThemeToggle({
         'relative flex items-center justify-center',
         'w-9 h-9 rounded-full',
         'bg-default-100 hover:bg-default-200',
-        'text-default-600 hover:text-default-900',
+        '!text-default-600 hover:!text-default-900',
         'transition-colors duration-200',
         'focus:outline-none focus:ring-2 focus:ring-default-500/50',
         className

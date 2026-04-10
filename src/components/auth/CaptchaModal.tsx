@@ -43,7 +43,7 @@ export const CaptchaModal = forwardRef<CaptchaModalRef, CaptchaModalProps>(({ on
     refresh: () => actionRef.current?.refresh()
   }))
 
-  const handleVerify = async (data: any) => {
+  const handleVerify = async (data: { x: number }) => {
     // 调用后端校验接口
     // data.x 为滑块拖动的水平距离
     const verification = await checkCaptcha({

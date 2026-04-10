@@ -16,6 +16,7 @@ import { validateAccount, validatePassword } from '@/utils/validate'
 import { useUserStore } from '@/stores/user'
 import { encryptPassword } from '@/utils/crypto'
 import { setStorage, STORAGE_KEYS } from '@/utils/storage'
+import { AuthLayout } from '../AuthLayout'
 
 export default function LoginPage() {
   const { t } = useTranslation('auth')
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0)
   const [isCodeSent, setIsCodeSent] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   
   const [formData, setFormData] = useState({
     username: '',
@@ -71,12 +73,15 @@ export default function LoginPage() {
     setErrors(prev => ({ ...prev, [key]: error }))
   }
 
-  const handleInputChange = (key: string, value: any) => {
+  const handleInputChange = (key: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [key]: value }))
     
     // 如果已经触发过校验（或者正在输入），实时更新错误状态
     if (touched[key as keyof typeof touched]) {
-      validateField(key, value)
+      // 只有当 value 是字符串时才调用 validateField
+      if (typeof value === 'string') {
+        validateField(key, value)
+      }
     } else if (errors[key as keyof typeof errors]) {
       // 如果已经有错误（比如提交后），也实时更新
       setErrors(prev => ({ ...prev, [key]: '' }))
@@ -86,6 +91,7 @@ export default function LoginPage() {
   const handleBlur = (key: string) => {
     setTouched(prev => ({ ...prev, [key]: true }))
     validateField(key, formData[key as keyof typeof formData] as string)
+    setIsTyping(false)
   }
 
   // 倒计时
@@ -221,11 +227,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-content2/20 px-4">
-      <div className="w-full max-w-md p-8 space-y-8 bg-content1 rounded-2xl shadow-xl">
-        <div className="text-center">
+    <AuthLayout
+      isTyping={isTyping}
+      showPassword={isVisible}
+      passwordLength={formData.password.length}
+    >
+      <div className="space-y-8">
+        <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">{t('login.header')}</h1>
-          <p className="text-default-500 mt-2">{t('login.subtitle')}</p>
+          <p className="text-default-500">{t('login.subtitle')}</p>
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -238,6 +248,7 @@ export default function LoginPage() {
               value={formData.username}
               onValueChange={(v) => handleInputChange('username', v)}
               onBlur={() => handleBlur('username')}
+              onFocus={() => setIsTyping(true)}
               isInvalid={!!errors.username}
               errorMessage={errors.username}
             />
@@ -249,6 +260,7 @@ export default function LoginPage() {
               value={formData.password}
               onValueChange={(v) => handleInputChange('password', v)}
               onBlur={() => handleBlur('password')}
+              onFocus={() => setIsTyping(true)}
               isInvalid={!!errors.password}
               errorMessage={errors.password}
               endContent={
@@ -285,7 +297,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <Button 
-                  color="default" 
+                  color="primary" 
                   variant="flat" 
                   className="h-10"
                   onPress={handleSendCodeClick}
@@ -342,33 +354,36 @@ export default function LoginPage() {
           <div className="flex justify-center gap-6">
             <Button
               isIconOnly
-              variant="light"
+              variant="flat"
+              radius="full"
               onPress={() => handleThirdPartyLogin('github')}
-              className="w-12 h-12 min-w-12 rounded-full hover:bg-default-100"
+              className="w-12 h-12 min-w-12 hover:bg-default-100"
             >
-              <Github size={28} />
+              <Github size={24} />
             </Button>
             <Button
               isIconOnly
-              variant="light"
+              variant="flat"
+              radius="full"
               onPress={() => handleThirdPartyLogin('qq')}
-              className="w-12 h-12 min-w-12 rounded-full text-[#12B7F5] hover:bg-[#12B7F5]/10"
+              className="w-12 h-12 min-w-12 text-[#12B7F5] hover:bg-[#12B7F5]/10"
             >
-              <FaQq size={28} />
+              <FaQq size={24} />
             </Button>
             <Button
               isIconOnly
-              variant="light"
+              variant="flat"
+              radius="full"
               onPress={() => handleThirdPartyLogin('wechat')}
-              className="w-12 h-12 min-w-12 rounded-full text-[#07C160] hover:bg-[#07C160]/10"
+              className="w-12 h-12 min-w-12 text-[#07C160] hover:bg-[#07C160]/10"
             >
-              <FaWeixin size={28} />
+              <FaWeixin size={24} />
             </Button>
           </div>
         </form>
 
         {/* 页脚隐私协议 */}
-        <div className="pt-6 border-t border-default-100 text-center text-xs text-default-400">
+        <div className="pt-6 border-t border-divider text-center text-xs text-default-400">
           {t('login.policyPrefix')}
           <Button 
             variant="light" 
@@ -390,10 +405,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-
       <CaptchaModal ref={captchaRef} onVerify={handleCaptchaVerify} />
       <PolicyModal ref={policyRef} />
-    </div>
+    </AuthLayout>
   )
 }
-

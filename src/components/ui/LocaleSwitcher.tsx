@@ -19,6 +19,7 @@ export function LocaleSwitcher() {
           isIconOnly
           type="button"
           aria-label={t('actions.menu') || 'Language'}
+          className="!text-default-600 hover:!text-default-900"
         >
           <Globe className="w-5 h-5" />
         </Button>

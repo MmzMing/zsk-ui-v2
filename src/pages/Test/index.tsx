@@ -7,6 +7,7 @@ import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
 import Editor from '@/components/ui/editor'
 import { useState } from 'react'
 import { Turnstile } from '@marsidev/react-turnstile'
+import { toast } from '@/utils/toast'
 
 export default function TestPage() {
   const [content, setContent] = useState('<p>Hello Tiptap!</p>')
@@ -167,6 +168,86 @@ export default function TestPage() {
               </ul>
             </Card>
           </div>
+        </section>
+
+        <Divider />
+
+        {/* Toast 消息提示测试区域 */}
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl font-bold">Toast 消息提示</h2>
+            <p className="text-default-500 text-sm">
+              基于 HeroUI Toast 封装的全局消息提示工具，支持成功、错误、警告、信息等多种类型。
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="p-4 flex flex-col gap-3">
+              <h3 className="font-bold text-success">成功提示</h3>
+              <p className="text-xs text-default-500">用于操作成功时的反馈</p>
+              <Button 
+                color="success" 
+                variant="flat"
+                onClick={() => toast.success('这是一条成功提示消息！')}
+              >
+                显示成功 Toast
+              </Button>
+            </Card>
+
+            <Card className="p-4 flex flex-col gap-3">
+              <h3 className="font-bold text-danger">错误提示</h3>
+              <p className="text-xs text-default-500">用于操作失败或发生异常时的反馈</p>
+              <Button 
+                color="danger" 
+                variant="flat"
+                onClick={() => toast.error('这是一条错误提示消息，请检查后重试。')}
+              >
+                显示错误 Toast
+              </Button>
+            </Card>
+
+            <Card className="p-4 flex flex-col gap-3">
+              <h3 className="font-bold text-warning">警告提示</h3>
+              <p className="text-xs text-default-500">用于需要用户注意的警告信息</p>
+              <Button 
+                color="warning" 
+                variant="flat"
+                onClick={() => toast.warning('这是一条警告提示消息！')}
+              >
+                显示警告 Toast
+              </Button>
+            </Card>
+
+            <Card className="p-4 flex flex-col gap-3">
+              <h3 className="font-bold text-primary">信息提示</h3>
+              <p className="text-xs text-default-500">用于普通的信息通知</p>
+              <Button 
+                color="primary" 
+                variant="flat"
+                onClick={() => toast.info('这是一条普通的信息提示消息。')}
+              >
+                显示信息 Toast
+              </Button>
+            </Card>
+          </div>
+
+          <Card className="p-4">
+            <h3 className="font-bold mb-3">进阶用法</h3>
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                variant="bordered"
+                onClick={() => toast.success('这条消息会持续 10 秒')}
+              >
+                长时提示 (10s)
+              </Button>
+              <Button 
+                variant="bordered"
+                onClick={() => toast.info('这是一条带有描述信息的自定义 Toast')}
+              >
+                自定义配置
+              </Button>
+            </div>
+          </Card>
         </section>
 
         <Divider />

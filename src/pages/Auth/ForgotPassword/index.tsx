@@ -7,6 +7,7 @@ import { CaptchaModal, type CaptchaModalRef } from '@/components/auth'
 import { sendPasswordResetCode, verifyResetCode, resetPassword } from '@/api/auth'
 import { toast } from '@/utils/toast'
 import { Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react'
+import { AuthLayout } from '../AuthLayout'
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation('auth')
@@ -14,6 +15,7 @@ export default function ForgotPasswordPage() {
   const captchaRef = useRef<CaptchaModalRef>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   
   // 表单状态
   const [email, setEmail] = useState('')
@@ -72,7 +74,6 @@ export default function ForgotPasswordPage() {
       } catch (error) {
         console.error('验证码校验失败：', error)
       } finally {
-        // toast 在 api 层已经提示了
         setLoading(false)
       }
     }
@@ -98,7 +99,7 @@ export default function ForgotPasswordPage() {
       await resetPassword({
         email,
         verifyToken,
-        newPassword: password // 这里后端要求 RSA 加密，后续根据需要接入加密库
+        newPassword: password 
       })
       toast.success(t('forgotPassword.success'))
       navigate('/login')
@@ -109,10 +110,18 @@ export default function ForgotPasswordPage() {
     }
   }
 
+  const handleBlur = () => {
+    setIsTyping(false)
+  }
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-content2/20">
-      <div className="w-full max-w-lg p-8 bg-content1 rounded-2xl shadow-xl">
-        <div className="mb-8 text-center relative">
+    <AuthLayout
+      isTyping={isTyping}
+      showPassword={currentStep === 2}
+      passwordLength={password.length + confirmPassword.length}
+    >
+      <div className="space-y-8">
+        <div className="text-center relative">
           <Button 
             isIconOnly 
             variant="light" 
@@ -133,7 +142,7 @@ export default function ForgotPasswordPage() {
           nextButtonText={t('forgotPassword.nextStep')}
           isNextDisabled={loading}
           isLoading={loading}
-          disableStepIndicators={true} // 禁止点击步骤条切换
+          disableStepIndicators={true} 
         >
           {/* 第一步：验证身份 */}
           <Step>
@@ -143,8 +152,10 @@ export default function ForgotPasswordPage() {
                 placeholder={t('forgotPassword.emailPlaceholder')}
                 value={email}
                 onValueChange={setEmail}
+                onFocus={() => setIsTyping(true)}
+                onBlur={handleBlur}
                 startContent={<Mail className="text-default-400" size={20} />}
-                variant="bordered"
+                variant="flat"
               />
               <div className="flex gap-4">
                 <Input
@@ -152,8 +163,10 @@ export default function ForgotPasswordPage() {
                   placeholder={t('forgotPassword.codePlaceholder')}
                   value={code}
                   onValueChange={setCode}
+                  onFocus={() => setIsTyping(true)}
+                  onBlur={handleBlur}
                   startContent={<ShieldCheck className="text-default-400" size={20} />}
-                  variant="bordered"
+                  variant="flat"
                   className="flex-1"
                 />
                 <Button 
@@ -178,8 +191,10 @@ export default function ForgotPasswordPage() {
                 type="password"
                 value={password}
                 onValueChange={setPassword}
+                onFocus={() => setIsTyping(true)}
+                onBlur={handleBlur}
                 startContent={<Lock className="text-default-400" size={20} />}
-                variant="bordered"
+                variant="flat"
               />
               <Input
                 label={t('forgotPassword.confirmPassword')}
@@ -187,8 +202,10 @@ export default function ForgotPasswordPage() {
                 type="password"
                 value={confirmPassword}
                 onValueChange={setConfirmPassword}
+                onFocus={() => setIsTyping(true)}
+                onBlur={handleBlur}
                 startContent={<Lock className="text-default-400" size={20} />}
-                variant="bordered"
+                variant="flat"
                 isInvalid={confirmPassword !== '' && password !== confirmPassword}
                 errorMessage={confirmPassword !== '' && password !== confirmPassword ? t('forgotPassword.passwordMismatch') : ""}
               />
@@ -198,6 +215,6 @@ export default function ForgotPasswordPage() {
 
         <CaptchaModal ref={captchaRef} onVerify={handleCaptchaVerify} />
       </div>
-    </div>
+    </AuthLayout>
   )
 }

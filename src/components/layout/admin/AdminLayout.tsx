@@ -116,14 +116,14 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
           initial: { opacity: 0, filter: 'blur(4px)', y: 4 },
           animate: { opacity: 1, filter: 'blur(0px)', y: 0 },
           exit: { opacity: 0, filter: 'blur(4px)', y: -4 },
-          transition: { duration: 0.25, ease: "easeOut" }
+          transition: { duration: 0.25 }
         }
       case 'slide':
         return {
           initial: { opacity: 0, x: 15 },
           animate: { opacity: 1, x: 0 },
           exit: { opacity: 0, x: -15 },
-          transition: { type: "spring", stiffness: 350, damping: 25 }
+          transition: { duration: 0.3 }
         }
       case 'scale':
         return {
@@ -137,7 +137,7 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
           initial: { opacity: 0, y: 15 },
           animate: { opacity: 1, y: 0 },
           exit: { opacity: 0, y: -15 },
-          transition: { duration: 0.25, ease: "easeInOut" }
+          transition: { duration: 0.25 }
         }
       default:
         return {
@@ -162,7 +162,7 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
             initial={pageTransition !== 'none' ? currentTransition.initial : false}
             animate={pageTransition !== 'none' ? currentTransition.animate : {}}
             exit={pageTransition !== 'none' ? currentTransition.exit : {}}
-            transition={pageTransition !== 'none' ? (currentTransition.transition as any) : {}}
+            transition={pageTransition !== 'none' ? currentTransition.transition : {}}
             className="w-full h-full"
           >
             {element}

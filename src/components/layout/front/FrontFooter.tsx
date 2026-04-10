@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 import { Divider } from '@heroui/react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { 
   Mail, 
   MapPin, 
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { SiteLogo } from '@/components/ui/SiteLogo'
+import { PolicyModal, type PolicyModalRef } from '@/components/auth/PolicyModal'
 
 // 底部链接项类型
 interface FooterLink {
@@ -73,6 +74,7 @@ export default function FrontFooter({
 }: FrontFooterProps) {
   const { t } = useTranslation(['navigation', 'common'])
   const currentYear = new Date().getFullYear()
+  const policyModalRef = useRef<PolicyModalRef>(null)
 
   // 默认底部链接
   const defaultSections = useMemo<FooterSection[]>(() => [
@@ -113,6 +115,19 @@ export default function FrontFooter({
 
   // 渲染链接
   const renderLink = (link: FooterLink) => {
+    const isPolicyLink = link.href === '/privacy' || link.href === '/terms'
+    
+    const handleClick = (e: React.MouseEvent) => {
+      if (isPolicyLink) {
+        e.preventDefault()
+        if (link.href === '/privacy') {
+          policyModalRef.current?.open('privacy')
+        } else if (link.href === '/terms') {
+          policyModalRef.current?.open('terms')
+        }
+      }
+    }
+
     const content = (
       <>
         {link.icon && <span className="opacity-60 text-inherit">{link.icon}</span>}
@@ -130,6 +145,18 @@ export default function FrontFooter({
         >
           {content}
         </a>
+      )
+    }
+
+    if (isPolicyLink) {
+      return (
+        <button
+          type="button"
+          onClick={handleClick}
+          className="flex items-center gap-2 !text-default-500 hover:!text-default-900 transition-colors text-sm py-1 !no-underline bg-transparent border-none cursor-pointer text-left"
+        >
+          {content}
+        </button>
       )
     }
 
@@ -286,6 +313,7 @@ export default function FrontFooter({
           )}
         </div>
       </div>
+      <PolicyModal ref={policyModalRef} />
     </footer>
   )
 }

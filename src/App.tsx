@@ -11,8 +11,8 @@ export default function App() {
   return (
     <LenisProvider>
       <HeroUIProvider>
-        <RouterProvider router={router} />
         <ToastProvider />
+        <RouterProvider router={router} />
       </HeroUIProvider>
     </LenisProvider>
   )

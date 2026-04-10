@@ -12,6 +12,7 @@ import { CaptchaModal, type CaptchaModalRef, PolicyModal, type PolicyModalRef } 
 import { register, sendEmailCode } from '@/api/auth'
 import { toast } from '@/utils/toast'
 import { validateUsername, validateEmail, validatePassword } from '@/utils/validate'
+import { AuthLayout } from '../AuthLayout'
 
 export default function RegisterPage() {
   const { t } = useTranslation('auth')
@@ -25,6 +26,7 @@ export default function RegisterPage() {
   const [countdown, setCountdown] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const [isConfirmVisible, setIsConfirmVisible] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   
   const [formData, setFormData] = useState({
     username: '',
@@ -81,7 +83,7 @@ export default function RegisterPage() {
     return error
   }
 
-  const handleInputChange = (key: string, value: any) => {
+  const handleInputChange = (key: string, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }))
     
     // 如果已经触发过校验，或者已经有错误，则实时更新错误状态
@@ -104,6 +106,7 @@ export default function RegisterPage() {
   const handleBlur = (key: string) => {
     setTouched(prev => ({ ...prev, [key]: true }))
     validateField(key, formData[key as keyof typeof formData] as string)
+    setIsTyping(false)
   }
 
   // 发送邮件验证码
@@ -192,11 +195,15 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-content2/20 px-4">
-      <div className="w-full max-w-md p-8 space-y-8 bg-content1 rounded-2xl shadow-xl">
-        <div className="text-center">
+    <AuthLayout
+      isTyping={isTyping}
+      showPassword={isVisible || isConfirmVisible}
+      passwordLength={formData.password.length + formData.confirmPassword.length}
+    >
+      <div className="space-y-8">
+        <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">{t('register.header')}</h1>
-          <p className="text-default-500 mt-2">{t('register.subtitle')}</p>
+          <p className="text-default-500">{t('register.subtitle')}</p>
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -209,6 +216,7 @@ export default function RegisterPage() {
               value={formData.username}
               onValueChange={(v) => handleInputChange('username', v)}
               onBlur={() => handleBlur('username')}
+              onFocus={() => setIsTyping(true)}
               isInvalid={!!errors.username}
               errorMessage={errors.username}
             />
@@ -221,6 +229,7 @@ export default function RegisterPage() {
               value={formData.email}
               onValueChange={(v) => handleInputChange('email', v)}
               onBlur={() => handleBlur('email')}
+              onFocus={() => setIsTyping(true)}
               isInvalid={!!errors.email}
               errorMessage={errors.email}
             />
@@ -234,6 +243,7 @@ export default function RegisterPage() {
               value={formData.password}
               onValueChange={(v) => handleInputChange('password', v)}
               onBlur={() => handleBlur('password')}
+              onFocus={() => setIsTyping(true)}
               isInvalid={!!errors.password}
               errorMessage={errors.password}
               endContent={
@@ -255,6 +265,7 @@ export default function RegisterPage() {
               value={formData.confirmPassword}
               onValueChange={(v) => handleInputChange('confirmPassword', v)}
               onBlur={() => handleBlur('confirmPassword')}
+              onFocus={() => setIsTyping(true)}
               isInvalid={!!errors.confirmPassword}
               errorMessage={errors.confirmPassword}
               endContent={
@@ -289,9 +300,9 @@ export default function RegisterPage() {
                   />
                 </div>
                 <Button 
-                  color="default" 
+                  color="primary" 
                   variant="flat" 
-                  className="h-10 min-w-[100px] text-default-500 bg-default-100 dark:bg-default-50/10"
+                  className="h-10 min-w-[100px]"
                   onPress={handleSendCode}
                   isDisabled={countdown > 0}
                   isLoading={sendingCode}
@@ -326,7 +337,7 @@ export default function RegisterPage() {
         </form>
 
         {/* 页脚隐私协议 */}
-        <div className="pt-6 border-t border-default-100 text-center text-xs text-default-400">
+        <div className="pt-6 border-t border-divider text-center text-xs text-default-400">
           {t('register.policyPrefix')}
           <Button 
             variant="light" 
@@ -350,7 +361,6 @@ export default function RegisterPage() {
 
       <CaptchaModal ref={captchaRef} onVerify={handleCaptchaVerify} />
       <PolicyModal ref={policyRef} />
-    </div>
+    </AuthLayout>
   )
 }
-
