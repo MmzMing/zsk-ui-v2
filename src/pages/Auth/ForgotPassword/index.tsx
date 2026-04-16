@@ -1,106 +1,225 @@
-import { useState, useRef, useEffect } from 'react'
-import { Input, Button } from '@heroui/react'
+/**
+ * 忘记密码页面
+ * 
+ * 功能：提供密码找回功能，支持邮箱验证码验证和密码重置
+ * 包含 Cloudflare Turnstile 人机校验，用于获取验证码前的安全验证
+ */
+
+// ===== 1. 依赖导入区域 =====
+import { useState, useEffect } from 'react'
+import { Button, Input, InputOtp, Link } from '@heroui/react'
+import { InteractiveHoverButton } from '@/components/ui/magicui/InteractiveHoverButton'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Stepper, Step } from '@/components/ui/reactbits'
-import { CaptchaModal, type CaptchaModalRef } from '@/components/auth'
+import { Eye, EyeOff } from 'lucide-react'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { sendPasswordResetCode, verifyResetCode, resetPassword } from '@/api/auth'
 import { toast } from '@/utils/toast'
-import { Mail, Lock, ShieldCheck, ArrowLeft } from 'lucide-react'
+import { validateEmail, validatePassword } from '@/utils/validate'
 import { AuthLayout } from '../AuthLayout'
 
+// ===== 2. TODO待处理导入区域 =====
+
 export default function ForgotPasswordPage() {
+  // ===== 3. 状态控制逻辑区域 =====
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
-  const captchaRef = useRef<CaptchaModalRef>(null)
-  const [currentStep, setCurrentStep] = useState(1)
+  
   const [loading, setLoading] = useState(false)
+  const [sendingCode, setSendingCode] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+  const [isCodeSent, setIsCodeSent] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isConfirmVisible, setIsConfirmVisible] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   
-  // 表单状态
-  const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [verifyToken, setVerifyToken] = useState('')
+  // Cloudflare Turnstile 人机校验状态
+  const [turnstileToken, setTurnstileToken] = useState('')
   
-  // 倒计时
-  const [countdown, setCountdown] = useState(0)
+  const [formData, setFormData] = useState({
+    email: '',
+    code: '',
+    password: '',
+    confirmPassword: ''
+  })
 
-  // 发送验证码逻辑
-  const handleSendCode = async () => {
-    if (!email) {
-      toast.error(t('forgotPassword.emailRequired'))
-      return
+  const [errors, setErrors] = useState({
+    email: '',
+    code: '',
+    password: '',
+    confirmPassword: ''
+  })
+
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    confirmPassword: false
+  })
+
+  // ===== 4. 通用工具函数区域 =====
+
+  /**
+   * 切换密码可见性
+   */
+  const toggleVisibility = () => setIsVisible(!isVisible)
+  
+  /**
+   * 切换确认密码可见性
+   */
+  const toggleConfirmVisibility = () => setIsConfirmVisible(!isConfirmVisible)
+
+  /**
+   * 校验表单字段
+   * @param key - 字段名
+   * @param value - 字段值
+   */
+  const validateField = (key: string, value: string) => {
+    let error = ''
+    if (key === 'email') {
+      if (!validateEmail(value)) {
+        error = t('validation.emailInvalid')
+      }
+    } else if (key === 'password') {
+      const result = validatePassword(value)
+      if (!result.isValid) {
+        error = result.message || t('validation.passwordMinLength')
+      }
+    } else if (key === 'confirmPassword') {
+      if (value !== formData.password) {
+        error = t('validation.passwordMismatch')
+      }
+    } else if (key === 'code') {
+      if (value.length !== 6) {
+        error = t('validation.codeLength')
+      }
     }
-    // 打开滑块验证
-    captchaRef.current?.open()
+    setErrors(prev => ({ ...prev, [key]: error }))
+    return error
   }
 
-  // 滑块验证通过回调
-  const handleCaptchaVerify = async (verification: string) => {
-    await sendPasswordResetCode({
-      email,
-      captchaVerification: verification
-    })
-    toast.success(t('forgotPassword.codeSent'))
-    setCountdown(60)
+  /**
+   * 处理表单输入变化
+   * @param key - 字段名
+   * @param value - 字段值
+   */
+  const handleInputChange = (key: string, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }))
+    
+    if (touched[key as keyof typeof touched] || errors[key as keyof typeof errors]) {
+      if (key === 'password' && touched.confirmPassword) {
+        setErrors(prev => ({ 
+          ...prev, 
+          password: validatePassword(value).message || (validatePassword(value).isValid ? '' : t('validation.passwordMinLength')),
+          confirmPassword: value === formData.confirmPassword ? '' : t('validation.passwordMismatch')
+        }))
+      } else {
+        validateField(key, value)
+      }
+    }
   }
 
-  // 倒计时效果
+  /**
+   * 处理字段失焦
+   * @param key - 字段名
+   */
+  const handleBlur = (key: string) => {
+    setTouched(prev => ({ ...prev, [key]: true }))
+    validateField(key, formData[key as keyof typeof formData] as string)
+    setIsTyping(false)
+  }
+
+  // ===== 5. 注释代码函数区 =====
+
+  // ===== 6. 错误处理函数区域 =====
+
+  // ===== 7. 数据处理函数区域 =====
+
+  /**
+   * 验证码倒计时逻辑
+   */
   useEffect(() => {
     let timer: NodeJS.Timeout
     if (countdown > 0) {
       timer = setInterval(() => {
-        setCountdown((prev) => prev - 1)
+        setCountdown(prev => prev - 1)
       }, 1000)
     }
     return () => clearInterval(timer)
   }, [countdown])
 
-  // 下一步校验
-  const handleStepChange = async (step: number) => {
-    // 第一步：验证邮箱和验证码
-    if (step === 2 && currentStep === 1) {
-      if (!email || !code) {
-        toast.error(t('forgotPassword.infoRequired'))
-        return
-      }
-      setLoading(true)
-      try {
-        const token = await verifyResetCode({ email, code })
-        setVerifyToken(token)
-        setCurrentStep(2)
-      } catch (error) {
-        console.error('验证码校验失败：', error)
-      } finally {
-        setLoading(false)
-      }
+  /**
+   * 处理发送验证码点击事件
+   */
+  const handleSendCode = async () => {
+    const emailError = validateField('email', formData.email)
+    if (emailError) {
+      toast.error(emailError)
+      return
     }
-    // 其他步骤切换（这里主要是回退）
-    else {
-      setCurrentStep(step)
+    
+    if (!turnstileToken) {
+      toast.error(t('turnstile.verificationRequired'))
+      return
+    }
+    
+    setSendingCode(true)
+    try {
+      await sendPasswordResetCode({
+        email: formData.email,
+        captchaVerification: turnstileToken
+      })
+      toast.success(t('forgotPassword.codeSent'))
+      setCountdown(60)
+      setIsCodeSent(true)
+    } catch (error) {
+      console.error('发送验证码失败：', error)
+    } finally {
+      setSendingCode(false)
     }
   }
 
-  // 提交重置密码
-  const handleSubmit = async () => {
-    if (!password || !confirmPassword) {
-      toast.error(t('forgotPassword.passwordRequired'))
-      return
+  /**
+   * 处理表单提交
+   * @param e - 表单提交事件
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const newErrors = {
+      email: validateEmail(formData.email) ? '' : t('validation.emailInvalid'),
+      code: formData.code.length === 6 ? '' : t('validation.codeLength'),
+      password: validatePassword(formData.password).isValid ? '' : (validatePassword(formData.password).message || t('validation.passwordMinLength')),
+      confirmPassword: formData.password === formData.confirmPassword ? '' : t('validation.passwordMismatch')
     }
-    if (password !== confirmPassword) {
-      toast.error(t('forgotPassword.passwordMismatch'))
+
+    setErrors(newErrors)
+    setTouched({
+      email: true,
+      password: true,
+      confirmPassword: true
+    })
+
+    const hasError = Object.values(newErrors).some(err => err !== '')
+    if (hasError) {
+      toast.error(t('forgotPassword.formCheck'))
       return
     }
 
     setLoading(true)
     try {
-      await resetPassword({
-        email,
-        verifyToken,
-        newPassword: password 
+      // 第一步：验证验证码
+      const token = await verifyResetCode({ 
+        email: formData.email, 
+        code: formData.code 
       })
+      
+      // 第二步：重置密码
+      await resetPassword({
+        email: formData.email,
+        verifyToken: token,
+        newPassword: formData.password 
+      })
+      
       toast.success(t('forgotPassword.success'))
       navigate('/login')
     } catch (error) {
@@ -110,110 +229,173 @@ export default function ForgotPasswordPage() {
     }
   }
 
-  const handleBlur = () => {
-    setIsTyping(false)
-  }
+  // ===== 8. UI渲染逻辑区域 =====
+  
+  // ===== 9. 页面初始化与事件绑定 =====
 
+  // ===== 10. TODO任务管理区域 =====
+
+  // ===== 11. 导出区域 =====
   return (
     <AuthLayout
       isTyping={isTyping}
-      showPassword={currentStep === 2}
-      passwordLength={password.length + confirmPassword.length}
+      showPassword={isVisible || isConfirmVisible}
+      passwordLength={formData.password.length + formData.confirmPassword.length}
     >
       <div className="space-y-8">
-        <div className="text-center relative">
-          <Button 
-            isIconOnly 
-            variant="light" 
-            className="absolute left-0 top-0" 
-            onPress={() => navigate('/login')}
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <h1 className="text-2xl font-bold">{t('forgotPassword.title')}</h1>
-          <p className="text-default-500 text-sm mt-2">{t('forgotPassword.subtitle')}</p>
+        {/* 页面标题区域 */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">{t('forgotPassword.title')}</h1>
+          <p className="text-default-500">{t('forgotPassword.subtitle')}</p>
         </div>
 
-        <Stepper
-          initialStep={1}
-          onStepChange={handleStepChange}
-          onFinalStepCompleted={handleSubmit}
-          backButtonText={t('forgotPassword.prevStep')}
-          nextButtonText={t('forgotPassword.nextStep')}
-          isNextDisabled={loading}
-          isLoading={loading}
-          disableStepIndicators={true} 
-        >
-          {/* 第一步：验证身份 */}
-          <Step>
-            <div className="space-y-6 py-4">
-              <Input
-                label={t('forgotPassword.email')}
-                placeholder={t('forgotPassword.emailPlaceholder')}
-                value={email}
-                onValueChange={setEmail}
-                onFocus={() => setIsTyping(true)}
-                onBlur={handleBlur}
-                startContent={<Mail className="text-default-400" size={20} />}
-                variant="flat"
-              />
-              <div className="flex gap-4">
-                <Input
-                  label={t('forgotPassword.code')}
-                  placeholder={t('forgotPassword.codePlaceholder')}
-                  value={code}
-                  onValueChange={setCode}
-                  onFocus={() => setIsTyping(true)}
-                  onBlur={handleBlur}
-                  startContent={<ShieldCheck className="text-default-400" size={20} />}
+        {/* 重置密码表单 */}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            {/* 邮箱输入框 */}
+            <Input
+              label={t('forgotPassword.email')}
+              description={t('forgotPassword.emailPlaceholder')}
+              type="email"
+              variant="flat"
+              labelPlacement="inside"
+              value={formData.email}
+              onValueChange={(v) => handleInputChange('email', v)}
+              onBlur={() => handleBlur('email')}
+              onFocus={() => setIsTyping(true)}
+              isInvalid={!!errors.email}
+              errorMessage={errors.email}
+            />
+            
+            {/* 验证码区域 */}
+            <div className="flex flex-col gap-2">
+              {/* 验证码输入框和获取按钮 */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <InputOtp
+                    length={6}
+                    size="md"
+                    radius="lg"
+                    variant="flat"
+                    value={formData.code}
+                    isInvalid={!!errors.code}
+                    isDisabled={!isCodeSent}
+                    onValueChange={(v) => handleInputChange('code', v)}
+                    classNames={{
+                      base: `w-full ${!isCodeSent ? 'opacity-50 cursor-not-allowed' : ''}`,
+                      wrapper: "w-full",
+                      segmentWrapper: "w-full justify-between gap-1",
+                      segment: `flex-1 h-10 text-md min-w-0 !rounded-[8px] ${!isCodeSent ? 'pointer-events-none' : ''}`,
+                      helperWrapper: "hidden"
+                    }}
+                  />
+                </div>
+                <Button
+                  color="primary"
                   variant="flat"
-                  className="flex-1"
-                />
-                <Button 
-                  color="primary" 
-                  variant="flat" 
-                  className="h-14 w-32"
+                  className="h-10"
                   onPress={handleSendCode}
-                  isDisabled={countdown > 0 || !email}
+                  isDisabled={countdown > 0}
+                  isLoading={sendingCode}
                 >
                   {countdown > 0 ? t('common.seconds', { count: countdown }) : t('common.getCode')}
                 </Button>
               </div>
+              
+              {/* Cloudflare Turnstile 人机校验 */}
+              <div className="flex justify-start">
+                <Turnstile
+                  siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => {
+                    setTurnstileToken(token)
+                  }}
+                  onError={() => {
+                    setTurnstileToken('')
+                  }}
+                  onExpire={() => {
+                    setTurnstileToken('')
+                  }}
+                  onTimeout={() => {
+                    setTurnstileToken('')
+                  }}
+                />
+              </div>
+              
+              {/* 验证码错误提示 */}
+              {errors.code && (
+                <div className="text-tiny text-danger px-1">
+                  {errors.code}
+                </div>
+              )}
             </div>
-          </Step>
+            
+            {/* 新密码输入框 */}
+            <Input
+              label={t('forgotPassword.newPassword')}
+              description={t('forgotPassword.newPasswordPlaceholder')}
+              type={isVisible ? "text" : "password"}
+              variant="flat"
+              labelPlacement="inside"
+              value={formData.password}
+              onValueChange={(v) => handleInputChange('password', v)}
+              onBlur={() => handleBlur('password')}
+              onFocus={() => setIsTyping(true)}
+              isInvalid={!!errors.password}
+              errorMessage={errors.password}
+              endContent={
+                <button className="focus:outline-none" type="button" onClick={toggleVisibility}>
+                  {isVisible ? (
+                    <EyeOff className="text-2xl text-default-400 pointer-events-none" />
+                  ) : (
+                    <Eye className="text-2xl text-default-400 pointer-events-none" />
+                  )}
+                </button>
+              }
+            />
+            
+            {/* 确认密码输入框 */}
+            <Input
+              label={t('forgotPassword.confirmPassword')}
+              description={t('forgotPassword.confirmPasswordPlaceholder')}
+              type={isConfirmVisible ? "text" : "password"}
+              variant="flat"
+              labelPlacement="inside"
+              value={formData.confirmPassword}
+              onValueChange={(v) => handleInputChange('confirmPassword', v)}
+              onBlur={() => handleBlur('confirmPassword')}
+              onFocus={() => setIsTyping(true)}
+              isInvalid={!!errors.confirmPassword}
+              errorMessage={errors.confirmPassword}
+              endContent={
+                <button className="focus:outline-none" type="button" onClick={toggleConfirmVisibility}>
+                  {isConfirmVisible ? (
+                    <EyeOff className="text-2xl text-default-400 pointer-events-none" />
+                  ) : (
+                    <Eye className="text-2xl text-default-400 pointer-events-none" />
+                  )}
+                </button>
+              }
+            />
+          </div>
 
-          {/* 第二步：重置密码 */}
-          <Step>
-            <div className="space-y-6 py-4">
-              <Input
-                label={t('forgotPassword.newPassword')}
-                placeholder={t('forgotPassword.newPasswordPlaceholder')}
-                type="password"
-                value={password}
-                onValueChange={setPassword}
-                onFocus={() => setIsTyping(true)}
-                onBlur={handleBlur}
-                startContent={<Lock className="text-default-400" size={20} />}
-                variant="flat"
-              />
-              <Input
-                label={t('forgotPassword.confirmPassword')}
-                placeholder={t('forgotPassword.confirmPasswordPlaceholder')}
-                type="password"
-                value={confirmPassword}
-                onValueChange={setConfirmPassword}
-                onFocus={() => setIsTyping(true)}
-                onBlur={handleBlur}
-                startContent={<Lock className="text-default-400" size={20} />}
-                variant="flat"
-                isInvalid={confirmPassword !== '' && password !== confirmPassword}
-                errorMessage={confirmPassword !== '' && password !== confirmPassword ? t('forgotPassword.passwordMismatch') : ""}
-              />
-            </div>
-          </Step>
-        </Stepper>
+          {/* 提交按钮 */}
+          <div className="flex justify-center">
+            <InteractiveHoverButton
+              type="submit"
+              className="w-full"
+              disabled={loading || !isCodeSent}
+            >
+              {loading ? t('forgotPassword.resetting') : t('forgotPassword.submit')}
+            </InteractiveHoverButton>
+          </div>
 
-        <CaptchaModal ref={captchaRef} onVerify={handleCaptchaVerify} />
+          {/* 返回登录链接 */}
+          <div className="text-center text-sm">
+            <Link href="/login" size="sm" className="font-medium">
+              {t('forgotPassword.backToLogin')}
+            </Link>
+          </div>
+        </form>
       </div>
     </AuthLayout>
   )

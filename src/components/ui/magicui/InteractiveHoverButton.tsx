@@ -12,7 +12,7 @@ export const InteractiveHoverButton = React.forwardRef<
     <button
       ref={ref}
       className={cn(
-        "group relative w-auto cursor-pointer overflow-hidden !rounded-full border border-default-300 bg-default-100/50 p-2 px-6 text-center font-semibold text-default-700 hover:text-default-900 dark:border-default-200 dark:bg-default-50/10 dark:text-default-300 dark:hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none",
+        "group relative w-auto cursor-pointer overflow-hidden rounded-lg border border-default-300 bg-default-100/50 p-2 px-6 text-center font-semibold text-default-700 hover:text-default-900 dark:border-default-200 dark:bg-default-50/10 dark:text-default-300 dark:hover:text-white disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}
@@ -23,9 +23,9 @@ export const InteractiveHoverButton = React.forwardRef<
           {children}
         </span>
       </div>
-      <div className="absolute top-0 z-10 flex h-full w-full translate-x-12 items-center justify-center gap-2 text-default-900 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 dark:text-white">
-        <span className="inline-block translate-x-[10px] group-hover:translate-x-0 transition-transform duration-300">{children}</span>
-        <ArrowRight />
+      <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 text-default-900 opacity-0 transition-all duration-300 group-hover:opacity-100 dark:text-white">
+        <span className="inline-block translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">{children}</span>
+        <ArrowRight className="translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300" />
       </div>
     </button>
   );

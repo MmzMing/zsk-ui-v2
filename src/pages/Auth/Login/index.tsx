@@ -1,15 +1,20 @@
 /**
  * 登录页面
+ * 
+ * 功能：提供用户登录入口，支持账号密码登录和第三方登录
+ * 包含 Cloudflare Turnstile 人机校验，用于获取验证码前的安全验证
  */
 
+// ===== 1. 依赖导入区域 =====
 import { useState, useRef, useEffect } from 'react'
-import { Button, Input, Checkbox, Link, InputOtp, Divider } from '@heroui/react'
+import { Button, Input, Link, InputOtp, Divider } from '@heroui/react'
 import { InteractiveHoverButton } from '@/components/ui/magicui/InteractiveHoverButton'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, Github } from 'lucide-react'
 import { FaQq, FaWeixin } from 'react-icons/fa'
-import { CaptchaModal, type CaptchaModalRef, PolicyModal, type PolicyModalRef } from '@/components/auth'
+import { Turnstile } from '@marsidev/react-turnstile'
+import { PolicyModal, type PolicyModalRef } from '@/components/auth'
 import { login, getPublicKey, sendEmailCode, getThirdPartyUrl } from '@/api/auth'
 import { toast } from '@/utils/toast'
 import { validateAccount, validatePassword } from '@/utils/validate'
@@ -18,12 +23,14 @@ import { encryptPassword } from '@/utils/crypto'
 import { setStorage, STORAGE_KEYS } from '@/utils/storage'
 import { AuthLayout } from '../AuthLayout'
 
+// ===== 2. TODO待处理导入区域 =====
+
 export default function LoginPage() {
+  // ===== 3. 状态控制逻辑区域 =====
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
   const setUserInfo = useUserStore(state => state.setUserInfo)
   
-  const captchaRef = useRef<CaptchaModalRef>(null)
   const policyRef = useRef<PolicyModalRef>(null)
   
   const [loading, setLoading] = useState(false)
@@ -33,11 +40,13 @@ export default function LoginPage() {
   const [isVisible, setIsVisible] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   
+  // Cloudflare Turnstile 人机校验状态
+  const [turnstileToken, setTurnstileToken] = useState('')
+  
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    emailCode: '',
-    remember: false
+    emailCode: ''
   })
   
   const [errors, setErrors] = useState({
@@ -51,8 +60,18 @@ export default function LoginPage() {
     password: false
   })
 
+  // ===== 4. 通用工具函数区域 =====
+  
+  /**
+   * 切换密码可见性
+   */
   const toggleVisibility = () => setIsVisible(!isVisible)
 
+  /**
+   * 校验表单字段
+   * @param key - 字段名
+   * @param value - 字段值
+   */
   const validateField = (key: string, value: string) => {
     let error = ''
     if (key === 'username') {
@@ -73,28 +92,44 @@ export default function LoginPage() {
     setErrors(prev => ({ ...prev, [key]: error }))
   }
 
+  /**
+   * 处理表单输入变化
+   * @param key - 字段名
+   * @param value - 字段值
+   */
   const handleInputChange = (key: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [key]: value }))
     
-    // 如果已经触发过校验（或者正在输入），实时更新错误状态
+    // 如果已经触发过校验，实时更新错误状态
     if (touched[key as keyof typeof touched]) {
-      // 只有当 value 是字符串时才调用 validateField
       if (typeof value === 'string') {
         validateField(key, value)
       }
     } else if (errors[key as keyof typeof errors]) {
-      // 如果已经有错误（比如提交后），也实时更新
+      // 如果已经有错误，清除错误
       setErrors(prev => ({ ...prev, [key]: '' }))
     }
   }
 
+  /**
+   * 处理字段失焦
+   * @param key - 字段名
+   */
   const handleBlur = (key: string) => {
     setTouched(prev => ({ ...prev, [key]: true }))
     validateField(key, formData[key as keyof typeof formData] as string)
     setIsTyping(false)
   }
 
-  // 倒计时
+  // ===== 5. 注释代码函数区 =====
+
+  // ===== 6. 错误处理函数区域 =====
+
+  // ===== 7. 数据处理函数区域 =====
+
+  /**
+   * 验证码倒计时逻辑
+   */
   useEffect(() => {
     let timer: NodeJS.Timeout
     if (countdown > 0) {
@@ -105,24 +140,29 @@ export default function LoginPage() {
     return () => clearInterval(timer)
   }, [countdown])
 
-  // 点击发送验证码
-  const handleSendCodeClick = () => {
+  /**
+   * 处理发送验证码点击事件
+   * 需先完成 Turnstile 人机校验才能发送验证码
+   */
+  const handleSendCodeClick = async () => {
+    // 校验账号是否输入
     if (!formData.username) {
       toast.error(t('login.accountRequired'))
       return
     }
-    captchaRef.current?.open()
-  }
-
-  // 滑块验证成功回调
-  const handleCaptchaVerify = async (verification: string) => {
+    
+    // 校验 Turnstile 是否完成
+    if (!turnstileToken) {
+      toast.error(t('turnstile.verificationRequired'))
+      return
+    }
+    
     setSendingCode(true)
     try {
-      // 这里的接口可能是根据用户名或邮箱发送验证码
-      // 根据文档：带着一次性token去调用后端的邮箱接口
+      // 调用发送验证码接口，携带 Turnstile token
       await sendEmailCode({
-        email: formData.username, // 假设账号就是邮箱，或者后端能识别
-        captchaVerification: verification
+        email: formData.username,
+        captchaVerification: turnstileToken
       })
       toast.success(t('login.codeSent'))
       setCountdown(60)
@@ -134,6 +174,10 @@ export default function LoginPage() {
     }
   }
 
+  /**
+   * 处理表单提交
+   * @param e - 表单提交事件
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -144,18 +188,23 @@ export default function LoginPage() {
     }
     let hasError = false
 
+    // 校验账号
     const accountResult = validateAccount(formData.username)
     if (!accountResult.isValid) {
-      newErrors.username = formData.username.includes('@') ? t('validation.emailInvalid') : t('validation.usernameFormat')
+      newErrors.username = formData.username.includes('@') 
+        ? t('validation.emailInvalid') 
+        : t('validation.usernameFormat')
       hasError = true
     }
 
+    // 校验密码
     const passwordResult = validatePassword(formData.password)
     if (!passwordResult.isValid) {
       newErrors.password = t('validation.passwordMinLength')
       hasError = true
     }
 
+    // 校验验证码
     if (!formData.emailCode) {
       newErrors.emailCode = t('validation.codeRequired')
       hasError = true
@@ -177,23 +226,24 @@ export default function LoginPage() {
       // 2. 加密密码
       const encryptedPassword = encryptPassword(formData.password, publicKey)
       
-      // 3. 登录
+      // 3. 调用登录接口
       const res = await login({
         username: formData.username,
         password: encryptedPassword,
         emailCode: formData.emailCode,
-        loginType: 'password_code' // 假设的类型
+        loginType: 'password_code'
       })
       
-      // 4. 保存到 Cookie
+      // 4. 保存登录状态到 Cookie
       setStorage(STORAGE_KEYS.TOKEN, res.accessToken, 'cookie')
       setStorage(STORAGE_KEYS.USER_INFO, res, 'cookie')
       
+      // 5. 更新全局用户状态
       setUserInfo({
         id: res.userId.toString(),
         name: res.username,
         avatar: res.avatar,
-        email: formData.username, // 暂时用账号填充
+        email: formData.username,
         role: 'user',
         status: 'active',
         createdAt: new Date().toISOString(),
@@ -209,7 +259,10 @@ export default function LoginPage() {
     }
   }
 
-  // 第三方登录
+  /**
+   * 处理第三方登录
+   * @param type - 第三方登录类型（github/qq/wechat）
+   */
   const handleThirdPartyLogin = async (type: string) => {
     try {
       // 存储当前登录类型，以便回调时使用
@@ -226,6 +279,13 @@ export default function LoginPage() {
     }
   }
 
+  // ===== 8. UI渲染逻辑区域 =====
+  
+  // ===== 9. 页面初始化与事件绑定 =====
+
+  // ===== 10. TODO任务管理区域 =====
+
+  // ===== 11. 导出区域 =====
   return (
     <AuthLayout
       isTyping={isTyping}
@@ -233,13 +293,16 @@ export default function LoginPage() {
       passwordLength={formData.password.length}
     >
       <div className="space-y-8">
+        {/* 页面标题区域 */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">{t('login.header')}</h1>
           <p className="text-default-500">{t('login.subtitle')}</p>
         </div>
 
+        {/* 登录表单 */}
         <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div>
+            {/* 账号输入框 */}
             <Input
               label={t('login.account')}
               description={t('login.accountPlaceholder')}
@@ -252,6 +315,8 @@ export default function LoginPage() {
               isInvalid={!!errors.username}
               errorMessage={errors.username}
             />
+            
+            {/* 密码输入框 */}
             <Input
               label={t('login.password')}
               description={t('login.passwordPlaceholder')}
@@ -275,7 +340,9 @@ export default function LoginPage() {
               type={isVisible ? "text" : "password"}
             />
             
+            {/* 验证码区域 */}
             <div className="flex flex-col gap-2">
+              {/* 验证码输入框和获取按钮 */}
               <div className="flex items-center gap-3">
                 <div className="flex-1">
                   <InputOtp
@@ -296,9 +363,9 @@ export default function LoginPage() {
                     }}
                   />
                 </div>
-                <Button 
-                  color="primary" 
-                  variant="flat" 
+                <Button
+                  color="primary"
+                  variant="flat"
                   className="h-10"
                   onPress={handleSendCodeClick}
                   isDisabled={countdown > 0}
@@ -307,6 +374,27 @@ export default function LoginPage() {
                   {countdown > 0 ? t('common.seconds', { count: countdown }) : t('common.getCode')}
                 </Button>
               </div>
+              
+              {/* Cloudflare Turnstile 人机校验 */}
+              <div className="flex justify-start">
+                <Turnstile
+                  siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => {
+                    setTurnstileToken(token)
+                  }}
+                  onError={() => {
+                    setTurnstileToken('')
+                  }}
+                  onExpire={() => {
+                    setTurnstileToken('')
+                  }}
+                  onTimeout={() => {
+                    setTurnstileToken('')
+                  }}
+                />
+              </div>
+              
+              {/* 验证码错误提示 */}
               {errors.emailCode && (
                 <div className="text-tiny text-danger px-1">
                   {errors.emailCode}
@@ -315,19 +403,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <Checkbox 
-              isSelected={formData.remember} 
-              onValueChange={(v) => handleInputChange('remember', v)}
-              size="sm"
-            >
-              {t('login.rememberMe')}
-            </Checkbox>
-            <Link href="/forgot-password" size="sm" color="primary">
-              {t('login.forgotPassword')}
-            </Link>
-          </div>
-
+          {/* 登录按钮 */}
           <div className="flex justify-center">
             <InteractiveHoverButton
               type="submit"
@@ -338,19 +414,26 @@ export default function LoginPage() {
             </InteractiveHoverButton>
           </div>
 
+          {/* 注册链接和忘记密码 */}
           <div className="text-center text-sm">
             <span className="text-default-500">{t('login.noAccount')}</span>
             <Link href="/register" size="sm" className="ml-1 font-medium">
               {t('login.registerNow')}
             </Link>
+            <span className="text-default-400 mx-2">|</span>
+            <Link href="/forgot-password" size="sm" color="primary">
+              {t('login.forgotPassword')}
+            </Link>
           </div>
 
+          {/* 第三方登录分隔线 */}
           <div className="flex items-center gap-4 w-full">
             <Divider className="flex-1" />
             <span className="text-tiny text-default-400">其他登录方式</span>
             <Divider className="flex-1" />
           </div>
 
+          {/* 第三方登录按钮 */}
           <div className="flex justify-center gap-6">
             <Button
               isIconOnly
@@ -385,18 +468,18 @@ export default function LoginPage() {
         {/* 页脚隐私协议 */}
         <div className="pt-6 border-t border-divider text-center text-xs text-default-400">
           {t('login.policyPrefix')}
-          <Button 
-            variant="light" 
-            size="sm" 
+          <Button
+            variant="light"
+            size="sm"
             className="px-1 h-auto min-w-0 text-xs text-primary"
             onPress={() => policyRef.current?.open('terms')}
           >
             {t('login.terms')}
           </Button>
           {t('login.policyAnd')}
-          <Button 
-            variant="light" 
-            size="sm" 
+          <Button
+            variant="light"
+            size="sm"
             className="px-1 h-auto min-w-0 text-xs text-primary"
             onPress={() => policyRef.current?.open('privacy')}
           >
@@ -405,7 +488,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <CaptchaModal ref={captchaRef} onVerify={handleCaptchaVerify} />
+      {/* 隐私政策弹窗 */}
       <PolicyModal ref={policyRef} />
     </AuthLayout>
   )
