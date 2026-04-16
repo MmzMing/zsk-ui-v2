@@ -35,14 +35,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
               className="flex items-center gap-2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate('/')}
             >
-              {/* <img
-                src="/logo/MyLogoSvg.svg"
-                alt="Logo"
-                className="w-8 h-8 rounded-lg object-contain bg-content1/50 backdrop-blur-sm p-1"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://heroui.com/favicon.ico';
-                }}
-              /> */}
               <span className="text-primary">知识库小破站</span>
             </button>
           </div>
@@ -50,7 +42,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* 中层：动画 */}
           <div className="flex items-center justify-center h-[500px]">
             <div className="transform scale-125">
-              <AnimatedCharacters
+              <AnimatedCharacters 
                 isTyping={isTyping}
                 showPassword={showPassword}
                 passwordLength={passwordLength}
