@@ -1,7 +1,9 @@
 {
   "app": {
     "name": "Knowledge Base",
-    "slogan": "Share knowledge, deliver value"
+    "slogan": "Share knowledge, deliver value",
+    "description": "Organize scattered inspirations into an orderly knowledge base",
+    "tagline": "Support various content forms including documents, videos, and tool bags to help you build a long-term maintainable knowledge system."
   },
   "actions": {
     "confirm": "Confirm",

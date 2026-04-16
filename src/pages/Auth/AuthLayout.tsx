@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AnimatedCharacters } from '@/components/ui/animated-characters';
 import { Shuffle } from '@/components/Motion/Shuffle';
 import { TextType } from '@/components/Motion/TextType';
@@ -18,6 +19,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   passwordLength = 0,
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
 
   return (
     <div className="min-h-screen flex bg-content2/20 text-foreground">
@@ -35,7 +37,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
               className="flex items-center gap-2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate('/')}
             >
-              <span className="text-primary">知识库小破站</span>
+              <span className="text-primary">{t('app.name')}</span>
             </button>
           </div>
 
@@ -54,7 +56,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           <div className="w-full">
             <div className="space-y-5 text-foreground">
               <Shuffle
-                text="将零散灵感收纳进一座有序的知识库"
+                text={t('app.description')}
                 tag="h2"
                 className="text-2xl font-semibold tracking-tight whitespace-nowrap"
                 triggerOnHover={false}
@@ -62,7 +64,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
                 loopDelay={5000}
               />
               <TextType
-                text="支持文档、视频、工具百宝袋等多种内容形态，帮助你搭建一套长期可维护的知识体系。"
+                text={t('app.tagline')}
                 asElement="p"
                 className="text-xs text-default-500 leading-relaxed whitespace-nowrap"
                 typingSpeed={50}

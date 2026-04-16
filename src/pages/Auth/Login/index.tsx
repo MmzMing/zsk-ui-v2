@@ -195,13 +195,19 @@ export default function LoginPage() {
               label={t('login.email')}
               variant="flat"
               labelPlacement="outside"
+              type="email"
               description={t('login.emailPlaceholder')}
               value={formData.email}
               onValueChange={(v) => handleInputChange('email', v)}
               isInvalid={!!errors.email}
               errorMessage={errors.email}
               onFocus={() => setIsEmailFocused(true)}
-              onBlur={() => setIsEmailFocused(false)}
+              onBlur={() => {
+                setIsEmailFocused(false)
+                validateEmailField(formData.email)
+              }}
+              autoComplete="email"
+              validationBehavior="aria"
             />
             
             {/* Cloudflare Turnstile 人机校验 */}
