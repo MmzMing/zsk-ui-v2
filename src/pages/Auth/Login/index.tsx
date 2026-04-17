@@ -14,7 +14,7 @@ import { Github } from 'lucide-react'
 import { FaQq, FaWeixin } from 'react-icons/fa'
 import { Turnstile } from '@marsidev/react-turnstile'
 import { PolicyModal, type PolicyModalRef } from '@/components/auth'
-import { getThirdPartyUrl, sendEmailCode } from '@/api/auth'
+import { getThirdPartyUrl, sendMagicLink } from '@/api/auth'
 import { toast } from '@/utils/toast'
 import { validateEmail } from '@/utils/validate'
 import { AuthLayout } from '../AuthLayout'
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
   /**
    * 处理发送登录邮件
-   * 流程：校验邮箱 -> 检查人机校验 -> 调用发送邮件接口
+   * 流程：校验邮箱 -> 检查人机校验 -> 发送魔法链接
    */
   const handleSendLoginEmail = async () => {
     // 校验邮箱
@@ -96,16 +96,17 @@ export default function LoginPage() {
     
     setLoading(true)
     try {
-      // 调用发送登录邮件接口
-      await sendEmailCode({
+      // 发送魔法链接（直接使用 turnstileToken）
+      await sendMagicLink({
         email: formData.email,
-        captchaVerification: turnstileToken
+        turnstileToken: turnstileToken
       })
       
       setEmailSent(true)
       toast.success(t('login.emailSent'))
-    } catch (error) {
+    } catch (error: any) {
       console.error('发送登录邮件失败：', error)
+      toast.error('发送魔法链接失败，请稍后重试')
     } finally {
       setLoading(false)
     }
@@ -125,7 +126,6 @@ export default function LoginPage() {
         toast.error('获取授权链接失败')
       }
     } catch (error) {
-      console.error('获取第三方登录链接失败：', error)
       toast.error('获取授权链接失败')
     }
   }

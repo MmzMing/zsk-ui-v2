@@ -140,8 +140,8 @@ export function getStorageSize(type: StorageType = 'local'): number {
 }
 // 应用配置存储键名
 export const STORAGE_KEYS = {
-  /** 用户 Token */
-  TOKEN: 'zsk_token',
+  /** 用户 Token（与后端设置的 Cookie 名称一致） */
+  TOKEN: 'access_token',
   /** 用户信息 */
   USER_INFO: 'zsk_user_info',
   /** 应用设置 */

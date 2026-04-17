@@ -45,11 +45,12 @@ request.interceptors.request.use(
 
 // 响应拦截器
 request.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
+  (response: AxiosResponse<ApiResponse & { success?: boolean }>) => {
     const { data } = response
 
-    // 检查业务状态码（code === 0 表示成功）
-    if (data.code !== 0) {
+    // 检查业务状态码：兼容 code === 0（前端约定）和 code === 200（后端实际返回）
+    const isSuccess = data.code === 0 || (data.code === 200 && data.success !== false)
+    if (!isSuccess) {
       const error = new Error(data.msg || '请求失败')
       return Promise.reject(error)
     }
