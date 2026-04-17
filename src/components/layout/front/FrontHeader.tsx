@@ -404,23 +404,7 @@ export default function FrontHeader({
                     </Button>
                   )}
 
-                  {/* 分隔线 */}
-                  <div className="w-px h-5 bg-divider/50 mx-1 md:hidden" />
 
-                  {/* 移动端菜单下拉框 */}
-                  <Dropdown placement="bottom-end" shouldBlockScroll={false} className="md:hidden">
-                    <DropdownTrigger>
-                      <Button
-                        variant="light"
-                        isIconOnly
-                        type="button"
-                        className="flex-shrink-0 !text-default-600 hover:!text-default-900 !bg-transparent hover:!bg-transparent"
-                      >
-                        <HiOutlineMenu className="text-xl" />
-                      </Button>
-                    </DropdownTrigger>
-                    <MobileNavContent />
-                  </Dropdown>
                 </div>
               </div>
             </div>
