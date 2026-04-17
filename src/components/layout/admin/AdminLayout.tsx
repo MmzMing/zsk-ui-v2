@@ -30,7 +30,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ className }: AdminLayoutProps) {
   const location = useLocation()
   const element = useOutlet()
-  const { adminSettings } = useAppStore()
+  const { adminSettings, sidebarCollapsed, toggleSidebar } = useAppStore()
   const {
     menuLayout,
     showHeader,
@@ -44,6 +44,12 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
 
   const { isMobile } = useBreakpoint()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const handleContentClick = useCallback(() => {
+    if (!sidebarCollapsed && !isMobile) {
+      toggleSidebar()
+    }
+  }, [sidebarCollapsed, toggleSidebar, isMobile])
 
   // 递归查找菜单项
   const findMenuItem = useCallback((segment: string, path: string, menus: MenuItem[] = ADMIN_MENUS): MenuItem | undefined => {
@@ -151,7 +157,7 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
 
   // 渲染内容区域
   const renderContent = () => (
-    <ScrollShadow className="flex-1">
+    <ScrollShadow className="flex-1 overflow-y-auto">
       <main
         className="p-4 md:p-6"
         style={{ padding: contentPadding }}
@@ -180,6 +186,7 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
         return (
           <div 
             data-admin-layout
+            data-lenis-prevent
             className={cn('flex h-screen overflow-hidden bg-background', className)}
           >
             {/* 侧边栏 - 桌面端显示，移动端隐藏 */}
@@ -206,7 +213,10 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
             )}
 
             {/* 主内容区 */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div 
+              className="flex-1 flex flex-col overflow-hidden"
+              onClick={handleContentClick}
+            >
               {/* 顶部栏 */}
               {showHeader && (
                 <AdminHeader 
@@ -228,6 +238,7 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
         return (
           <div 
             data-admin-layout
+            data-lenis-prevent
             className={cn('flex flex-col h-screen overflow-hidden bg-background', className)}
           >
             {/* 水平菜单头部 */}
@@ -275,17 +286,22 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
         return (
           <div 
             data-admin-layout
-            className={cn('h-screen overflow-hidden bg-background', className)}
+            data-lenis-prevent
+            className={cn('h-screen bg-background', className)}
           >
             {/* 主内容区 */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* 多标签页 */}
-              {multiTab && <MultiTabs />}
-              {renderContent()}
+            <div className="h-full overflow-hidden">
+              <div className="h-full flex flex-col">
+                {/* 多标签页 */}
+                {multiTab && <MultiTabs />}
+                {renderContent()}
+              </div>
             </div>
 
-            {/* Dock菜单 */}
-            <DockMenu />
+            {/* Dock菜单 - 固定在视窗底部 */}
+            <div className="fixed bottom-0 left-0 right-0 z-50">
+              <DockMenu />
+            </div>
           </div>
         )
 

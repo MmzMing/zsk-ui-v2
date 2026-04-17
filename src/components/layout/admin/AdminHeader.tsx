@@ -3,7 +3,7 @@
  * 包含面包屑、搜索、通知、用户菜单等
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -29,17 +29,12 @@ import {
   HiOutlineCog,
   HiOutlineUser,
   HiOutlineLogout,
-  HiOutlineMoon,
-  HiOutlineSun,
-  HiOutlineAdjustments,
   HiOutlineHome,
-  HiOutlineChevronRight,
-  HiOutlineMenuAlt2
+  HiOutlineChevronRight
 } from 'react-icons/hi'
 import { Search, Menu } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
-import { useTheme } from '@/hooks/useTheme'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
 import { ADMIN_MENUS, getSortedMenus } from '@/constants/menu'
 import ThemeDrawer from './ThemeDrawer'
@@ -65,24 +60,12 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
   const { t } = useTranslation(['navigation', 'common'])
   const navigate = useNavigate()
   const { userInfo, logout } = useUserStore()
-  const { 
-    adminSettings, 
-    toggleSidebar 
-  } = useAppStore()
-  const { themeMode, showBreadcrumb, menuLayout } = adminSettings
-  const { setThemeMode } = useTheme()
+  const { adminSettings } = useAppStore()
+  const { showBreadcrumb } = adminSettings
   const { isMobile } = useBreakpoint()
   const [searchValue, setSearchValue] = useState('')
   const [themeDrawerOpen, setThemeDrawerOpen] = useState(false)
   const [logoHovered, setLogoHovered] = useState(false)
-
-  // 切换主题
-  const handleToggleTheme = useCallback(() => {
-    const modes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
-    const currentIndex = modes.indexOf(themeMode)
-    const nextIndex = (currentIndex + 1) % modes.length
-    setThemeMode(modes[nextIndex])
-  }, [themeMode, setThemeMode])
 
   // 处理搜索
   const handleSearch = useCallback((value: string) => {
@@ -96,56 +79,77 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
     navigate('/login')
   }, [logout, navigate])
 
-  // 获取主题图标
-  const getThemeIcon = () => {
-    switch (themeMode) {
-      case 'light':
-        return <HiOutlineSun className="text-lg" />
-      case 'dark':
-        return <HiOutlineMoon className="text-lg" />
-      default:
-        return <HiOutlineAdjustments className="text-lg" />
-    }
-  }
-
   // 获取排序后的菜单
   const sortedMenus = useMemo(() => getSortedMenus(ADMIN_MENUS), [])
 
   // 菜单项下拉列表
-  const MenuDropdownContent = () => (
-    <DropdownMenu 
-      aria-label="后台管理导航菜单" 
-      variant="flat"
-      onAction={(key) => navigate(key as string)}
-    >
-      {sortedMenus.map((menu) => {
-        if (menu.children && menu.children.length > 0) {
-          return (
-            <DropdownSection key={menu.key} title={t(`menu.${menu.key}`, menu.label)} showDivider>
-              {menu.children.map((child) => (
-                <DropdownItem
-                  key={child.path || child.key}
-                  startContent={child.icon && <child.icon className="text-lg" />}
-                  textValue={t(`menu.${child.key}`, child.label)}
+  const MenuDropdownContent = () => {
+    // 获取当前路径
+    const currentPath = window.location.pathname
+    
+    return (
+      <DropdownMenu 
+        aria-label="后台管理导航菜单" 
+        variant="flat"
+        onAction={(key) => navigate(key as string)}
+        className="max-h-[70vh] overflow-y-auto"
+      >
+        {sortedMenus.map((menu, index) => {
+          const isActive = menu.path === currentPath
+          
+          if (menu.children && menu.children.length > 0) {
+            return (
+              <React.Fragment key={menu.key}>
+                <DropdownSection 
+                  title={t(`menu.${menu.key}`, menu.label)} 
+                  showDivider
                 >
-                  {t(`menu.${child.key}`, child.label)}
-                </DropdownItem>
-              ))}
-            </DropdownSection>
+                  {menu.children.map((child) => {
+                    const isChildActive = child.path === currentPath
+                    return (
+                      <DropdownItem
+                        key={child.path || child.key}
+                        startContent={child.icon && <child.icon className="text-lg" />}
+                        textValue={t(`menu.${child.key}`, child.label)}
+                        className={isChildActive ? 'bg-primary/10 text-primary font-medium' : ''}
+                      >
+                        {t(`menu.${child.key}`, child.label)}
+                      </DropdownItem>
+                    )
+                  })}
+                </DropdownSection>
+              </React.Fragment>
+            )
+          }
+          
+          const menuElement = (
+            <DropdownItem
+              key={menu.path || menu.key}
+              startContent={menu.icon && <menu.icon className="text-lg" />}
+              textValue={t(`menu.${menu.key}`, menu.label)}
+              className={isActive ? 'bg-primary/10 text-primary font-medium' : ''}
+            >
+              {t(`menu.${menu.key}`, menu.label)}
+            </DropdownItem>
           )
-        }
-        return (
-          <DropdownItem
-            key={menu.path || menu.key}
-            startContent={menu.icon && <menu.icon className="text-lg" />}
-            textValue={t(`menu.${menu.key}`, menu.label)}
-          >
-            {t(`menu.${menu.key}`, menu.label)}
-          </DropdownItem>
-        )
-      })}
-    </DropdownMenu>
-  )
+          
+          // 在仪表盘（dashboard）后面添加分割线
+          if (menu.key === 'dashboard' && index < sortedMenus.length - 1) {
+            return (
+              <React.Fragment key={menu.key}>
+                {menuElement}
+                <DropdownItem key={`divider-${menu.key}`} className="h-0 p-0" textValue="divider">
+                  <Divider />
+                </DropdownItem>
+              </React.Fragment>
+            )
+          }
+          
+          return menuElement
+        })}
+      </DropdownMenu>
+    )
+  }
 
   // 用户下拉菜单内容
   const UserMenuContent = () => (
@@ -165,22 +169,6 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
         textValue={t('menu.profile')}
       >
         {t('menu.profile')}
-      </DropdownItem>
-      <DropdownItem
-        key="settings"
-        startContent={<HiOutlineCog className="text-lg" />}
-        onPress={() => navigate('/admin/system/general')}
-        textValue={t('user.settings')}
-      >
-        {t('user.settings')}
-      </DropdownItem>
-      <DropdownItem
-        key="theme-toggle"
-        startContent={getThemeIcon()}
-        onPress={handleToggleTheme}
-        textValue={t('common:actions.toggleTheme')}
-      >
-        {t('common:actions.toggleTheme')} ({themeMode === 'system' ? t('common:theme.system') : themeMode === 'dark' ? t('common:theme.dark') : t('common:theme.light')})
       </DropdownItem>
       <DropdownItem key="divider" className="h-0 p-0" textValue="divider">
         <Divider />
@@ -303,23 +291,8 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
               className={cn('h-14 px-4 border-b-[var(--admin-border-width)] border-divider bg-content1', className)}
               maxWidth="full"
             >
-              {/* 左侧：移动端菜单按钮 + 面包屑 */}
+              {/* 左侧：面包屑 */}
               <NavbarContent justify="start" className="flex-1 gap-1 md:gap-2">
-                {/* 侧边栏切换 - 仅在垂直布局且桌面端显示 */}
-                {menuLayout === 'vertical' && (
-                  <NavbarItem className="hidden md:flex">
-                    <Button
-                      variant="light"
-                      isIconOnly
-                      size="sm"
-                      onPress={toggleSidebar}
-                      className="text-default-500"
-                    >
-                      <HiOutlineMenuAlt2 className="text-xl" />
-                    </Button>
-                  </NavbarItem>
-                )}
-
                 {showBreadcrumb && breadcrumbs.length > 0 && (
                   <div className="flex items-center gap-1 text-sm">
                     <Button

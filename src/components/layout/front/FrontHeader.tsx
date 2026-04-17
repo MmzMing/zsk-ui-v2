@@ -19,14 +19,12 @@ import {
 import { useTranslation } from 'react-i18next'
 import {
   HiOutlineMenu,
-  HiOutlineX,
   HiOutlineSearch,
   HiOutlineHome,
   HiOutlineDocumentText,
   HiOutlineTag,
   HiOutlineUser,
   HiOutlineLogout,
-  HiOutlineCog,
   HiOutlineViewGrid,
   HiOutlineBeaker
 } from 'react-icons/hi'
@@ -138,7 +136,6 @@ export default function FrontHeader({
   const [activeIndex, setActiveIndex] = useState(0)
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [logoHovered, setLogoHovered] = useState(false)
   const [logoCollapsedHovered, setLogoCollapsedHovered] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -183,26 +180,45 @@ export default function FrontHeader({
       >
         {t('menu.profile')}
       </DropdownItem>
-      <DropdownItem
-        key="settings"
-        startContent={<HiOutlineCog className="text-lg" />}
-        onPress={() => navigate('/admin/system/general')}
-        textValue={t('user.settings')}
-      >
-        {t('user.settings')}
-      </DropdownItem>
       <DropdownItem key="divider" className="h-0 p-0" textValue="divider">
         <Divider />
       </DropdownItem>
       <DropdownItem
         key="logout"
-        color="danger"
+        className="bg-danger/10 text-danger [&:hover]:bg-danger [&:hover]:text-white [&:hover]:!text-white"
         startContent={<HiOutlineLogout className="text-lg" />}
         onPress={handleLogout}
         textValue={t('user.logout')}
       >
         {t('user.logout')}
       </DropdownItem>
+    </DropdownMenu>
+  )
+
+  // 移动端导航菜单内容
+  const MobileNavContent = () => (
+    <DropdownMenu 
+      aria-label="移动端导航菜单" 
+      variant="flat"
+      onAction={(key) => {
+        navigate(key as string)
+      }}
+      className="max-h-[70vh] overflow-y-auto"
+    >
+      {navItems.map((item, index) => {
+        const Icon = item.icon
+        const isActive = activeIndex === index
+        return (
+          <DropdownItem
+            key={item.href}
+            startContent={Icon && <Icon className="text-lg" />}
+            textValue={item.label}
+            className={isActive ? 'bg-primary/10 text-primary font-medium' : ''}
+          >
+            {item.label}
+          </DropdownItem>
+        )
+      })}
     </DropdownMenu>
   )
 
@@ -264,7 +280,6 @@ export default function FrontHeader({
   // 处理导航点击
   const handleNavClick = (index: number) => {
     setActiveIndex(index)
-    setMobileMenuOpen(false)
   }
 
   return (
@@ -366,9 +381,13 @@ export default function FrontHeader({
                   <AnimatedThemeToggle className="flex-shrink-0" />
 
                   {isLoggedIn ? (
-                    <Dropdown placement="bottom-end">
+                    <Dropdown placement="bottom-end" shouldBlockScroll={false}>
                       <DropdownTrigger>
-                        <Button variant="light" className="flex-shrink-0 gap-2 px-2 !text-default-600 hover:!text-default-900">
+                        <Button 
+                          variant="light" 
+                          type="button"
+                          className="flex-shrink-0 gap-2 px-2 !text-default-600 hover:!text-default-900"
+                        >
                           <Avatar
                             name={userInfo?.name || '用户'}
                             size="sm"
@@ -385,19 +404,23 @@ export default function FrontHeader({
                     </Button>
                   )}
 
-                  {/* 移动端菜单按钮 */}
-                  <Button
-                    variant="light"
-                    isIconOnly
-                    className="flex-shrink-0 md:hidden !text-default-600 hover:!text-default-900"
-                    onPress={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  >
-                    {mobileMenuOpen ? (
-                      <HiOutlineX className="text-xl" />
-                    ) : (
-                      <HiOutlineMenu className="text-xl" />
-                    )}
-                  </Button>
+                  {/* 分隔线 */}
+                  <div className="w-px h-5 bg-divider/50 mx-1 md:hidden" />
+
+                  {/* 移动端菜单下拉框 */}
+                  <Dropdown placement="bottom-end" shouldBlockScroll={false} className="md:hidden">
+                    <DropdownTrigger>
+                      <Button
+                        variant="light"
+                        isIconOnly
+                        type="button"
+                        className="flex-shrink-0 !text-default-600 hover:!text-default-900 !bg-transparent hover:!bg-transparent"
+                      >
+                        <HiOutlineMenu className="text-xl" />
+                      </Button>
+                    </DropdownTrigger>
+                    <MobileNavContent />
+                  </Dropdown>
                 </div>
               </div>
             </div>
@@ -478,14 +501,19 @@ export default function FrontHeader({
                 )}
 
                 <LocaleSwitcher />
-                <AnimatedThemeToggle className="w-8 h-8 !min-w-8 rounded-full" />
+                <AnimatedThemeToggle className="w-8 h-8 !min-w-8 rounded-full !text-default-600 hover:!text-default-900 !bg-transparent hover:!bg-transparent" />
 
-                {/* 登录按钮/用户菜单 - 收缩状态 (非移动端显示，移动端统一放在菜单中) */}
-                {!isMobile && (
-                  isScrolled && isLoggedIn ? (
-                    <Dropdown placement="bottom-end">
+                  {/* 用户头像 - 移动端和收缩状态都显示 */}
+                  {isLoggedIn ? (
+                    <Dropdown placement="bottom-end" shouldBlockScroll={false}>
                       <DropdownTrigger>
-                        <Button variant="light" isIconOnly size="sm" className="min-w-8 w-8 h-8 rounded-full">
+                        <Button 
+                          variant="light" 
+                          isIconOnly 
+                          size="sm" 
+                          type="button"
+                          className="min-w-8 w-8 h-8 rounded-full !text-default-600 hover:!text-default-900 !bg-transparent hover:!bg-transparent"
+                        >
                           <Avatar
                             name={userInfo?.name || '用户'}
                             size="sm"
@@ -501,139 +529,32 @@ export default function FrontHeader({
                       size="sm"
                       as={Link}
                       to="/login"
-                      className="min-w-14 h-8 rounded-full text-xs !text-default-600 hover:!text-default-900"
+                      className="min-w-14 h-8 rounded-full text-xs !text-default-600 hover:!text-default-900 !bg-transparent hover:!bg-transparent"
                     >
                       {t('user.login', '登录')}
-                    </Button>
-                  )
-                )}
-
-                {/* 移动端菜单按钮 */}
-                <Button
-                  variant="light"
-                  isIconOnly
-                  size="sm"
-                  className="md:hidden min-w-8 w-8 h-8 rounded-full"
-                  onPress={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  {mobileMenuOpen ? (
-                    <HiOutlineX className="text-base" />
-                  ) : (
-                    <HiOutlineMenu className="text-base" />
-                  )}
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 移动端菜单 */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              'absolute left-0 right-0 top-full z-50',
-              'md:hidden border-t border-divider bg-background/95 backdrop-blur-xl',
-              isScrolled ? 'mt-2 rounded-2xl shadow-lg mx-4' : ''
-            )}
-          >
-            <nav className={cn('container mx-auto', isScrolled ? 'p-4' : 'px-4 py-4')}>
-              <div className="flex flex-col gap-1">
-                {navItems.map((item, index) => {
-                  const Icon = item.icon
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={() => handleNavClick(index)}
-                      className={cn(
-                        'px-4 py-3 rounded-lg text-base font-medium transition-colors flex items-center gap-2',
-                        activeIndex === index
-                          ? 'bg-default-100 !text-default-900 font-bold'
-                          : '!text-default-600 hover:bg-default-100'
-                      )}
-                    >
-                      {Icon && <Icon className="text-base text-inherit" />}
-                      {item.label}
-                    </Link>
-                  )
-                })}
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-divider">
-                {isLoggedIn ? (
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-default-50 rounded-xl">
-                      <Avatar
-                        name={userInfo?.name || '用户'}
-                        size="sm"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-base font-bold text-default-900">{userInfo?.name || '用户'}</span>
-                        <span className="text-sm text-default-500">{userInfo?.email || '暂无邮箱'}</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="light"
-                      fullWidth
-                      className="justify-start gap-3 text-default-600"
-                      onPress={() => {
-                        navigate('/admin/dashboard')
-                        setMobileMenuOpen(false)
-                      }}
-                      startContent={<HiOutlineViewGrid className="text-lg" />}
-                    >
-                      {t('menu.admin')}
-                    </Button>
-                    <Button
-                      variant="light"
-                      fullWidth
-                      className="justify-start gap-3 text-default-600"
-                      onPress={() => {
-                        navigate('/admin/profile')
-                        setMobileMenuOpen(false)
-                      }}
-                      startContent={<HiOutlineUser className="text-lg" />}
-                    >
-                      {t('menu.profile')}
-                    </Button>
-                    <Button
-                      variant="light"
-                      fullWidth
-                      className="justify-start gap-3 text-danger"
-                      onPress={() => {
-                        handleLogout()
-                        setMobileMenuOpen(false)
-                      }}
-                      startContent={<HiOutlineLogout className="text-lg" />}
-                    >
-                      {t('user.logout')}
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="flat"
-                    fullWidth
-                    as={Link}
-                    to="/login"
-                    onPress={() => setMobileMenuOpen(false)}
-                    className="!text-default-600 hover:!text-default-900"
-                  >
-                    {t('user.login', '登录')}
                   </Button>
                 )}
-                
-                <div className="mt-2 flex items-center justify-between px-4 py-2 bg-default-50 rounded-xl">
-                  <span className="text-sm text-default-500">{t('menu.language', '语言')}</span>
-                  <LocaleSwitcher />
-                </div>
+
+                {/* 分隔线 */}
+                <div className="w-px h-4 bg-divider/50 mx-0.5 md:hidden" />
+
+                {/* 移动端菜单下拉框 */}
+                <Dropdown placement="bottom-end" shouldBlockScroll={false}>
+                  <DropdownTrigger>
+                    <Button
+                      variant="light"
+                      isIconOnly
+                      size="sm"
+                      type="button"
+                      className="md:hidden min-w-8 w-8 h-8 rounded-full !text-default-600 hover:!text-default-900 !bg-transparent hover:!bg-transparent"
+                    >
+                      <HiOutlineMenu className="text-base" />
+                    </Button>
+                  </DropdownTrigger>
+                  <MobileNavContent />
+                </Dropdown>
               </div>
-            </nav>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

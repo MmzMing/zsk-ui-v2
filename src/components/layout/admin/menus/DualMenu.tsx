@@ -140,6 +140,7 @@ export default function DualMenu({ className, logo, extra, children }: DualMenuP
   return (
     <div 
       data-admin-layout
+      data-lenis-prevent
       className={cn('flex flex-col h-screen', className)}
     >
       {/* 顶部导航栏 */}
@@ -227,7 +228,7 @@ export default function DualMenu({ className, logo, extra, children }: DualMenuP
         </motion.aside>
         
         {/* 内容区域 */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </div>

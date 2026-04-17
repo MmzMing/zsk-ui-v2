@@ -55,6 +55,7 @@ function MenuItemComponent({
   onSelect,
   expandedKeys,
   toggleExpand,
+  toggleSidebar,
   t
 }: { 
   item: MenuItem
@@ -63,9 +64,10 @@ function MenuItemComponent({
   onSelect: (item: MenuItem) => void
   expandedKeys: Set<string>
   toggleExpand: (key: string) => void
+  toggleSidebar: () => void
   t: any
 }) {
-  const isActive = activeKey === item.key || activeKey.startsWith(`${item.key}/`)
+  const isActive = activeKey === item.key || (item.children && item.children.some(child => child.key === activeKey))
   const hasChildren = item.children && item.children.length > 0
   const isExpanded = expandedKeys.has(item.key)
   const Icon = item.icon
@@ -89,11 +91,9 @@ function MenuItemComponent({
           )}
           onPress={() => {
             if (hasChildren) {
-              // 折叠状态下点击有子菜单的项，展开第一个子菜单
-              const firstChild = item.children?.[0]
-              if (firstChild?.path) {
-                onSelect(firstChild)
-              }
+              // 折叠状态下点击有子菜单的项，先展开侧边栏，再展开子菜单
+              toggleSidebar()
+              toggleExpand(item.key)
             } else if (item.path) {
               onSelect(item)
             }
@@ -184,6 +184,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
   const location = useLocation()
   const {
     sidebarCollapsed: collapsed,
+    toggleSidebar,
     adminSettings
   } = useAppStore()
   
@@ -306,6 +307,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
                 onSelect={handleSelect}
                 expandedKeys={expandedKeys}
                 toggleExpand={toggleExpand}
+                toggleSidebar={toggleSidebar}
                 t={t}
               />
             ))}

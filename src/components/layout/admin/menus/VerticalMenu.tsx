@@ -157,7 +157,7 @@ function MenuItemComponent({
   toggleExpand: (key: string) => void
   t: (key: string) => string
 }) {
-  const isActive = activeKey === item.key || activeKey.startsWith(`${item.key}/`)
+  const isActive = activeKey === item.key || (item.children && item.children.some(child => child.key === activeKey))
   const hasChildren = item.children && item.children.length > 0
   const isExpanded = expandedKeys.has(item.key)
   const Icon = getIconComponent(item.icon)
@@ -181,10 +181,8 @@ function MenuItemComponent({
           )}
           onPress={() => {
             if (hasChildren) {
-              const firstChild = item.children?.[0]
-              if (firstChild?.path) {
-                onSelect(firstChild)
-              }
+              // 折叠状态下点击有子菜单的项，先展开显示子菜单
+              toggleExpand(item.key)
             } else if (item.path) {
               onSelect(item)
             }

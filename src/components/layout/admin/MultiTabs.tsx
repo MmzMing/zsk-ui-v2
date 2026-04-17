@@ -4,13 +4,16 @@
  * 显示已访问的页面标签，支持切换和关闭
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Button, ScrollShadow } from '@heroui/react'
+import { Button, ScrollShadow, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   HiOutlineX,
-  HiOutlineHome
+  HiOutlineHome,
+  HiChevronLeft,
+  HiChevronRight,
+  HiDotsHorizontal
 } from 'react-icons/hi'
 import { ADMIN_MENUS, type MenuItem } from '@/constants/menu'
 import { cn } from '@/utils'
@@ -56,6 +59,9 @@ export default function MultiTabs({ className }: MultiTabsProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const [tabs, setTabs] = useState<TabItem[]>([])
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [showLeftBtn, setShowLeftBtn] = useState(false)
+  const [showRightBtn, setShowRightBtn] = useState(false)
 
   // 从路径中排除管理后台基础路径
   const currentPath = location.pathname
@@ -85,10 +91,41 @@ export default function MultiTabs({ className }: MultiTabsProps) {
     })
   }, [currentPath])
 
+  // 检查滚动位置并更新按钮显示状态
+  const checkScrollPosition = useCallback(() => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+      setShowLeftBtn(scrollLeft > 0)
+      setShowRightBtn(scrollLeft < scrollWidth - clientWidth - 10)
+    }
+  }, [])
+
+  useEffect(() => {
+    checkScrollPosition()
+    const el = scrollRef.current
+    if (el) {
+      el.addEventListener('scroll', checkScrollPosition)
+      return () => el.removeEventListener('scroll', checkScrollPosition)
+    }
+  }, [checkScrollPosition, tabs])
+
+  // 滚动到左侧
+  const scrollLeft = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -200, behavior: 'smooth' })
+    }
+  }, [])
+
+  // 滚动到右侧
+  const scrollRight = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 200, behavior: 'smooth' })
+    }
+  }, [])
+
   // 关闭标签页
   const handleCloseTab = useCallback(
-    (path: string, e?: React.MouseEvent) => {
-      e?.stopPropagation()
+    (path: string) => {
       setTabs((prev) => {
         const newTabs = prev.filter((tab) => tab.path !== path)
         // 如果关闭的是当前页，跳转到最后一个标签
@@ -119,6 +156,29 @@ export default function MultiTabs({ className }: MultiTabsProps) {
     navigate('/admin')
   }, [navigate])
 
+  // 关闭其他标签页
+  const handleCloseOther = useCallback(() => {
+    setTabs((prev) => {
+      const newTabs = prev.filter((tab) => tab.path === currentPath)
+      if (currentPath !== '/admin' && newTabs.length === 0 && prev.length > 0) {
+        navigate('/admin')
+      }
+      return newTabs
+    })
+  }, [currentPath, navigate])
+
+  // 关闭右侧标签页
+  const handleCloseRight = useCallback(() => {
+    if (currentPath === '/admin') return
+    setTabs((prev) => {
+      const index = prev.findIndex((tab) => tab.path === currentPath)
+      if (index >= 0) {
+        return prev.slice(0, index + 1)
+      }
+      return prev
+    })
+  }, [currentPath])
+
   // 标签页动画变体
   const tabVariants = {
     initial: { opacity: 0, scale: 0.8, y: -10 },
@@ -142,7 +202,7 @@ export default function MultiTabs({ className }: MultiTabsProps) {
       animate="animate"
       exit="exit"
       className={cn(
-        'flex items-center gap-1 px-3 py-1.5 rounded-md text-sm cursor-pointer transition-all group',
+        'flex items-center gap-1 px-3 py-1.5 rounded-md text-sm cursor-pointer transition-all group shrink-0',
         isActive
           ? 'bg-primary/10 text-primary font-medium'
           : 'hover:bg-default-100 text-default-600 dark:text-default-400'
@@ -161,7 +221,10 @@ export default function MultiTabs({ className }: MultiTabsProps) {
             'ml-1 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-default-200 dark:hover:bg-default-800 transition-all',
             isActive ? 'opacity-100' : ''
           )}
-          onClick={(e) => handleCloseTab(tab.path, e)}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleCloseTab(tab.path)
+          }}
         >
           <HiOutlineX className="text-xs" />
         </button>
@@ -174,6 +237,9 @@ export default function MultiTabs({ className }: MultiTabsProps) {
     return null
   }
 
+  // 当前活动标签不是首页
+  const isNotHomeTab = currentPath !== '/admin'
+
   return (
     <div
       className={cn(
@@ -181,11 +247,28 @@ export default function MultiTabs({ className }: MultiTabsProps) {
         className
       )}
     >
+      {/* 左侧滚动按钮（始终预留位置） */}
+      <div className="min-w-8 w-8 h-8 shrink-0 flex items-center justify-center">
+        {showLeftBtn && (
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            className="min-w-8 w-8 h-8"
+            onPress={scrollLeft}
+            title="向左滚动"
+          >
+            <HiChevronLeft className="text-sm" />
+          </Button>
+        )}
+      </div>
+
       {/* 标签页容器 */}
       <ScrollShadow
         orientation="horizontal"
-        className="flex-1 flex items-center gap-1"
+        className="flex-1 flex items-center gap-1 overflow-x-auto"
         hideScrollBar
+        ref={scrollRef}
       >
         <AnimatePresence mode="popLayout">
           {/* 首页 */}
@@ -195,20 +278,75 @@ export default function MultiTabs({ className }: MultiTabsProps) {
         </AnimatePresence>
       </ScrollShadow>
 
-      {/* 更多操作按钮 */}
-      {tabs.length > 1 && (
-        <div className="flex items-center gap-1 ml-2">
+      {/* 右侧滚动按钮（始终预留位置） */}
+      <div className="min-w-8 w-8 h-8 shrink-0 flex items-center justify-center">
+        {showRightBtn && (
           <Button
             isIconOnly
             size="sm"
             variant="light"
             className="min-w-8 w-8 h-8"
-            onPress={handleCloseAll}
-            title="关闭全部"
+            onPress={scrollRight}
+            title="向右滚动"
           >
-            <HiOutlineX className="text-sm" />
+            <HiChevronRight className="text-sm" />
           </Button>
-        </div>
+        )}
+      </div>
+
+      {/* 右侧操作按钮 */}
+      {tabs.length > 0 && (
+        <Dropdown>
+          <DropdownTrigger>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              className="min-w-8 w-8 h-8 shrink-0"
+              title="标签页操作"
+            >
+              <HiDotsHorizontal className="text-sm" />
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu className="min-w-[140px]">
+            {isNotHomeTab ? (
+              <DropdownItem 
+                key="close" 
+                onClick={() => handleCloseTab(currentPath)}
+                startContent={<HiOutlineX className="w-4 h-4" />}
+                textValue="关闭"
+              >
+                关闭
+              </DropdownItem>
+            ) : null}
+            <DropdownItem 
+              key="close-other" 
+              onClick={handleCloseOther}
+              startContent={<HiOutlineX className="w-4 h-4" />}
+              textValue="关闭其他"
+            >
+              关闭其他
+            </DropdownItem>
+            {isNotHomeTab ? (
+              <DropdownItem 
+                key="close-right" 
+                onClick={handleCloseRight}
+                startContent={<HiOutlineX className="w-4 h-4" />}
+                textValue="关闭右侧标签页"
+              >
+                关闭右侧标签页
+              </DropdownItem>
+            ) : null}
+            <DropdownItem 
+              key="close-all" 
+              onClick={handleCloseAll}
+              startContent={<HiOutlineX className="w-4 h-4" />}
+              textValue="关闭所有"
+            >
+              关闭所有
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
       )}
     </div>
   )
