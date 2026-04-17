@@ -1,10 +1,12 @@
 /**
  * 路由配置
+ * 按照企业级别开发，由后端API权限控制
  */
 import { createBrowserRouter, type RouteObject, Outlet, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 
-// 布局组件
+import { ProtectedRoute } from './ProtectedRoute'
+import { PublicRoute } from './PublicRoute'
 import { AdminLayout } from '@/components/layout/admin'
 import { FrontLayout } from '@/components/layout/front'
 import { AuthLayout } from '@/components/layout/auth'
@@ -13,7 +15,6 @@ import { GlobalLoading } from '@/components/ui/GlobalLoading'
 import { GlobalModal } from '@/components/ui/GlobalModal'
 import { Watermark } from '@/components/ui/Watermark'
 
-// 懒加载页面组件
 const HomePage = lazy(() => import('@/pages/Home'))
 const TestPage = lazy(() => import('@/pages/Test'))
 const LoginPage = lazy(() => import('@/pages/Auth/Login'))
@@ -23,7 +24,40 @@ const NotFoundPage = lazy(() => import('@/pages/NotFound'))
 // 后台管理页面
 const AdminDashboard = lazy(() => import('@/pages/Admin/Dashboard'))
 
-// 加载中组件
+// 机器人平台页面
+const RobotDingding = lazy(() => import('@/pages/Admin/Robot/Dingding'))
+const RobotWechat = lazy(() => import('@/pages/Admin/Robot/Wechat'))
+const RobotNapcat = lazy(() => import('@/pages/Admin/Robot/Napcat'))
+const RobotQQ = lazy(() => import('@/pages/Admin/Robot/QQ'))
+
+// 人员管理页面
+const PersonnelMenu = lazy(() => import('@/pages/Admin/Personnel/Menu'))
+const PersonnelRole = lazy(() => import('@/pages/Admin/Personnel/Role'))
+const PersonnelUser = lazy(() => import('@/pages/Admin/Personnel/User'))
+
+// 视频管理页面
+const VideoList = lazy(() => import('@/pages/Admin/Video/List'))
+const VideoUpload = lazy(() => import('@/pages/Admin/Video/Upload'))
+const VideoAudit = lazy(() => import('@/pages/Admin/Video/Audit'))
+
+// 文档管理页面
+const DocumentEdit = lazy(() => import('@/pages/Admin/Document/Edit'))
+const DocumentList = lazy(() => import('@/pages/Admin/Document/List'))
+const DocumentUpload = lazy(() => import('@/pages/Admin/Document/Upload'))
+const DocumentAudit = lazy(() => import('@/pages/Admin/Document/Audit'))
+
+// 系统管理页面
+const SystemConfig = lazy(() => import('@/pages/Admin/System/Config'))
+const SystemPermission = lazy(() => import('@/pages/Admin/System/Permission'))
+const SystemDictionary = lazy(() => import('@/pages/Admin/System/Dictionary'))
+
+// 系统运维页面
+const OpsMonitor = lazy(() => import('@/pages/Admin/Ops/Monitor'))
+const OpsCache = lazy(() => import('@/pages/Admin/Ops/Cache'))
+const OpsLog = lazy(() => import('@/pages/Admin/Ops/Log'))
+const OpsSystem = lazy(() => import('@/pages/Admin/Ops/System'))
+const OpsBehavior = lazy(() => import('@/pages/Admin/Ops/Behavior'))
+
 function PageLoading() {
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -32,7 +66,6 @@ function PageLoading() {
   )
 }
 
-// 包装懒加载组件
 function withSuspense(Component: React.LazyExoticComponent<React.ComponentType>) {
   return (
     <Suspense fallback={<PageLoading />}>
@@ -41,7 +74,6 @@ function withSuspense(Component: React.LazyExoticComponent<React.ComponentType>)
   )
 }
 
-// 根布局组件，用于应用全局主题
 function RootLayout() {
   useTheme()
   return (
@@ -54,12 +86,10 @@ function RootLayout() {
   )
 }
 
-// 路由配置
 export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     children: [
-      // 前台路由
       {
         path: '/',
         element: <FrontLayout />,
@@ -74,27 +104,32 @@ export const routes: RouteObject[] = [
           },
         ],
       },
-
-      // 认证路由
       {
-        element: <AuthLayout />,
+        element: <PublicRoute />,
         children: [
           {
-            path: '/login',
-            element: withSuspense(LoginPage),
-          },
-          {
-            path: '/auth/callback',
-            element: withSuspense(CallbackPage),
+            element: <AuthLayout />,
+            children: [
+              {
+                path: '/login',
+                element: withSuspense(LoginPage),
+              },
+              {
+                path: '/auth/callback',
+                element: withSuspense(CallbackPage),
+              },
+            ],
           },
         ],
       },
-
-      // 后台管理路由
       {
         path: '/admin',
-        element: <AdminLayout />,
+        element: <ProtectedRoute />,
         children: [
+          {
+            path: '',
+            element: <AdminLayout />,
+            children: [
           {
             index: true,
             element: withSuspense(AdminDashboard),
@@ -103,7 +138,124 @@ export const routes: RouteObject[] = [
             path: 'dashboard',
             element: withSuspense(AdminDashboard),
           },
-          // 其他后台路由可以在这里添加
+          {
+            path: 'robot',
+            children: [
+              {
+                path: 'dingding',
+                element: withSuspense(RobotDingding),
+              },
+              {
+                path: 'wechat',
+                element: withSuspense(RobotWechat),
+              },
+              {
+                path: 'napcat',
+                element: withSuspense(RobotNapcat),
+              },
+              {
+                path: 'qq',
+                element: withSuspense(RobotQQ),
+              },
+            ],
+          },
+          {
+            path: 'personnel',
+            children: [
+              {
+                path: 'menu',
+                element: withSuspense(PersonnelMenu),
+              },
+              {
+                path: 'role',
+                element: withSuspense(PersonnelRole),
+              },
+              {
+                path: 'user',
+                element: withSuspense(PersonnelUser),
+              },
+            ],
+          },
+          {
+            path: 'video',
+            children: [
+              {
+                path: 'list',
+                element: withSuspense(VideoList),
+              },
+              {
+                path: 'upload',
+                element: withSuspense(VideoUpload),
+              },
+              {
+                path: 'audit',
+                element: withSuspense(VideoAudit),
+              },
+            ],
+          },
+          {
+            path: 'document',
+            children: [
+              {
+                path: 'edit',
+                element: withSuspense(DocumentEdit),
+              },
+              {
+                path: 'list',
+                element: withSuspense(DocumentList),
+              },
+              {
+                path: 'upload',
+                element: withSuspense(DocumentUpload),
+              },
+              {
+                path: 'audit',
+                element: withSuspense(DocumentAudit),
+              },
+            ],
+          },
+          {
+            path: 'system',
+            children: [
+              {
+                path: 'config',
+                element: withSuspense(SystemConfig),
+              },
+              {
+                path: 'permission',
+                element: withSuspense(SystemPermission),
+              },
+              {
+                path: 'dictionary',
+                element: withSuspense(SystemDictionary),
+              },
+            ],
+          },
+          {
+            path: 'ops',
+            children: [
+              {
+                path: 'monitor',
+                element: withSuspense(OpsMonitor),
+              },
+              {
+                path: 'cache',
+                element: withSuspense(OpsCache),
+              },
+              {
+                path: 'log',
+                element: withSuspense(OpsLog),
+              },
+              {
+                path: 'system',
+                element: withSuspense(OpsSystem),
+              },
+              {
+                path: 'behavior',
+                element: withSuspense(OpsBehavior),
+              },
+            ],
+          },
           {
             path: '*',
             element: (
@@ -115,10 +267,10 @@ export const routes: RouteObject[] = [
               </div>
             ),
           },
+            ],
+          },
         ],
       },
-
-      // 404
       {
         path: '/404',
         element: withSuspense(NotFoundPage),
@@ -131,5 +283,4 @@ export const routes: RouteObject[] = [
   }
 ]
 
-// 创建路由实例
 export const router = createBrowserRouter(routes)

@@ -6,29 +6,20 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { UserInfo, TokenInfo } from '@/types'
 
-// 用户状态接口
 interface UserState {
-  /** 用户信息 */
   userInfo: UserInfo | null
-  /** Token 信息 */
   tokenInfo: TokenInfo | null
-  /** 是否已登录 */
   isLoggedIn: boolean
-  /** 是否正在加载 */
   isLoading: boolean
+  permissions: string[]
 
-  // Actions
-  /** 设置用户信息 */
   setUserInfo: (user: UserInfo | null) => void
-  /** 设置 Token 信息 */
   setTokenInfo: (token: TokenInfo | null) => void
-  /** 登出 */
   logout: () => void
-  /** 设置加载状态 */
   setLoading: (loading: boolean) => void
+  setPermissions: (permissions: string[]) => void
 }
 
-// 创建用户 Store
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
@@ -36,6 +27,7 @@ export const useUserStore = create<UserState>()(
       tokenInfo: null,
       isLoggedIn: false,
       isLoading: false,
+      permissions: [],
 
       setUserInfo: (user) =>
         set({
@@ -53,11 +45,17 @@ export const useUserStore = create<UserState>()(
           userInfo: null,
           tokenInfo: null,
           isLoggedIn: false,
+          permissions: [],
         }),
 
       setLoading: (loading) =>
         set({
           isLoading: loading,
+        }),
+
+      setPermissions: (permissions) =>
+        set({
+          permissions,
         }),
     }),
     {
@@ -66,6 +64,7 @@ export const useUserStore = create<UserState>()(
         userInfo: state.userInfo,
         tokenInfo: state.tokenInfo,
         isLoggedIn: state.isLoggedIn,
+        permissions: state.permissions,
       }),
     }
   )

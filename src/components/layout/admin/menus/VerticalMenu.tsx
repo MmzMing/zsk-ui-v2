@@ -1,34 +1,118 @@
 /**
  * 垂直菜单组件
- * 侧边栏菜单垂直排列于页面左侧
+ * 支持动态菜单管理，菜单名称、图标、顺序可通过后台API配置
+ * 主要由后端API权限控制显示
+ * 支持国际化多语言切换
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button, Tooltip, ScrollShadow } from '@heroui/react'
+import { useTranslation } from 'react-i18next'
 import {
-  HiOutlineChevronLeft,
-  HiOutlineChevronRight,
-  HiOutlineMenuAlt2,
-  HiOutlineChevronDown
-} from 'react-icons/hi'
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  ChevronDown,
+  Circle,
+  Home,
+  Users,
+  FileText,
+  Settings,
+  BarChart3,
+  FolderOpen,
+  Tag,
+  Bell,
+  ShieldCheck,
+  Upload,
+  CheckCircle,
+  Database,
+  ListChecks,
+  Key,
+  Activity,
+  MessageSquare,
+  LayoutTemplate,
+  Video,
+  Edit3,
+  Bot,
+  Monitor,
+  List,
+  RefreshCw,
+  MessageCircle,
+  Cog
+} from 'lucide-react'
 import { useAppStore } from '@/stores/app'
-import { ADMIN_MENUS, getSortedMenus, type MenuItem } from '@/constants/menu'
+import { useUserStore } from '@/stores/user'
+import {
+  ADMIN_MENUS,
+  getSortedMenus,
+  type MenuItem
+} from '@/constants/menu'
 import { cn } from '@/utils'
 
-// 子菜单项组件
-function SubMenuItem({ 
-  item, 
-  activeKey, 
-  onSelect 
-}: { 
+// 图标映射表，支持字符串形式的图标名称动态加载
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Home,
+  Users,
+  FileText,
+  Settings,
+  BarChart3,
+  FolderOpen,
+  Tag,
+  Bell,
+  ShieldCheck,
+  Upload,
+  CheckCircle,
+  Database,
+  ListChecks,
+  Key,
+  Activity,
+  MessageSquare,
+  LayoutTemplate,
+  Video,
+  Edit3,
+  Bot,
+  Monitor,
+  List,
+  RefreshCw,
+  MessageCircle,
+  Cog
+}
+
+/**
+ * 根据图标名称或组件获取图标组件
+ * @param icon - 图标名称字符串或图标组件
+ * @returns 图标组件或默认图标
+ */
+function getIconComponent(icon: MenuItem['icon']): React.ComponentType<{ className?: string }> | undefined {
+  if (typeof icon === 'string') {
+    return iconMap[icon] || Circle
+  }
+  return icon
+}
+
+/**
+ * 子菜单项组件
+ * @param item - 菜单项数据
+ * @param activeKey - 当前激活的菜单项key
+ * @param onSelect - 选中回调函数
+ * @param t - 翻译函数
+ */
+function SubMenuItem({
+  item,
+  activeKey,
+  onSelect,
+  t
+}: {
   item: MenuItem
   activeKey: string
-  onSelect: (item: MenuItem) => void 
+  onSelect: (item: MenuItem) => void
+  t: (key: string) => string
 }) {
   const isActive = activeKey === item.key
-  const Icon = item.icon
+  const Icon = getIconComponent(item.icon)
+  const label = t(`menu.${item.key}`) || item.label
 
   return (
     <Button
@@ -41,37 +125,49 @@ function SubMenuItem({
       onPress={() => item.path && onSelect(item)}
     >
       {Icon && <Icon className="text-lg flex-shrink-0" />}
-      <span className="text-sm truncate">{item.label}</span>
+      <span className="text-sm truncate">{label}</span>
     </Button>
   )
 }
 
-// 菜单项组件
-function MenuItemComponent({ 
-  item, 
-  collapsed, 
-  activeKey, 
+/**
+ * 菜单项组件（支持展开/折叠）
+ * @param item - 菜单项数据
+ * @param collapsed - 是否处于折叠状态
+ * @param activeKey - 当前激活的菜单项key
+ * @param onSelect - 选中回调函数
+ * @param expandedKeys - 已展开的菜单项key集合
+ * @param toggleExpand - 切换展开状态的函数
+ * @param t - 翻译函数
+ */
+function MenuItemComponent({
+  item,
+  collapsed,
+  activeKey,
   onSelect,
   expandedKeys,
-  toggleExpand
-}: { 
+  toggleExpand,
+  t
+}: {
   item: MenuItem
   collapsed: boolean
   activeKey: string
   onSelect: (item: MenuItem) => void
   expandedKeys: Set<string>
   toggleExpand: (key: string) => void
+  t: (key: string) => string
 }) {
   const isActive = activeKey === item.key || activeKey.startsWith(`${item.key}/`)
   const hasChildren = item.children && item.children.length > 0
   const isExpanded = expandedKeys.has(item.key)
-  const Icon = item.icon
+  const Icon = getIconComponent(item.icon)
+  const label = t(`menu.${item.key}`) || item.label
 
-  // 折叠状态下只显示图标
+  // 折叠状态下只显示图标和tooltip
   if (collapsed) {
     return (
       <Tooltip
-        content={item.label}
+        content={label}
         placement="right"
         delay={300}
       >
@@ -113,7 +209,7 @@ function MenuItemComponent({
         onPress={() => item.path && onSelect(item)}
       >
         {Icon && <Icon className="text-xl flex-shrink-0" />}
-        <span className="truncate">{item.label}</span>
+        <span className="truncate">{label}</span>
       </Button>
     )
   }
@@ -131,16 +227,16 @@ function MenuItemComponent({
         onPress={() => toggleExpand(item.key)}
       >
         {Icon && <Icon className="text-xl flex-shrink-0" />}
-        <span className="truncate flex-1 text-left">{item.label}</span>
+        <span className="truncate flex-1 text-left">{label}</span>
         <motion.div
           animate={{ rotate: isExpanded ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <HiOutlineChevronDown className="text-sm text-default-400" />
+          <ChevronDown className="text-sm text-default-400" />
         </motion.div>
       </Button>
 
-      {/* 子菜单 */}
+      {/* 子菜单（带动画） */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -157,6 +253,7 @@ function MenuItemComponent({
                   item={child}
                   activeKey={activeKey}
                   onSelect={onSelect}
+                  t={t}
                 />
               ))}
             </div>
@@ -167,15 +264,26 @@ function MenuItemComponent({
   )
 }
 
-// 垂直菜单属性
+/**
+ * 垂直菜单组件属性
+ */
 interface VerticalMenuProps {
   /** 自定义类名 */
   className?: string
   /** Logo 区域 */
   logo?: React.ReactNode
+  /** 自定义菜单数据（用于动态菜单） */
+  menus?: MenuItem[]
 }
 
-export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
+/**
+ * 垂直菜单主组件
+ * @param className - 自定义类名
+ * @param logo - Logo区域
+ * @param menus - 自定义菜单数据
+ */
+export default function VerticalMenu({ className, logo, menus }: VerticalMenuProps) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const {
@@ -183,12 +291,19 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
     toggleSidebar,
     adminSettings
   } = useAppStore()
+  const { permissions = [] } = useUserStore()
   const { menuWidth, sidebarAccordion } = adminSettings
 
-  // 获取当前激活的菜单项
+  // 根据用户权限过滤菜单
+  const currentMenus = useMemo(() => {
+    const sourceMenus = menus || ADMIN_MENUS
+    return filterMenusByPermission(sourceMenus, permissions)
+  }, [menus, permissions])
+
+  // 获取当前激活的菜单项key
   const activeKey = useMemo(() => {
     const path = location.pathname
-    for (const menu of ADMIN_MENUS) {
+    for (const menu of currentMenus) {
       if (menu.path === path) return menu.key
       if (menu.children) {
         for (const child of menu.children) {
@@ -197,13 +312,13 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
       }
     }
     return ''
-  }, [location.pathname])
+  }, [location.pathname, currentMenus])
 
-  // 展开的菜单项
+  // 展开的菜单项状态
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => {
     const path = location.pathname
     const expanded = new Set<string>()
-    for (const menu of ADMIN_MENUS) {
+    for (const menu of currentMenus) {
       if (menu.children) {
         for (const child of menu.children) {
           if (child.path === path) {
@@ -215,6 +330,23 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
     }
     return expanded
   })
+
+  // 路由变化时自动展开对应父菜单
+  useEffect(() => {
+    const path = location.pathname
+    const newExpanded = new Set<string>()
+    for (const menu of currentMenus) {
+      if (menu.children) {
+        for (const child of menu.children) {
+          if (child.path === path) {
+            newExpanded.add(menu.key)
+            break
+          }
+        }
+      }
+    }
+    setExpandedKeys(newExpanded)
+  }, [location.pathname, currentMenus])
 
   // 切换展开状态
   const toggleExpand = useCallback((key: string) => {
@@ -238,9 +370,8 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
     if (sidebarAccordion) {
       setExpandedKeys(prev => {
         if (prev.size <= 1) return prev
-        // 尝试保留包含当前激活子项的父级菜单
         const next = new Set<string>()
-        for (const menu of ADMIN_MENUS) {
+        for (const menu of currentMenus) {
           if (menu.children?.some(child => child.key === activeKey) && prev.has(menu.key)) {
             next.add(menu.key)
             break
@@ -253,7 +384,7 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
         return next
       })
     }
-  }, [sidebarAccordion, activeKey])
+  }, [sidebarAccordion, activeKey, currentMenus])
 
   // 处理菜单选择
   const handleSelect = useCallback((item: MenuItem) => {
@@ -263,12 +394,12 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
   }, [navigate])
 
   // 排序后的菜单
-  const sortedMenus = useMemo(() => getSortedMenus(ADMIN_MENUS), [])
+  const sortedMenus = useMemo(() => getSortedMenus(currentMenus), [currentMenus])
 
   // 默认 Logo
   const defaultLogo = (
     <div className="flex items-center gap-2">
-      <HiOutlineMenuAlt2 className="text-2xl text-primary" />
+      <Menu className="text-2xl text-primary" />
       <span className="font-semibold text-lg">知识库后台</span>
     </div>
   )
@@ -304,9 +435,9 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
           className="text-default-500"
         >
           {collapsed ? (
-            <HiOutlineChevronRight className="text-lg" />
+            <ChevronRight className="text-lg" />
           ) : (
-            <HiOutlineChevronLeft className="text-lg" />
+            <ChevronLeft className="text-lg" />
           )}
         </Button>
       </div>
@@ -324,6 +455,7 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
                 onSelect={handleSelect}
                 expandedKeys={expandedKeys}
                 toggleExpand={toggleExpand}
+                t={t}
               />
             ))}
           </div>
@@ -331,4 +463,35 @@ export default function VerticalMenu({ className, logo }: VerticalMenuProps) {
       </ScrollShadow>
     </motion.aside>
   )
+}
+
+/**
+ * 根据用户权限过滤菜单项
+ * @param menus - 原始菜单列表
+ * @param permissions - 用户权限列表
+ * @returns 过滤后的菜单列表
+ */
+function filterMenusByPermission(menus: MenuItem[], permissions: string[]): MenuItem[] {
+  return menus
+    .map(menu => {
+      // 检查当前菜单项的权限
+      const hasPermission = !menu.permission || permissions.includes(menu.permission)
+      if (!hasPermission) return null
+
+      // 递归过滤子菜单
+      let filteredChildren: MenuItem[] | undefined
+      if (menu.children && menu.children.length > 0) {
+        filteredChildren = filterMenusByPermission(menu.children, permissions).filter(Boolean) as MenuItem[]
+        // 如果子菜单全部被过滤，则不显示父菜单
+        if (filteredChildren.length === 0) {
+          filteredChildren = undefined
+        }
+      }
+
+      return {
+        ...menu,
+        children: filteredChildren
+      }
+    })
+    .filter(Boolean) as MenuItem[]
 }

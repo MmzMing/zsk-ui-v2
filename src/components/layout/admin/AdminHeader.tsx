@@ -151,6 +151,14 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
   const UserMenuContent = () => (
     <DropdownMenu aria-label="用户菜单" variant="flat">
       <DropdownItem
+        key="frontend"
+        startContent={<HiOutlineHome className="text-lg" />}
+        onPress={() => navigate('/')}
+        textValue={t('menu.home')}
+      >
+        {t('menu.home')}
+      </DropdownItem>
+      <DropdownItem
         key="profile"
         startContent={<HiOutlineUser className="text-lg" />}
         onPress={() => navigate('/admin/profile')}
@@ -167,14 +175,6 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
         {t('user.settings')}
       </DropdownItem>
       <DropdownItem
-        key="theme"
-        startContent={<HiOutlineAdjustments className="text-lg" />}
-        onPress={() => setThemeDrawerOpen(true)}
-        textValue={t('common:actions.themeSettings')}
-      >
-        {t('common:actions.themeSettings')}
-      </DropdownItem>
-      <DropdownItem
         key="theme-toggle"
         startContent={getThemeIcon()}
         onPress={handleToggleTheme}
@@ -187,7 +187,7 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
       </DropdownItem>
       <DropdownItem
         key="logout"
-        color="danger"
+        className="bg-danger/10 text-danger [&:hover]:bg-danger [&:hover]:text-white [&:hover]:!text-white"
         startContent={<HiOutlineLogout className="text-lg" />}
         onPress={handleLogout}
         textValue={t('user.logout')}

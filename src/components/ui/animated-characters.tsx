@@ -252,16 +252,12 @@ export function AnimatedCharacters({
 
   useEffect(() => {
     if (isTyping) {
+      setIsLookingAtEachOther(true);
       const timer = setTimeout(() => {
         setIsLookingAtEachOther(false);
       }, 800);
-      setIsLookingAtEachOther(true);
       return () => clearTimeout(timer);
-    }
-  }, [isTyping]);
-
-  useEffect(() => {
-    if (!isTyping) {
+    } else {
       setIsLookingAtEachOther(false);
     }
   }, [isTyping]);
@@ -280,11 +276,7 @@ export function AnimatedCharacters({
 
       const firstPeek = schedulePeek();
       return () => clearTimeout(firstPeek);
-    }
-  }, [passwordLength, showPassword]);
-
-  useEffect(() => {
-    if (passwordLength === 0 || !showPassword) {
+    } else {
       setIsPurplePeeking(false);
     }
   }, [passwordLength, showPassword]);
