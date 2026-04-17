@@ -33,7 +33,7 @@ import { AnimatedThemeToggle } from '@/components/ui/magicui/AnimatedThemeToggle
 import { SiteLogo } from '@/components/ui/SiteLogo'
 import { SearchDialog } from '@/components/search/SearchDialog'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
-import { useScrollPosition } from '@/hooks'
+import { useScrollPosition, useBreakpoint } from '@/hooks'
 import { useUserStore } from '@/stores/user'
 
 
@@ -52,9 +52,10 @@ interface SlidingNavItemProps {
   item: NavItem
   isActive: boolean
   onClick: () => void
+  isCompact?: boolean
 }
 
-function SlidingNavItem({ item, isActive, onClick }: SlidingNavItemProps) {
+function SlidingNavItem({ item, isActive, onClick, isCompact = false }: SlidingNavItemProps) {
   const Icon = item.icon
   return (
     <Link
@@ -64,9 +65,10 @@ function SlidingNavItem({ item, isActive, onClick }: SlidingNavItemProps) {
         'relative flex items-center gap-1.5 px-3 py-2 text-base font-medium transition-colors',
         isActive ? '!text-default-900 font-bold' : '!text-default-600 hover:!text-default-900'
       )}
+      title={item.label}
     >
       {Icon && <Icon className="text-lg text-inherit" />}
-      {item.label}
+      {!isCompact && item.label}
     </Link>
   )
 }
@@ -142,6 +144,10 @@ export default function FrontHeader({
 
   // 滚动监听
   const { isScrolled } = useScrollPosition({ threshold: scrollThreshold })
+  const { isBelow } = useBreakpoint()
+
+  // 检测屏幕宽度，在 1024px 时切换到紧凑模式
+  const isCompactNav = isBelow('lg') && !isScrolled
 
   // 快捷键监听 (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -277,6 +283,21 @@ export default function FrontHeader({
     }
   }, [hoverIndex, activeIndex, updateIndicator])
 
+  // 窗口大小变化时更新指示器
+  useEffect(() => {
+    const handleResize = () => {
+      updateIndicator(activeIndex)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [activeIndex, updateIndicator])
+
+  // isCompactNav 变化时更新指示器
+  useEffect(() => {
+    updateIndicator(activeIndex)
+  }, [isCompactNav, activeIndex, updateIndicator])
+
   // 处理导航点击
   const handleNavClick = (index: number) => {
     setActiveIndex(index)
@@ -357,6 +378,7 @@ export default function FrontHeader({
                         item={item}
                         isActive={activeIndex === index}
                         onClick={() => handleNavClick(index)}
+                        isCompact={isCompactNav}
                       />
                     </div>
                   ))}
@@ -386,21 +408,33 @@ export default function FrontHeader({
                         <Button 
                           variant="light" 
                           type="button"
-                          className="flex-shrink-0 gap-2 px-2 !text-default-600 hover:!text-default-900"
+                          className={cn(
+                            'flex-shrink-0 !text-default-600 hover:!text-default-900',
+                            isCompactNav ? 'w-8 h-8 p-0' : 'gap-2 px-2'
+                          )}
                         >
                           <Avatar
                             name={userInfo?.name || '用户'}
                             size="sm"
                             className="cursor-pointer"
                           />
-                          <span className="hidden sm:inline text-base">{userInfo?.name || '用户'}</span>
+                          {!isCompactNav && <span className="hidden sm:inline text-base">{userInfo?.name || '用户'}</span>}
                         </Button>
                       </DropdownTrigger>
                       <UserMenuContent />
                     </Dropdown>
                   ) : (
-                    <Button variant="light" size="md" as={Link} to="/login" className="flex-shrink-0 !text-default-600 hover:!text-default-900">
-                      {t('user.login', '登录')}
+                    <Button 
+                      variant="light" 
+                      size={isCompactNav ? "sm" : "md"} 
+                      as={Link} 
+                      to="/login" 
+                      className={cn(
+                        'flex-shrink-0 !text-default-600 hover:!text-default-900',
+                        isCompactNav && 'w-8 h-8 p-0'
+                      )}
+                    >
+                      {!isCompactNav && t('user.login', '登录')}
                     </Button>
                   )}
 

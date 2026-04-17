@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { cn } from '@/utils'
+import { useTheme } from '@/hooks'
+import { useTranslation } from 'react-i18next'
 
 // 粗糙颗粒感滤镜 SVG
 const TextureFilters = () => (
@@ -18,8 +20,8 @@ const TextureFilters = () => (
       
       {/* 边缘粗糙滤镜 - 模拟剪纸边缘 */}
       <filter id="rough-edges">
-        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise" />
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="1" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
       </filter>
     </defs>
   </svg>
@@ -52,7 +54,7 @@ const Lightning = ({ isBig }: { isBig: boolean }) => {
       animate={{ opacity: [0, 1, 0], pathLength: 1 }}
       transition={{ duration: 0.2 }}
     >
-      <path d={points} stroke="white" strokeWidth={isBig ? 1.5 : 0.5} fill="none" filter="url(#rough-edges)" />
+      <path d={points} stroke="white" strokeWidth={isBig ? 1.5 : 0.5} fill="none" />
     </motion.svg>
   )
 }
@@ -61,7 +63,7 @@ const Lightning = ({ isBig }: { isBig: boolean }) => {
 const Rain = () => {
   // 生成随机雨滴
   const raindrops = useMemo(() => {
-    return Array.from({ length: 100 }).map((_, i) => ({
+    return Array.from({ length: 50 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * -100}%`,
@@ -118,6 +120,9 @@ const WaveLayer = ({
   type?: 'ripple' | 'normal' | 'violent'
 }) => {
   
+  const { actualTheme } = useTheme()
+  const isLight = actualTheme === 'light'
+  
   // 锯齿状/倒钩状波浪路径
   const paths = {
     // 涟漪：平缓的起伏
@@ -170,7 +175,7 @@ const WaveLayer = ({
         <path 
           d={path} 
           fill="currentColor"
-          filter="url(#rough-edges)"
+          filter={isLight ? 'none' : "url(#rough-edges)"}
         />
       </svg>
     </motion.div>
@@ -180,19 +185,27 @@ const WaveLayer = ({
 // 小船组件
 const Boat = () => {
   const controls = useAnimation()
+  const { actualTheme } = useTheme()
+  const isLight = actualTheme === 'light'
 
-  // 随机不规则摆动逻辑
+  // 随机不规则摆动逻辑 - 明亮主题更平缓
   useEffect(() => {
     let isMounted = true
     
     const randomAnimate = async () => {
       while (isMounted) {
         await controls.start({
-          y: Math.random() * 120 - 40,
-          rotate: Math.random() * 40 - 20,
+          y: isLight 
+            ? Math.random() * 30 - 15 
+            : Math.random() * 120 - 40,
+          rotate: isLight 
+            ? Math.random() * 10 - 5 
+            : Math.random() * 40 - 20,
           scale: 0.95 + Math.random() * 0.1,
           transition: { 
-            duration: 0.8 + Math.random() * 1.5,
+            duration: isLight 
+              ? 2 + Math.random() * 2 
+              : 0.8 + Math.random() * 1.5,
             ease: "easeInOut" 
           }
         })
@@ -201,18 +214,18 @@ const Boat = () => {
 
     randomAnimate()
     return () => { isMounted = false }
-  }, [controls])
+  }, [controls, isLight])
 
   return (
     <motion.div
       className="absolute z-30 w-[1000px] h-[600px]"
-      style={{ bottom: '35%' }}
+      style={{ bottom: isLight ? '25%' : '35%' }}
       initial={{ x: "110vw", y: 0, rotate: 0 }}
       animate={{ 
         x: ["110vw", "-120vw"],
       }}
       transition={{ 
-        duration: 40,
+        duration: isLight ? 60 : 40,
         repeat: Infinity,
         ease: "linear",
       }}
@@ -224,10 +237,13 @@ const Boat = () => {
         <img 
           src="/test/海盗船.svg" 
           alt="Pirate Ship"
-          className="w-full h-full object-contain drop-shadow-2xl invert"
+          className="w-full h-full object-contain drop-shadow-2xl"
           style={{ 
-            filter: 'url(#rough-edges) brightness(0)',
-            transform: 'scaleX(-1)'
+            filter: isLight 
+              ? 'brightness(1)' 
+              : 'url(#rough-edges) brightness(0)',
+            transform: 'scaleX(-1)',
+            opacity: isLight ? 0.9 : 1
           }} 
         />
       </motion.div>
@@ -236,10 +252,18 @@ const Boat = () => {
 }
 
 export default function HomeBanner() {
+  const { actualTheme } = useTheme()
+  const isLight = actualTheme === 'light'
   const [lightningState, setLightningState] = useState<'none' | 'normal' | 'big'>('none')
+  const { t } = useTranslation('banner')
   
-  // 闪电控制逻辑
+  // 闪电控制逻辑 - 仅在暗色主题显示
   useEffect(() => {
+    if (isLight) {
+      setLightningState('none')
+      return
+    }
+    
     const loop = () => {
       const isBig = Math.random() > 0.7 
       setLightningState(isBig ? 'big' : 'normal')
@@ -254,90 +278,151 @@ export default function HomeBanner() {
     
     const timer = setTimeout(loop, 2000)
     return () => clearTimeout(timer)
-  }, [])
+  }, [isLight])
 
   return (
     <div className={cn(
       "relative w-full h-screen overflow-hidden transition-colors duration-75 z-0",
-      lightningState === 'big' ? "bg-[#cfcfcf]" : (lightningState === 'normal' ? "bg-[#2a2a2a]" : "bg-[#0f0f0f]"),
-      lightningState === 'big' && "animate-shake"
+      isLight 
+        ? "bg-gradient-to-b from-sky-300 via-sky-200 to-amber-100" 
+        : lightningState === 'big' 
+          ? "bg-[#cfcfcf]" 
+          : (lightningState === 'normal' ? "bg-[#2a2a2a]" : "bg-[#0f0f0f]"),
+      lightningState === 'big' && !isLight && "animate-shake"
     )}>
       <TextureFilters />
       
       <div className="absolute inset-0 z-40 pointer-events-none opacity-40 mix-blend-overlay"
-           style={{ filter: 'url(#paper-texture)' }} />
+           style={{ filter: isLight ? 'none' : 'url(#paper-texture)' }} />
 
-      <div className="absolute top-20 left-20 z-40 mix-blend-difference text-[#e0e0e0] pointer-events-none">
+      <div className={cn(
+        "absolute top-20 left-20 z-40 pointer-events-none",
+        isLight ? "text-slate-800" : "mix-blend-difference text-[#e0e0e0]"
+      )}>
         <motion.h1 
           className="text-8xl font-black tracking-tighter"
           animate={{ opacity: [0.6, 0.8, 0.6] }}
           transition={{ duration: 3, repeat: Infinity }}
           style={{ fontFamily: 'serif' }}
         >
-          风暴
+          {isLight ? t('calmTitle', '风平浪静') : t('stormyTitle', '狂风暴雨')}
         </motion.h1>
-        <p className="text-2xl mt-4 tracking-[1em] uppercase opacity-70">Paper Theater</p>
+        <p className="text-xl mt-4 tracking-wide opacity-70">
+          {isLight 
+            ? t('calmSubtitle', '在这阳光明媚的日子里，正是整理知识、规划学习的好时机') 
+            : t('stormySubtitle', '外面风雨交加，不妨静下心来休息，为知识充电')}
+        </p>
       </div>
 
-      <Rain />
+      {!isLight && <Rain />}
 
       <AnimatePresence>
-        {lightningState !== 'none' && (
+        {lightningState !== 'none' && !isLight && (
           <Lightning isBig={lightningState === 'big'} />
         )}
       </AnimatePresence>
 
-      <div className="absolute top-0 w-full h-64 opacity-30 z-0">
-        <svg viewBox="0 0 1000 200" className="w-full h-full" preserveAspectRatio="none">
-           <path d="M0,50 Q200,100 400,50 T800,50 T1200,50 V200 H0 Z" fill="#333" filter="url(#rough-edges)" />
-        </svg>
-      </div>
+      {!isLight && (
+        <div className="absolute top-0 w-full h-64 opacity-30 z-0">
+          <svg viewBox="0 0 1000 200" className="w-full h-full" preserveAspectRatio="none">
+             <path d="M0,50 Q200,100 400,50 T800,50 T1200,50 V200 H0 Z" fill="#333" filter="url(#rough-edges)" />
+          </svg>
+        </div>
+      )}
 
-      <WaveLayer 
-        type="ripple"
-        delay={0} 
-        duration={20} 
-        yOffset="-10%" 
-        color="text-[#1a1a1a]" 
-        zIndex={10} 
-        amplitude={15}
-        direction={1}
-      />
-      
-      <WaveLayer 
-        type="normal"
-        delay={2} 
-        duration={10} 
-        yOffset="-20%" 
-        color="text-[#0a0a0a]" 
-        zIndex={20} 
-        amplitude={30}
-        direction={-1}
-      />
+      {/* 明亮主题：平静波浪 */}
+      {isLight ? (
+        <>
+          <WaveLayer 
+            type="ripple"
+            delay={0} 
+            duration={30} 
+            yOffset="-5%" 
+            color="text-cyan-200" 
+            zIndex={10} 
+            amplitude={5}
+            direction={1}
+          />
+          <WaveLayer 
+            type="ripple"
+            delay={1} 
+            duration={25} 
+            yOffset="-10%" 
+            color="text-sky-300" 
+            zIndex={20} 
+            amplitude={10}
+            direction={-1}
+          />
+          <WaveLayer 
+            type="normal"
+            delay={2} 
+            duration={20} 
+            yOffset="-15%" 
+            color="text-blue-400" 
+            zIndex={30} 
+            amplitude={15}
+            direction={1}
+          />
+          {/* 前浪 - 挡住小船 */}
+          <WaveLayer 
+            type="normal"
+            delay={3} 
+            duration={18} 
+            yOffset="-25%" 
+            color="text-blue-500" 
+            zIndex={50} 
+            amplitude={20}
+            direction={-1}
+          />
+        </>
+      ) : (
+        /* 暗色主题：风暴波浪 */
+        <>
+          <WaveLayer 
+            type="ripple"
+            delay={0} 
+            duration={20} 
+            yOffset="-10%" 
+            color="text-[#1a1a1a]" 
+            zIndex={10} 
+            amplitude={15}
+            direction={1}
+          />
+          <WaveLayer 
+            type="normal"
+            delay={2} 
+            duration={10} 
+            yOffset="-20%" 
+            color="text-[#0a0a0a]" 
+            zIndex={20} 
+            amplitude={30}
+            direction={-1}
+          />
+          <WaveLayer 
+            type="violent"
+            delay={1} 
+            duration={5} 
+            yOffset="-30%" 
+            color="text-[#050505]" 
+            zIndex={40} 
+            amplitude={60} 
+            direction={1}
+          />
+          <WaveLayer 
+            type="violent"
+            delay={2} 
+            duration={4} 
+            yOffset="-40%" 
+            color="text-[#000]" 
+            zIndex={45} 
+            amplitude={80} 
+            direction={-1}
+          />
+        </>
+      )}
 
+      {/* 小船 - 明亮主题调整颜色 */}
       <Boat />
-
-      <WaveLayer 
-        type="violent"
-        delay={1} 
-        duration={5} 
-        yOffset="-30%" 
-        color="text-[#050505]" 
-        zIndex={40} 
-        amplitude={60} 
-        direction={1}
-      />
-      
-      <WaveLayer 
-        type="violent"
-        delay={2} 
-        duration={4} 
-        yOffset="-40%" 
-        color="text-[#000]" 
-        zIndex={45} 
-        amplitude={80} 
-        direction={-1}
-      />
 
       <style>{`
         @keyframes shake {
