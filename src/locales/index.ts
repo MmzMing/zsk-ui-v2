@@ -9,6 +9,7 @@ import zhCNNavi from './zh-CN/navigation.json'
 import zhCNDashboard from './zh-CN/dashboard.json'
 import zhCNSetting from './zh-CN/setting.json'
 import zhCNBanner from './zh-CN/banner.json'
+import zhCNProfile from './zh-CN/profile.json'
 
 import enUS from './en-US/common.json'
 import enUSAuth from './en-US/auth.json'
@@ -16,6 +17,7 @@ import enUSNavi from './en-US/navigation.json'
 import enUSDashboard from './en-US/dashboard.json'
 import enUSSetting from './en-US/setting.json'
 import enUSBanner from './en-US/banner.json'
+import enUSProfile from './en-US/profile.json'
 
 const resources = {
   'zh-CN': {
@@ -24,7 +26,8 @@ const resources = {
     navigation: zhCNNavi,
     dashboard: zhCNDashboard,
     setting: zhCNSetting,
-    banner: zhCNBanner
+    banner: zhCNBanner,
+    profile: zhCNProfile
   },
   'en-US': {
     common: enUS,
@@ -32,7 +35,8 @@ const resources = {
     navigation: enUSNavi,
     dashboard: enUSDashboard,
     setting: enUSSetting,
-    banner: enUSBanner
+    banner: enUSBanner,
+    profile: enUSProfile
   }
 }
 
@@ -50,7 +54,7 @@ i18n
     },
     
     // 命名空间配置
-    ns: ['common', 'auth', 'navigation', 'dashboard', 'setting', 'banner'],
+    ns: ['common', 'auth', 'navigation', 'dashboard', 'setting', 'banner', 'profile'],
     defaultNS: 'common',
     
     // 加载配置

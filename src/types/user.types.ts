@@ -17,6 +17,8 @@ export interface UserInfo {
   avatar?: string
   /** 用户角色 */
   role: UserRole
+  /** 个人简介 */
+  bio?: string
   /** 权限列表 */
   permissions?: string[]
   /** 用户状态 */

@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
+import { useTheme } from '@/hooks'
 import Dock, { type DockItemData } from '@/components/ui/reactbits/Dock'
 import DockMenuPanel from './DockMenuPanel'
 import {
@@ -25,10 +26,10 @@ import {
   HiOutlineLogin,
   HiOutlineColorSwatch
 } from 'react-icons/hi'
-import { HiOutlineTemplate } from 'react-icons/hi'
 import ThemeDrawer from '../ThemeDrawer'
 import { Badge, Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Divider } from '@heroui/react'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
+import { cn } from '@/utils'
 
 /**
  * Dock 菜单组件属性
@@ -47,6 +48,8 @@ export default function DockMenu({ className }: DockMenuProps) {
   const navigate = useNavigate()
   const { toggleFullscreen, isFullscreen } = useAppStore()
   const { userInfo, logout } = useUserStore()
+  const { actualTheme } = useTheme()
+  const isDark = actualTheme === 'dark'
   
   // 菜单面板显示状态
   const [menuPanelOpen, setMenuPanelOpen] = useState(false)
@@ -146,11 +149,24 @@ export default function DockMenu({ className }: DockMenuProps) {
         <Dropdown placement="top">
           <DropdownTrigger>
             <div className="w-full h-full flex items-center justify-center">
-              <Avatar
-                name={userInfo?.name || '用户'}
-                size="sm"
-                className="cursor-pointer"
-              />
+              {userInfo?.avatar ? (
+                <Avatar
+                  name={userInfo?.name || '用户'}
+                  src={userInfo?.avatar}
+                  size="sm"
+                  className="cursor-pointer"
+                />
+              ) : (
+                <div className={cn(
+                  'w-7 h-7 rounded-full flex items-center justify-center',
+                  isDark ? 'bg-[var(--primary-color)]' : 'bg-default-200'
+                )}>
+                  <HiOutlineUser className={cn(
+                    'w-4 h-4',
+                    isDark ? 'text-white' : 'text-default-900'
+                  )} />
+                </div>
+              )}
             </div>
           </DropdownTrigger>
           <DropdownMenu aria-label="用户菜单" variant="flat">
@@ -169,14 +185,6 @@ export default function DockMenu({ className }: DockMenuProps) {
               textValue={t('menu.profile')}
             >
               {t('menu.profile')}
-            </DropdownItem>
-            <DropdownItem
-              key="settings"
-              startContent={<HiOutlineTemplate className="text-lg" />}
-              onPress={() => navigate('/admin/system/general')}
-              textValue={t('user.settings')}
-            >
-              {t('user.settings')}
             </DropdownItem>
             <DropdownItem key="divider" className="h-0 p-0" textValue="divider">
               <Divider />

@@ -36,6 +36,7 @@ import { Search, Menu } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
+import { useTheme } from '@/hooks'
 import { ADMIN_MENUS, getSortedMenus } from '@/constants/menu'
 import ThemeDrawer from './ThemeDrawer'
 import { cn } from '@/utils'
@@ -63,9 +64,12 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
   const { adminSettings } = useAppStore()
   const { showBreadcrumb } = adminSettings
   const { isMobile } = useBreakpoint()
+  const { actualTheme } = useTheme()
   const [searchValue, setSearchValue] = useState('')
   const [themeDrawerOpen, setThemeDrawerOpen] = useState(false)
   const [logoHovered, setLogoHovered] = useState(false)
+  
+  const isDark = actualTheme === 'dark'
 
   // 处理搜索
   const handleSearch = useCallback((value: string) => {
@@ -250,11 +254,24 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
               <Dropdown placement="bottom-end">
                 <DropdownTrigger>
                   <Button variant="light" isIconOnly size="sm" className="min-w-8 w-8 h-8 rounded-full">
-                    <Avatar
-                      name={userInfo?.name || '用户'}
-                      size="sm"
-                      className="w-7 h-7"
-                    />
+                    {userInfo?.avatar ? (
+                      <Avatar
+                        name={userInfo?.name || '用户'}
+                        src={userInfo?.avatar}
+                        size="sm"
+                        className="w-7 h-7"
+                      />
+                    ) : (
+                      <div className={cn(
+                        'w-7 h-7 rounded-full flex items-center justify-center',
+                        isDark ? 'bg-[var(--primary-color)]' : 'bg-default-200'
+                      )}>
+                        <HiOutlineUser className={cn(
+                          'w-4 h-4',
+                          isDark ? 'text-white' : 'text-default-900'
+                        )} />
+                      </div>
+                    )}
                   </Button>
                 </DropdownTrigger>
                 <UserMenuContent />
@@ -382,11 +399,24 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
                   <Dropdown placement="bottom-end">
                     <DropdownTrigger>
                       <Button variant="light" className="gap-2 px-2">
-                        <Avatar
-                          name={userInfo?.name || '用户'}
-                          size="sm"
-                          className="cursor-pointer"
-                        />
+                        {userInfo?.avatar ? (
+                          <Avatar
+                            name={userInfo?.name || '用户'}
+                            src={userInfo?.avatar}
+                            size="sm"
+                            className="cursor-pointer"
+                          />
+                        ) : (
+                          <div className={cn(
+                            'w-7 h-7 rounded-full flex items-center justify-center',
+                            isDark ? 'bg-[var(--primary-color)]' : 'bg-default-200'
+                          )}>
+                            <HiOutlineUser className={cn(
+                              'w-4 h-4',
+                              isDark ? 'text-white' : 'text-default-900'
+                            )} />
+                          </div>
+                        )}
                         <span className="hidden sm:inline text-sm">{userInfo?.name || '用户'}</span>
                       </Button>
                     </DropdownTrigger>

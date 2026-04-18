@@ -13,11 +13,13 @@ import {
   HiOutlineLogout,
   HiOutlineHeart,
   HiOutlineUserAdd,
-  HiOutlineChat
+  HiOutlineChat,
+  HiUser
 } from 'react-icons/hi'
 import { cn } from '@/utils'
 import { useUserStore } from '@/stores/user'
 import { useTranslation } from 'react-i18next'
+import { useTheme } from '@/hooks'
 
 // 用户统计数据
 interface UserStats {
@@ -61,8 +63,11 @@ export default function UserDropdown({
   const { t } = useTranslation('navigation')
   const navigate = useNavigate()
   const { logout, userInfo } = useUserStore()
+  const { actualTheme } = useTheme()
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const triggerRef = useRef<HTMLDivElement>(null)
+  
+  const isDark = actualTheme === 'dark'
 
   // 处理鼠标进入
   const handleMouseEnter = useCallback(() => {
@@ -110,12 +115,25 @@ export default function UserDropdown({
           isOpen ? 'bg-default-100' : 'hover:bg-default-100/50'
         )}
       >
-        <Avatar
-          name={userInfo?.name || name}
-          src={userInfo?.avatar || avatar}
-          size={triggerSize}
-          className="cursor-pointer"
-        />
+        {userInfo?.avatar || avatar ? (
+          <Avatar
+            name={userInfo?.name || name}
+            src={userInfo?.avatar || avatar}
+            size={triggerSize}
+            className="cursor-pointer"
+          />
+        ) : (
+          <div className={cn(
+            'flex items-center justify-center rounded-full',
+            isDark ? 'bg-[var(--primary-color)]' : 'bg-default-200',
+            triggerSize === 'sm' ? 'w-8 h-8' : triggerSize === 'md' ? 'w-10 h-10' : 'w-12 h-12'
+          )}>
+            <HiUser className={cn(
+              isDark ? 'text-white' : 'text-default-900',
+              triggerSize === 'sm' ? 'w-4 h-4' : triggerSize === 'md' ? 'w-5 h-5' : 'w-6 h-6'
+            )} />
+          </div>
+        )}
       </div>
 
       {/* 下拉面板 */}
@@ -132,11 +150,23 @@ export default function UserDropdown({
           >
             {/* 第一层：头像 + 名字 */}
             <div className="flex flex-col items-center px-4 py-2">
-              <Avatar
-                name={userInfo?.name || name}
-                src={userInfo?.avatar || avatar}
-                className="w-16 h-16 text-xl mb-1"
-              />
+              {userInfo?.avatar || avatar ? (
+                <Avatar
+                  name={userInfo?.name || name}
+                  src={userInfo?.avatar || avatar}
+                  className="w-16 h-16 text-xl mb-1"
+                />
+              ) : (
+                <div className={cn(
+                  'w-16 h-16 rounded-full flex items-center justify-center mb-1',
+                  isDark ? 'bg-[var(--primary-color)]' : 'bg-default-200'
+                )}>
+                  <HiUser className={cn(
+                    'w-8 h-8',
+                    isDark ? 'text-white' : 'text-default-900'
+                  )} />
+                </div>
+              )}
               <span className="text-base font-medium text-default-900">
                 {userInfo?.name || name}
               </span>
