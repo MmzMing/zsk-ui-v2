@@ -30,7 +30,7 @@ import { AnimatedThemeToggle } from '@/components/ui/magicui/AnimatedThemeToggle
 import { SiteLogo } from '@/components/ui/SiteLogo'
 import { SearchDialog } from '@/components/search/SearchDialog'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
-import { useScrollPosition, useBreakpoint } from '@/hooks'
+import { useScrollPosition, useBreakpoint, useTheme } from '@/hooks'
 import { useUserStore } from '@/stores/user'
 
 
@@ -44,6 +44,32 @@ interface NavItem {
 
 
 
+// 悬停提示组件
+function NavTooltip({ children, isVisible }: { children: React.ReactNode; isVisible: boolean }) {
+  const { actualTheme } = useTheme()
+  const isDark = actualTheme === 'dark'
+  const tooltipBg = isDark ? 'bg-[#060010]' : 'bg-white'
+  const tooltipText = isDark ? 'text-white' : 'text-neutral-800'
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: 0 }}
+          animate={{ opacity: 1, y: 8 }}
+          exit={{ opacity: 0, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className={`absolute -bottom-6 left-1/2 w-fit whitespace-pre rounded-md px-2 py-0.5 text-xs font-medium ${tooltipBg} ${tooltipText} shadow-sm`}
+          style={{ x: '-50%' }}
+          role="tooltip"
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 // 滑动高亮导航项
 interface SlidingNavItemProps {
   item: NavItem
@@ -54,6 +80,7 @@ interface SlidingNavItemProps {
 
 function SlidingNavItem({ item, isActive, onClick, isCompact = false }: SlidingNavItemProps) {
   const Icon = item.icon
+  const [isHovered, setIsHovered] = useState(false)
   return (
     <Link
       to={item.href}
@@ -62,10 +89,12 @@ function SlidingNavItem({ item, isActive, onClick, isCompact = false }: SlidingN
         'relative flex items-center gap-1.5 px-3 py-2 text-base font-medium transition-colors',
         isActive ? '!text-default-900 font-bold' : '!text-default-600 hover:!text-default-900'
       )}
-      title={item.label}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {Icon && <Icon className="text-lg text-inherit" />}
       {!isCompact && item.label}
+      {isCompact && <NavTooltip isVisible={isHovered}>{item.label}</NavTooltip>}
     </Link>
   )
 }
@@ -79,6 +108,7 @@ interface CollapsedNavItemProps {
 
 function CollapsedNavItem({ item, isActive, onClick }: CollapsedNavItemProps) {
   const Icon = item.icon
+  const [isHovered, setIsHovered] = useState(false)
   return (
     <Link
       to={item.href}
@@ -89,9 +119,11 @@ function CollapsedNavItem({ item, isActive, onClick }: CollapsedNavItemProps) {
           ? 'bg-default-200 !text-default-900'
           : '!text-default-600 hover:bg-default-200/50 hover:!text-default-900'
       )}
-      title={item.label}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {Icon && <Icon className="text-base text-inherit" />}
+      <NavTooltip isVisible={isHovered}>{item.label}</NavTooltip>
     </Link>
   )
 }
