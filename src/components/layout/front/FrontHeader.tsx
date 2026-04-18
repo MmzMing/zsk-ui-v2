@@ -9,13 +9,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Button, 
-  Avatar, 
   Dropdown, 
   DropdownTrigger, 
   DropdownMenu, 
-  DropdownItem,
-  Divider
+  DropdownItem
 } from '@heroui/react'
+import UserDropdown from '@/components/ui/UserDropdown'
 import { useTranslation } from 'react-i18next'
 import {
   HiOutlineMenu,
@@ -23,10 +22,8 @@ import {
   HiOutlineHome,
   HiOutlineDocumentText,
   HiOutlineTag,
-  HiOutlineUser,
-  HiOutlineLogout,
-  HiOutlineViewGrid,
-  HiOutlineBeaker
+  HiOutlineBeaker,
+  HiOutlineUserCircle
 } from 'react-icons/hi'
 import { cn } from '@/utils'
 import { AnimatedThemeToggle } from '@/components/ui/magicui/AnimatedThemeToggle'
@@ -122,7 +119,7 @@ export default function FrontHeader({
   const { t } = useTranslation('navigation')
   const location = useLocation()
   const navigate = useNavigate()
-  const { userInfo, isLoggedIn, logout } = useUserStore()
+  const { userInfo, isLoggedIn } = useUserStore()
 
   // 默认导航配置
   const defaultNavItems: NavItem[] = useMemo(() => [
@@ -130,7 +127,7 @@ export default function FrontHeader({
     { label: t('menu.articles', '文章'), href: '/articles', icon: HiOutlineDocumentText },
     { label: t('menu.categories', '分类'), href: '/categories', icon: HiOutlineTag },
     { label: t('menu.test', '测试'), href: '/test', icon: HiOutlineBeaker },
-    { label: t('menu.about'), href: '/about', icon: HiOutlineUser }
+    { label: t('menu.about'), href: '/about', icon: HiOutlineUserCircle }
   ], [t])
 
   const navItems = customNavItems || defaultNavItems
@@ -160,46 +157,6 @@ export default function FrontHeader({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
-
-  // 处理登出
-  const handleLogout = useCallback(() => {
-    logout()
-    navigate('/')
-  }, [logout, navigate])
-
-  // 用户下拉菜单内容
-  const UserMenuContent = () => (
-    <DropdownMenu aria-label="用户菜单" variant="flat">
-      <DropdownItem
-        key="admin"
-        startContent={<HiOutlineViewGrid className="text-lg" />}
-        onPress={() => navigate('/admin/dashboard')}
-        textValue={t('menu.admin')}
-      >
-        {t('menu.admin')}
-      </DropdownItem>
-      <DropdownItem
-        key="profile"
-        startContent={<HiOutlineUser className="text-lg" />}
-        onPress={() => navigate('/profile')}
-        textValue={t('menu.profile')}
-      >
-        {t('menu.profile')}
-      </DropdownItem>
-      <DropdownItem key="divider" className="h-0 p-0" textValue="divider">
-        <Divider />
-      </DropdownItem>
-      <DropdownItem
-        key="logout"
-        className="bg-danger/10 text-danger [&:hover]:bg-danger [&:hover]:text-white [&:hover]:!text-white"
-        startContent={<HiOutlineLogout className="text-lg" />}
-        onPress={handleLogout}
-        textValue={t('user.logout')}
-      >
-        {t('user.logout')}
-      </DropdownItem>
-    </DropdownMenu>
-  )
 
   // 移动端导航菜单内容
   const MobileNavContent = () => (
@@ -403,26 +360,12 @@ export default function FrontHeader({
                   <AnimatedThemeToggle className="flex-shrink-0" />
 
                   {isLoggedIn ? (
-                    <Dropdown placement="bottom-end" shouldBlockScroll={false}>
-                      <DropdownTrigger>
-                        <Button 
-                          variant="light" 
-                          type="button"
-                          className={cn(
-                            'flex-shrink-0 !text-default-600 hover:!text-default-900',
-                            isCompactNav ? 'w-8 h-8 p-0' : 'gap-2 px-2'
-                          )}
-                        >
-                          <Avatar
-                            name={userInfo?.name || '用户'}
-                            size="sm"
-                            className="cursor-pointer"
-                          />
-                          {!isCompactNav && <span className="hidden sm:inline text-base">{userInfo?.name || '用户'}</span>}
-                        </Button>
-                      </DropdownTrigger>
-                      <UserMenuContent />
-                    </Dropdown>
+                    <UserDropdown 
+                      name={userInfo?.name || '用户'}
+                      avatar={userInfo?.avatar}
+                      triggerSize={isCompactNav ? 'sm' : 'md'}
+                      className="flex-shrink-0"
+                    />
                   ) : (
                     <Button 
                       variant="light" 
@@ -523,24 +466,12 @@ export default function FrontHeader({
 
                   {/* 用户头像 - 移动端和收缩状态都显示 */}
                   {isLoggedIn ? (
-                    <Dropdown placement="bottom-end" shouldBlockScroll={false}>
-                      <DropdownTrigger>
-                        <Button 
-                          variant="light" 
-                          isIconOnly 
-                          size="sm" 
-                          type="button"
-                          className="min-w-8 w-8 h-8 rounded-full !text-default-600 hover:!text-default-900 !bg-transparent hover:!bg-transparent"
-                        >
-                          <Avatar
-                            name={userInfo?.name || '用户'}
-                            size="sm"
-                            className="w-7 h-7"
-                          />
-                        </Button>
-                      </DropdownTrigger>
-                      <UserMenuContent />
-                    </Dropdown>
+                    <UserDropdown 
+                      name={userInfo?.name || '用户'}
+                      avatar={userInfo?.avatar}
+                      triggerSize="sm"
+                      className="w-8 h-8"
+                    />
                   ) : (
                     <Button
                       variant="light"
