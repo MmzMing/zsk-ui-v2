@@ -48,8 +48,23 @@ export default function App() {
         // 只有当 Cookie 中有 token 且用户信息未设置时，才调用接口刷新
         const token = getStorageValue<string>(STORAGE_KEYS.TOKEN, undefined, 'cookie')
         if (token && !userInfo) {
-          const user = await getCurrentUser()
-          if (user) {
+          const loginUser = await getCurrentUser()
+          if (loginUser && loginUser.sysUser) {
+            const { sysUser, permissions } = loginUser
+            const role: 'admin' | 'user' = sysUser.userType === '00' ? 'admin' : 'user'
+            const status: 'active' | 'inactive' | 'banned' = sysUser.status === '0' ? 'active' : 'inactive'
+            const user = {
+              id: String(sysUser.id ?? ''),
+              name: sysUser.userName ?? '',
+              email: sysUser.email ?? '',
+              avatar: sysUser.avatar,
+              role,
+              permissions,
+              status,
+              createdAt: sysUser.loginDate ?? '',
+              updatedAt: sysUser.loginDate ?? '',
+              bio: sysUser.remark
+            }
             setUserInfo(user)
           }
         }

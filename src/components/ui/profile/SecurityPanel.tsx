@@ -6,12 +6,20 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardBody, Switch, Badge } from '@heroui/react'
-import { Mail, Bell, Shield, AlertCircle, ChevronRight } from 'lucide-react'
+import { Mail, Shield, AlertCircle, ChevronRight } from 'lucide-react'
 
+/**
+ * SecurityPanel 属性定义
+ */
 interface SecurityPanelProps {
+  /** 用户邮箱 */
   email?: string
 }
 
+/**
+ * SecurityPanel 账号安全组件
+ * 包含通知设置、账号安全设置等功能
+ */
 export function SecurityPanel({ email }: SecurityPanelProps) {
   const { t } = useTranslation('profile')
   const [notifications, setNotifications] = useState({
@@ -22,10 +30,19 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
     system: true,
   })
 
+  /**
+   * 切换通知设置
+   * @param key - 通知类型键名
+   */
   const toggleNotification = (key: keyof typeof notifications) => {
     setNotifications(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
+  // ===== 7. 数据处理函数区域 =====
+
+  /**
+   * 安全设置项配置列表
+   */
   const securityItems = [
     {
       icon: Mail,
@@ -43,21 +60,9 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
     },
   ]
 
+  // ===== 8. UI渲染逻辑区域 =====
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-6 rounded-2xl">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-            <Shield className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-default-900">{t('security.title')}</h2>
-            <p className="text-sm text-default-500">{t('security.subtitle')}</p>
-          </div>
-        </div>
-      </div>
-
-      <h3 className="text-lg font-semibold text-default-900">{t('security.accountSettings')}</h3>
 
       <Card className="shadow-lg">
         <CardBody className="p-6">
@@ -102,8 +107,7 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
         </CardBody>
       </Card>
 
-      <h3 className="text-lg font-semibold text-default-900 flex items-center gap-2">
-        <Bell className="w-5 h-5 text-primary" />
+      <h3 className="text-lg font-semibold text-default-900">
         {t('security.notifications')}
       </h3>
 

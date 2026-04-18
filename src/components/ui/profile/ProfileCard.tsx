@@ -4,12 +4,13 @@
  * 数据从 UserInfo 中获取
  */
 
+// ===== 1. 依赖导入区域 =====
 import { useTranslation } from 'react-i18next'
 import { Avatar, Button } from '@heroui/react'
 import { CardContainer, CardBody, CardItem } from '@/components/ui/aceternity/DraggableCard'
 import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
 import { PenLine, Heart, UserPlus, Users, Bell, Shield } from 'lucide-react'
-import type { UserInfo } from '@/types/user.types'
+import type { UserInfo, SysUser } from '@/types/user.types'
 
 /**
  * Tab 类型
@@ -22,6 +23,8 @@ export type ProfileTab = 'edit' | 'works' | 'messages' | 'security'
 interface ProfileCardProps {
   /** 用户信息 */
   userInfo?: UserInfo
+  /** 系统用户信息 */
+  sysUser?: SysUser | null
   /** 是否加载中 */
   loading?: boolean
   /** 当前激活的 Tab */
@@ -33,16 +36,20 @@ interface ProfileCardProps {
 }
 
 /**
- * ProfileCard 用户卡片
+ * ProfileCard 用户卡片组件
+ * 左侧用户身份卡片，支持3D悬浮效果
  */
 export function ProfileCard({
   userInfo,
+  sysUser,
   loading,
   activeTab = 'works',
   onTabChange,
   className,
 }: ProfileCardProps) {
   const { t } = useTranslation('profile')
+
+  // ===== 9. 页面初始化与事件绑定 =====
   if (loading) {
     return (
       <CardContainer className="inter-var">
@@ -99,7 +106,7 @@ export function ProfileCard({
 
         <CardItem translateZ="40" className="space-y-2">
           <p className="text-sm text-gray-600 text-center leading-relaxed">
-            {userInfo?.bio?.trim() || t('card.noBio')}
+            {sysUser?.bio?.trim() || t('card.noBio')}
           </p>
         </CardItem>
 

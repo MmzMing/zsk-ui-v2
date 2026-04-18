@@ -3,6 +3,7 @@
  * 展示用户作品列表，支持分页和加载更多
  */
 
+// ===== 1. 依赖导入区域 =====
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { WorkCard } from './WorkCard'
@@ -28,7 +29,8 @@ interface WorksGridProps {
 }
 
 /**
- * WorksGrid 作品网格
+ * WorksGrid 作品网格组件
+ * 展示用户作品列表，支持分页和加载更多功能
  */
 export function WorksGrid({
   initialWorks = [],
@@ -42,12 +44,20 @@ export function WorksGrid({
   const [works, setWorks] = useState<UserWork[]>(initialWorks)
   const [loadingMore, setLoadingMore] = useState(false)
 
-  // 同步初始数据
+  // ===== 9. 页面初始化与事件绑定 =====
+
+  /**
+   * 同步初始数据
+   * 当初始数据变化时更新作品列表
+   */
   useEffect(() => {
     setWorks(initialWorks)
   }, [initialWorks])
 
-  // 加载更多
+  /**
+   * 加载更多作品
+   * 调用外部传入的 loadMore 回调获取更多数据
+   */
   const handleLoadMore = useCallback(async () => {
     if (!loadMore || loadingMore || !hasMore) return
     

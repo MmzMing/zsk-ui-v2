@@ -9,8 +9,9 @@ import { WorksGrid } from '@/components/ui/profile/WorksGrid'
 import { EditProfile } from '@/components/ui/profile/EditProfile'
 import { MessagesPanel } from '@/components/ui/profile/MessagesPanel'
 import { SecurityPanel } from '@/components/ui/profile/SecurityPanel'
-import { getUserWorks, getUserProfile } from '@/api/profile'
-import type { UserWork, UserProfile } from '@/api/profile'
+import { getUserWorks, getSystemUserInfo } from '@/api/profile'
+import type { UserWork } from '@/api/profile'
+import type { SysUser } from '@/types/user.types'
 import { useUserStore } from '@/stores/user'
 
 /**
@@ -20,9 +21,24 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>('edit')
   const [works, setWorks] = useState<UserWork[]>([])
   const [worksLoading, setWorksLoading] = useState(true)
-  const [profile, setProfile] = useState<UserProfile | undefined>()
+  const [sysUser, setSysUser] = useState<SysUser | null>(null)
   
   const { userInfo, isLoggedIn } = useUserStore()
+
+  useEffect(() => {
+    const fetchSysUser = async () => {
+      if (userInfo?.id) {
+        try {
+          const userId = parseInt(userInfo.id, 10)
+          const data = await getSystemUserInfo(userId)
+          setSysUser(data)
+        } catch (error) {
+          console.error('获取系统用户信息失败：', error)
+        }
+      }
+    }
+    fetchSysUser()
+  }, [userInfo?.id])
 
   // 加载作品列表
   useEffect(() => {
@@ -42,21 +58,6 @@ export default function ProfilePage() {
     }
   }, [activeTab])
 
-  // 加载用户资料
-  useEffect(() => {
-    async function loadProfile() {
-      try {
-        const data = await getUserProfile()
-        setProfile(data)
-      } catch (error) {
-        console.error('加载用户资料失败：', error)
-      }
-    }
-    if (isLoggedIn) {
-      loadProfile()
-    }
-  }, [isLoggedIn])
-
   const handleTabChange = useCallback((tab: ProfileTab) => {
     setActiveTab(tab)
   }, [])
@@ -74,6 +75,7 @@ export default function ProfilePage() {
           <div className="flex-shrink-0 w-full lg:w-auto">
             <ProfileCard
               userInfo={userInfo || undefined}
+              sysUser={sysUser}
               loading={!isLoggedIn}
               activeTab={activeTab}
               onTabChange={handleTabChange}
@@ -82,7 +84,10 @@ export default function ProfilePage() {
 
           <div className="flex-1">
             {activeTab === 'edit' && (
-              <EditProfile initialProfile={profile} />
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-default-900">编辑信息</h3>
+                <EditProfile userInfo={userInfo} />
+              </div>
             )}
             {activeTab === 'works' && (
               <WorksGrid
@@ -92,10 +97,16 @@ export default function ProfilePage() {
               />
             )}
             {activeTab === 'messages' && (
-              <MessagesPanel />
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-default-900">消息管理</h3>
+                <MessagesPanel />
+              </div>
             )}
             {activeTab === 'security' && (
-              <SecurityPanel email={profile?.email} />
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-default-900">账户设置</h3>
+                <SecurityPanel email={userInfo?.email} />
+              </div>
             )}
           </div>
         </div>

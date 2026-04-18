@@ -19,10 +19,18 @@ export interface Message {
   createdAt: string
 }
 
+/**
+ * MessagesPanel 属性定义
+ */
 interface MessagesPanelProps {
+  /** 初始消息列表 */
   initialMessages?: Message[]
 }
 
+/**
+ * MessagesPanel 消息管理组件
+ * 显示系统消息、评论通知、点赞通知、关注通知等
+ */
 export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
   const { t } = useTranslation('profile')
   const [messages, setMessages] = useState<Message[]>(initialMessages || [
@@ -71,6 +79,11 @@ export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
   const [filter, setFilter] = useState<MessageType | 'all'>('all')
   const [showSettings, setShowSettings] = useState(false)
 
+  /**
+   * 根据消息类型获取对应的图标
+   * @param type - 消息类型
+   * @returns 图标组件
+   */
   const getIcon = (type: MessageType) => {
     switch (type) {
       case 'system':
@@ -84,6 +97,11 @@ export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
     }
   }
 
+  /**
+   * 根据消息类型获取类型标签文本
+   * @param type - 消息类型
+   * @returns 本地化标签文本
+   */
   const getTypeLabel = (type: MessageType) => {
     switch (type) {
       case 'system':
@@ -97,35 +115,34 @@ export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
     }
   }
 
+  /**
+   * 标记单条消息为已读
+   * @param id - 消息 ID
+   */
   const handleMarkAsRead = (id: string) => {
     setMessages(prev => prev.map(msg =>
       msg.id === id ? { ...msg, isRead: true } : msg
     ))
   }
 
+  /**
+   * 标记所有消息为已读
+   */
   const handleMarkAllRead = () => {
     setMessages(prev => prev.map(msg => ({ ...msg, isRead: true })))
   }
 
+  // 根据筛选条件过滤消息
   const filteredMessages = filter === 'all'
     ? messages
     : messages.filter(msg => msg.type === filter)
 
+  // 计算未读消息数量
   const unreadCount = messages.filter(msg => !msg.isRead).length
 
+  // ===== 8. UI渲染逻辑区域 =====
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-6 rounded-2xl">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-            <Bell className="w-6 h-6 text-primary" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-default-900">{t('messages.title')}</h2>
-            <p className="text-sm text-default-500">{t('messages.subtitle')}</p>
-          </div>
-        </div>
-      </div>
 
       <Card className="shadow-lg">
         <CardBody className="p-0">

@@ -103,10 +103,6 @@ export const routes: RouteObject[] = [
             path: 'test',
             element: withSuspense(TestPage),
           },
-          {
-            path: 'profile',
-            element: withSuspense(ProfilePage),
-          },
         ],
       },
       {
@@ -122,6 +118,21 @@ export const routes: RouteObject[] = [
               {
                 path: '/auth/callback',
                 element: withSuspense(CallbackPage),
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: '/profile',
+        element: <ProtectedRoute />,
+        children: [
+          {
+            element: <FrontLayout />,
+            children: [
+              {
+                index: true,
+                element: withSuspense(ProfilePage),
               },
             ],
           },

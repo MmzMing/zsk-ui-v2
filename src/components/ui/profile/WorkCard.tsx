@@ -3,6 +3,7 @@
  * 用于展示用户作品，支持 Hover Effect
  */
 
+// ===== 1. 依赖导入区域 =====
 import { useTranslation } from 'react-i18next'
 import { Eye, Heart, MessageCircle, Calendar } from 'lucide-react'
 import { HoverCard } from '../aceternity/HoverEffect'
@@ -55,7 +56,8 @@ function getTypeBadge(type: UserWork['type'], t: (key: string) => string): strin
 }
 
 /**
- * WorkCard 作品卡片
+ * WorkCard 作品卡片组件
+ * 用于展示用户作品，支持悬停动画效果
  */
 export function WorkCard({ work, loading, onClick, className }: WorkCardProps) {
   const { t } = useTranslation('profile')
@@ -127,7 +129,7 @@ export function WorkCard({ work, loading, onClick, className }: WorkCardProps) {
 }
 
 /**
- * WorkSkeleton 属性
+ * WorkSkeleton 属性定义
  */
 interface WorkSkeletonProps {
   /** 自定义类名 */
@@ -135,7 +137,8 @@ interface WorkSkeletonProps {
 }
 
 /**
- * WorkSkeleton 作品骨架屏
+ * WorkSkeleton 作品骨架屏组件
+ * 用于作品加载时的占位显示
  */
 export function WorkSkeleton({ className }: WorkSkeletonProps) {
   return (

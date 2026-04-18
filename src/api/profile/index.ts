@@ -5,6 +5,7 @@
 
 import { get, post, put, del } from '../request'
 import type { PaginationParams, PaginationData } from '@/types/api.types'
+import type { SysUser } from '@/types/user.types'
 
 /**
  * 消息类型
@@ -170,23 +171,6 @@ export interface WorksQuery extends PaginationParams {
 }
 
 /**
- * 获取当前用户资料
- * @returns 用户资料数据
- */
-export async function getUserProfile(): Promise<UserProfile> {
-  return get('/api/profile')
-}
-
-/**
- * 更新用户资料
- * @param data - 用户资料数据
- * @returns 更新后的用户资料
- */
-export async function updateUserProfile(data: UserProfileUpdate): Promise<UserProfile> {
-  return put('/api/profile', data as unknown as Record<string, unknown>)
-}
-
-/**
  * 获取用户作品列表
  * @param params - 查询参数
  * @returns 用户作品列表
@@ -317,4 +301,36 @@ export async function updateNotificationSettings(settings: Partial<NotificationS
  */
 export async function changePassword(params: ChangePasswordParams): Promise<void> {
   return post('/api/profile/settings/change-password', params as unknown as Record<string, unknown>)
+}
+
+/**
+ * 获取系统用户详细信息
+ * @param id - 用户ID
+ * @returns 用户详细信息
+ */
+export async function getSystemUserInfo(id: number): Promise<SysUser> {
+  return get(`/system/user/${id}`)
+}
+
+/**
+ * 更新系统用户信息
+ * @param data - 用户信息数据
+ * @param file - 头像文件（可选）
+ * @returns 更新后的用户信息
+ */
+export async function updateSystemUserInfo(data: Partial<SysUser>, file?: File): Promise<SysUser> {
+  const formData = new FormData()
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, String(value))
+    }
+  })
+  if (file) {
+    formData.append('file', file)
+  }
+  return post('/system/user/update/infoFile', formData as unknown as Record<string, unknown>, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
 }

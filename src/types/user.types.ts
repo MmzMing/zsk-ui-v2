@@ -17,8 +17,6 @@ export interface UserInfo {
   avatar?: string
   /** 用户角色 */
   role: UserRole
-  /** 个人简介 */
-  bio?: string
   /** 权限列表 */
   permissions?: string[]
   /** 用户状态 */
@@ -123,6 +121,108 @@ export interface MagicLinkRequest {
 export interface TurnstileResult {
   /** 校验凭证Token */
   verifyToken: string
+}
+
+/**
+ * 用户信息
+ *
+ * SysUserApi
+ */
+export interface SysUserApi {
+  /** 用户头像 */
+  avatar?: string
+  /** 头像图片ID */
+  avatarId?: number
+  /** 删除标志（0代表存在 2代表删除） */
+  deleted?: number
+  /** 用户邮箱 */
+  email?: string
+  /** 用户ID */
+  id?: number
+  /** 最后登录时间 */
+  loginDate?: string
+  /** 最后登录IP */
+  loginIp?: string
+  /** 用户昵称 */
+  nickName?: string
+  /** 密码 */
+  password?: string
+  /** 手机号码 */
+  phonenumber?: string
+  /** 备注 */
+  remark?: string
+  /** 用户性别（0男 1女 2未知） */
+  sex?: string
+  /** 帐号状态（0正常 1停用） */
+  status?: string
+  /** 租户ID */
+  tenantId?: number
+  /** 用户账号 */
+  userName?: string
+  /** 用户类型（00系统用户） */
+  userType?: string
+  /** 年龄 */
+  age?: number
+  /** 个人简介 */
+  bio?: string
+}
+
+/**
+ * 用户信息
+ *
+ * SysUser
+ */
+export interface SysUser {
+  /** 用户头像 */
+  avatar?: string
+  /** 头像图片ID */
+  avatarId?: number
+  /** 删除标志（0代表存在 2代表删除） */
+  deleted?: number
+  /** 用户邮箱 */
+  email?: string
+  /** 用户ID */
+  id?: number
+  /** 最后登录时间 */
+  loginDate?: string
+  /** 最后登录IP */
+  loginIp?: string
+  /** 用户昵称 */
+  nickName?: string
+  /** 密码 */
+  password?: string
+  /** 手机号码 */
+  phonenumber?: string
+  /** 备注 */
+  remark?: string
+  /** 用户性别（0男 1女 2未知） */
+  sex?: string
+  /** 帐号状态（0正常 1停用） */
+  status?: string
+  /** 租户ID */
+  tenantId?: number
+  /** 用户账号 */
+  userName?: string
+  /** 用户类型（00系统用户） */
+  userType?: string
+  /** 年龄 */
+  age?: number
+  /** 个人简介 */
+  bio?: string
+}
+
+/**
+ * 登录用户信息
+ *
+ * LoginUser
+ */
+export interface LoginUser {
+  /** 权限列表 */
+  permissions?: string[]
+  /** 角色列表 */
+  roles?: string[]
+  /** 用户信息 */
+  sysUser?: SysUserApi
 }
 
 // Token 信息
