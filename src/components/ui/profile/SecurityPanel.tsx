@@ -45,12 +45,22 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Card className="overflow-hidden shadow-xl">
-        <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-6">
-          <h2 className="text-2xl font-bold text-default-900 mb-1">{t('security.title')}</h2>
-          <p className="text-sm text-default-500">{t('security.subtitle')}</p>
+      <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-6 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <Shield className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-default-900">{t('security.title')}</h2>
+            <p className="text-sm text-default-500">{t('security.subtitle')}</p>
+          </div>
         </div>
-        <CardBody className="p-6 space-y-6">
+      </div>
+
+      <h3 className="text-lg font-semibold text-default-900">{t('security.accountSettings')}</h3>
+
+      <Card className="shadow-lg">
+        <CardBody className="p-6">
           <div className="grid gap-4">
             {securityItems.map((item, index) => {
               const Icon = item.icon
@@ -78,39 +88,7 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
             })}
           </div>
 
-          <div className="border-t border-default-200 pt-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Bell className="w-5 h-5 text-primary" />
-              <h3 className="font-medium text-default-900">{t('security.notifications')}</h3>
-            </div>
-            <div className="space-y-4">
-              {[
-                { key: 'email' as const, label: t('security.emailNotify'), desc: t('security.emailNotifyDesc') },
-                { key: 'comment' as const, label: t('security.commentNotify'), desc: t('security.commentNotifyDesc') },
-                { key: 'like' as const, label: t('security.likeNotify'), desc: t('security.likeNotifyDesc') },
-                { key: 'follow' as const, label: t('security.followNotify'), desc: t('security.followNotifyDesc') },
-                { key: 'system' as const, label: t('security.systemNotify'), desc: t('security.systemNotifyDesc') },
-              ].map((item, index) => (
-                <div
-                  key={item.key}
-                  className="flex items-center justify-between p-4 rounded-xl bg-default-50 hover:bg-default-100 transition-all duration-300 animate-in slide-in-from-left-2"
-                  style={{ animationDelay: `${(index + 3) * 100}ms` }}
-                >
-                  <div>
-                    <h4 className="text-sm font-medium text-default-900">{item.label}</h4>
-                    <p className="text-xs text-default-500">{item.desc}</p>
-                  </div>
-                  <Switch
-                    checked={notifications[item.key]}
-                    onChange={() => toggleNotification(item.key)}
-                    className="transition-all duration-300"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-warning/10 border border-warning/20">
+          <div className="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/20">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
               <div>
@@ -120,6 +98,41 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
                 </p>
               </div>
             </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      <h3 className="text-lg font-semibold text-default-900 flex items-center gap-2">
+        <Bell className="w-5 h-5 text-primary" />
+        {t('security.notifications')}
+      </h3>
+
+      <Card className="shadow-lg">
+        <CardBody className="p-6">
+          <div className="space-y-4">
+            {[
+              { key: 'email' as const, label: t('security.emailNotify'), desc: t('security.emailNotifyDesc') },
+              { key: 'comment' as const, label: t('security.commentNotify'), desc: t('security.commentNotifyDesc') },
+              { key: 'like' as const, label: t('security.likeNotify'), desc: t('security.likeNotifyDesc') },
+              { key: 'follow' as const, label: t('security.followNotify'), desc: t('security.followNotifyDesc') },
+              { key: 'system' as const, label: t('security.systemNotify'), desc: t('security.systemNotifyDesc') },
+            ].map((item, index) => (
+              <div
+                key={item.key}
+                className="flex items-center justify-between p-4 rounded-xl bg-default-50 hover:bg-default-100 transition-all duration-300 animate-in slide-in-from-left-2"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div>
+                  <h4 className="text-sm font-medium text-default-900">{item.label}</h4>
+                  <p className="text-xs text-default-500">{item.desc}</p>
+                </div>
+                <Switch
+                  checked={notifications[item.key]}
+                  onChange={() => toggleNotification(item.key)}
+                  className="transition-all duration-300"
+                />
+              </div>
+            ))}
           </div>
         </CardBody>
       </Card>

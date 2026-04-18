@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Avatar, Button } from '@heroui/react'
 import { CardContainer, CardBody, CardItem } from '@/components/ui/aceternity/DraggableCard'
 import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
-import { PenLine, Heart, UserPlus, Settings, Users, Mail } from 'lucide-react'
+import { PenLine, Heart, UserPlus, Users, Bell, Shield } from 'lucide-react'
 import type { UserInfo } from '@/types/user.types'
 
 /**
@@ -161,8 +161,8 @@ export function ProfileCard({
           {[
             { key: 'edit', icon: PenLine, label: t('card.editInfo') },
             { key: 'works', icon: Heart, label: t('card.manageWorks') },
-            { key: 'messages', icon: Mail, label: t('card.messages') },
-            { key: 'security', icon: Settings, label: t('card.security') },
+            { key: 'messages', icon: Bell, label: t('card.messages') },
+            { key: 'security', icon: Shield, label: t('card.security') },
           ].map(({ key, icon: Icon, label }) => (
             <Button
               key={key}

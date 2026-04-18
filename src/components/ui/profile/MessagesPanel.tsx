@@ -115,12 +115,34 @@ export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Card className="overflow-hidden shadow-xl">
-        <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-6">
-          <div className="flex flex-row items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-default-900 mb-1">{t('messages.title')}</h2>
-              <p className="text-sm text-default-500">{t('messages.subtitle')}</p>
+      <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-6 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <Bell className="w-6 h-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-default-900">{t('messages.title')}</h2>
+            <p className="text-sm text-default-500">{t('messages.subtitle')}</p>
+          </div>
+        </div>
+      </div>
+
+      <Card className="shadow-lg">
+        <CardBody className="p-0">
+          <div className="p-4 border-b border-default-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-default-500" />
+              {(['all', 'system', 'comment', 'like', 'follow'] as const).map(type => (
+                <Button
+                  key={type}
+                  variant="light"
+                  size="sm"
+                  className={`transition-all duration-300 hover:scale-105 ${filter === type ? 'bg-default-200/50 text-default-700' : ''}`}
+                  onClick={() => setFilter(type)}
+                >
+                  {type === 'all' ? t('messages.all') : getTypeLabel(type)}
+                </Button>
+              ))}
             </div>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
@@ -141,25 +163,6 @@ export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
               >
                 <Settings className="w-5 h-5" />
               </Button>
-            </div>
-          </div>
-        </div>
-        <CardBody className="p-0">
-          <div className="p-4 border-b border-default-200">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-default-500" />
-              {(['all', 'system', 'comment', 'like', 'follow'] as const).map(type => (
-                <Button
-                  key={type}
-                  variant={filter === type ? 'solid' : 'light'}
-                  color={filter === type ? 'primary' : undefined}
-                  size="sm"
-                  className="transition-all duration-300 hover:scale-105"
-                  onClick={() => setFilter(type)}
-                >
-                  {type === 'all' ? t('messages.all') : getTypeLabel(type)}
-                </Button>
-              ))}
             </div>
           </div>
 

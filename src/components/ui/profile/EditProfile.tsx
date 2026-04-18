@@ -62,33 +62,58 @@ export function EditProfile({ initialProfile }: EditProfileProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Card className="overflow-hidden shadow-xl">
-        <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-8">
-          <div className="flex flex-col items-center">
-            <div className="relative group mb-4">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-color)]/60 p-1 shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-105">
-                <Avatar
-                  src={profile.avatar || undefined}
-                  name={profile.name?.charAt(0)}
-                  className="w-full h-full text-3xl"
-                  classNames={{
-                    base: 'bg-white',
-                    name: 'font-bold text-[var(--primary-color)]'
-                  }}
-                />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--primary-color)]/20 transition-all duration-300 group-hover:scale-110 hover:shadow-xl">
-                <Button isIconOnly variant="light" color="primary" radius="full" className="w-10 h-10 p-0">
-                  <Camera className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-default-900 mb-1">{t('edit.title')}</h2>
+      <div className="bg-gradient-to-br from-[var(--primary-color)]/20 via-[var(--primary-color)]/5 to-transparent p-6 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <User className="w-6 h-6 text-primary" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-default-900">{t('edit.title')}</h2>
             <p className="text-sm text-default-500">{t('edit.subtitle')}</p>
           </div>
         </div>
-        <CardBody className="p-6 space-y-6">
-          <div className="space-y-4">
+      </div>
+
+      <Card className="shadow-lg">
+        <CardBody className="p-0">
+          <div className="p-4 border-b border-default-200 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-color)]/60 p-1 shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-105">
+                  <Avatar
+                    src={profile.avatar || undefined}
+                    name={profile.name?.charAt(0)}
+                    className="w-full h-full text-xl"
+                    classNames={{
+                      base: 'bg-white',
+                      name: 'font-bold text-[var(--primary-color)]'
+                    }}
+                  />
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-[var(--primary-color)]/20 transition-all duration-300 group-hover:scale-110">
+                  <Button isIconOnly variant="light" color="primary" radius="full" className="w-7 h-7 p-0">
+                    <Camera className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium text-default-900">{profile.name || t('card.notSet')}</p>
+                <p className="text-xs text-default-500">{t('edit.subtitle')}</p>
+              </div>
+            </div>
+            {!isEditing && (
+              <Button
+                variant="light"
+                onClick={() => setIsEditing(true)}
+                className="bg-default-200/50 text-default-700 hover:bg-default-300/50 transition-all duration-300 hover:scale-105"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {t('edit.editProfile')}
+              </Button>
+            )}
+          </div>
+
+          <div className="p-6 space-y-4">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-medium text-default-700">
                 <User className="w-4 h-4" />
@@ -125,49 +150,36 @@ export function EditProfile({ initialProfile }: EditProfileProps) {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-default-200">
-            {isEditing ? (
-              <>
-                <Button
-                  variant="light"
-                  onClick={handleCancel}
-                  className="transition-all duration-300 hover:scale-105"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  {t('edit.cancel')}
-                </Button>
-                <Button
-                  variant="solid"
-                  color="primary"
-                  onClick={handleSave}
-                  isLoading={isSaving}
-                  className="transition-all duration-300 hover:scale-105"
-                >
-                  {saved ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      {t('edit.saved')}
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      {t('edit.save')}
-                    </>
-                  )}
-                </Button>
-              </>
-            ) : (
+          {isEditing && (
+            <div className="flex justify-end gap-3 px-6 pb-6">
               <Button
-                variant="solid"
-                color="primary"
-                onClick={() => setIsEditing(true)}
+                variant="light"
+                onClick={handleCancel}
                 className="transition-all duration-300 hover:scale-105"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                {t('edit.editProfile')}
+                <X className="w-4 h-4 mr-2" />
+                {t('edit.cancel')}
               </Button>
-            )}
-          </div>
+              <Button
+                variant="light"
+                onClick={handleSave}
+                isLoading={isSaving}
+                className="bg-default-200/50 text-default-700 hover:bg-default-300/50 transition-all duration-300 hover:scale-105"
+              >
+                {saved ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    {t('edit.saved')}
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    {t('edit.save')}
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </CardBody>
       </Card>
     </div>

@@ -68,13 +68,10 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* 页面标题 */}
         <h1 className="text-2xl font-bold text-default-900 mb-8">个人中心</h1>
 
-        {/* 主布局 */}
-        <div className="flex gap-8">
-          {/* 左侧用户卡片 */}
-          <div className="flex-shrink-0">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex-shrink-0 w-full lg:w-auto">
             <ProfileCard
               userInfo={userInfo || undefined}
               loading={!isLoggedIn}
@@ -83,7 +80,6 @@ export default function ProfilePage() {
             />
           </div>
 
-          {/* 右侧内容区 */}
           <div className="flex-1">
             {activeTab === 'edit' && (
               <EditProfile initialProfile={profile} />

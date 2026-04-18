@@ -45,6 +45,7 @@
   "security": {
     "title": "账号安全",
     "subtitle": "保护您的账户安全",
+    "accountSettings": "账户设置",
     "emailBind": "邮箱绑定",
     "emailBindDesc": "未绑定",
     "twoFactor": "双重认证",
