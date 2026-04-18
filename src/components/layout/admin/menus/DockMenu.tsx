@@ -165,7 +165,7 @@ export default function DockMenu({ className }: DockMenuProps) {
             <DropdownItem
               key="profile"
               startContent={<HiOutlineUser className="text-lg" />}
-              onPress={() => navigate('/admin/profile')}
+              onPress={() => navigate('/profile')}
               textValue={t('menu.profile')}
             >
               {t('menu.profile')}

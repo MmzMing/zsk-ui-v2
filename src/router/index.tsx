@@ -17,6 +17,7 @@ import { Watermark } from '@/components/ui/Watermark'
 
 const HomePage = lazy(() => import('@/pages/Home'))
 const TestPage = lazy(() => import('@/pages/Test'))
+const ProfilePage = lazy(() => import('@/pages/Profile'))
 const LoginPage = lazy(() => import('@/pages/Auth/Login'))
 const CallbackPage = lazy(() => import('@/pages/Auth/Callback'))
 const NotFoundPage = lazy(() => import('@/pages/NotFound'))
@@ -101,6 +102,10 @@ export const routes: RouteObject[] = [
           {
             path: 'test',
             element: withSuspense(TestPage),
+          },
+          {
+            path: 'profile',
+            element: withSuspense(ProfilePage),
           },
         ],
       },

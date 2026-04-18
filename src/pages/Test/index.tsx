@@ -6,13 +6,10 @@ import { Button, Card, Divider } from '@heroui/react'
 import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
 import Editor from '@/components/ui/editor'
 import { useState } from 'react'
-import { Turnstile } from '@marsidev/react-turnstile'
 import { toast } from '@/utils/toast'
 
 export default function TestPage() {
   const [content, setContent] = useState('<p>Hello Tiptap!</p>')
-  const [turnstileToken, setTurnstileToken] = useState('')
-  const [turnstileStatus, setTurnstileStatus] = useState<'pending' | 'success' | 'error' | 'expired'>('pending')
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -21,66 +18,6 @@ export default function TestPage() {
           <h1 className="text-2xl font-bold">组件测试页面</h1>
           <p className="text-default-500">用于测试开发环境中的组件效果</p>
         </div>
-
-        <Divider />
-
-        {/* Cloudflare Turnstile 测试区域 */}
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-bold">Cloudflare Turnstile 人机验证</h2>
-            <p className="text-default-500 text-sm">
-              测试 Cloudflare Turnstile 集成效果。
-            </p>
-          </div>
-          
-          <div className="w-full max-w-4xl mx-auto flex flex-col gap-4">
-            <Card className="p-6 w-full max-w-md mx-auto">
-              <h3 className="font-bold mb-4 text-center">验证演示</h3>
-              <div className="flex justify-center mb-4">
-                <Turnstile 
-                  siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-                  onSuccess={(token) => {
-                    setTurnstileToken(token)
-                    setTurnstileStatus('success')
-                  }}
-                  onError={() => {
-                    setTurnstileToken('')
-                    setTurnstileStatus('error')
-                  }}
-                  onExpire={() => {
-                    setTurnstileToken('')
-                    setTurnstileStatus('expired')
-                  }}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-default-600">状态:</span>
-                  <span className={`font-bold ${
-                    turnstileStatus === 'success' ? 'text-success' : 
-                    turnstileStatus === 'error' ? 'text-danger' : 
-                    turnstileStatus === 'expired' ? 'text-warning' : 'text-default-400'
-                  }`}>
-                    {turnstileStatus === 'success' && '验证通过'}
-                    {turnstileStatus === 'error' && '验证出错'}
-                    {turnstileStatus === 'expired' && '验证过期'}
-                    {turnstileStatus === 'pending' && '等待验证'}
-                  </span>
-                </div>
-                
-                {turnstileToken && (
-                  <div className="mt-2">
-                    <p className="text-xs text-default-500 mb-1">Token (前50位):</p>
-                    <div className="p-2 bg-content2 rounded text-xs font-mono break-all">
-                      {turnstileToken.slice(0, 50)}...
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-        </section>
 
         <Divider />
 
