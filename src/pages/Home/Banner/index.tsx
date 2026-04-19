@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { cn } from '@/utils'
 import { useTheme } from '@/hooks'
 import { useTranslation } from 'react-i18next'
+import { Anchor, Ship, Clock, Users } from 'lucide-react'
 
 // 粗糙颗粒感滤镜 SVG
 const TextureFilters = () => (
@@ -251,6 +252,136 @@ const Boat = () => {
   )
 }
 
+// 航海记录组件
+const VoyageStats = () => {
+  const { actualTheme } = useTheme()
+  const isLight = actualTheme === 'light'
+  const [stats, setStats] = useState({
+    uptime: '',
+    visitors: 0
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/stats')
+        if (response.ok) {
+          const data = await response.json()
+          setStats({
+            uptime: formatUptime(data.uptime || 0),
+            visitors: data.visitors || 0
+          })
+        } else {
+          setStats({
+            uptime: formatUptime(86400 * 30),
+            visitors: 12345
+          })
+        }
+      } catch {
+        setStats({
+          uptime: formatUptime(86400 * 30),
+          visitors: 12345
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchStats()
+  }, [])
+
+  const formatUptime = (seconds: number): string => {
+    const days = Math.floor(seconds / 86400)
+    const hours = Math.floor((seconds % 86400) / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    return `${days}天 ${hours}小时 ${minutes}分钟`
+  }
+
+  const formatNumber = (num: number): string => {
+    if (num >= 10000) {
+      return (num / 10000).toFixed(1) + '万'
+    }
+    return num.toLocaleString()
+  }
+
+  const statItems = [
+    {
+      icon: Clock,
+      label: '航海时长',
+      value: isLoading ? '加载中...' : stats.uptime,
+      tooltip: '网站运行总时长'
+    },
+    {
+      icon: Users,
+      label: '船员人数',
+      value: isLoading ? '---' : formatNumber(stats.visitors),
+      tooltip: '累计浏览人数'
+    },
+    {
+      icon: Ship,
+      label: '航行状态',
+      value: '一帆风顺',
+      tooltip: '当前服务状态'
+    }
+  ]
+
+  return (
+    <motion.div
+      className={cn(
+        "mt-8 flex gap-8 md:gap-12",
+        isLight ? "text-slate-600" : "text-gray-400"
+      )}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5, duration: 0.5 }}
+    >
+      {statItems.map((item) => (
+        <div key={item.label} className="relative">
+          <motion.div
+            className={cn(
+              "flex items-center gap-2 cursor-help",
+              isLight ? "hover:text-slate-800" : "hover:text-white"
+            )}
+            whileHover={{ scale: 1.05 }}
+            onMouseEnter={() => setHoveredItem(item.label)}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <item.icon className="w-5 h-5" />
+            <span className="text-sm font-medium">{item.value}</span>
+          </motion.div>
+          
+          {/* 悬停提示框 */}
+          <AnimatePresence>
+            {hoveredItem === item.label && (
+              <motion.div
+                className={cn(
+                  "absolute left-1/2 -translate-x-1/2 -top-10 px-3 py-2 rounded-lg text-xs whitespace-nowrap z-50",
+                  isLight 
+                    ? "bg-slate-800 text-white" 
+                    : "bg-white/10 text-gray-200 backdrop-blur-sm"
+                )}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+              >
+                <div className="font-medium">{item.label}</div>
+                <div className="opacity-70">{item.tooltip}</div>
+                <div className={cn(
+                  "absolute left-1/2 -translate-x-1/2 top-full w-0 h-0",
+                  "border-l-8 border-r-8 border-t-8 border-transparent",
+                  isLight ? "border-t-slate-800" : "border-t-white/10"
+                )} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ))}
+    </motion.div>
+  )
+}
+
 export default function HomeBanner() {
   const { actualTheme } = useTheme()
   const isLight = actualTheme === 'light'
@@ -299,19 +430,34 @@ export default function HomeBanner() {
         "absolute top-20 left-20 z-40 pointer-events-none",
         isLight ? "text-slate-800" : "mix-blend-difference text-[#e0e0e0]"
       )}>
+        <motion.div className="flex items-center gap-3 mb-4">
+          <Anchor className="w-8 h-8" />
+          <span className="text-sm tracking-[0.3em] uppercase opacity-60">
+            {isLight ? '航海日志' : '航行记录'}
+          </span>
+        </motion.div>
         <motion.h1 
-          className="text-8xl font-black tracking-tighter"
+          className="text-8xl md:text-9xl font-black tracking-[0.1em]"
           animate={{ opacity: [0.6, 0.8, 0.6] }}
           transition={{ duration: 3, repeat: Infinity }}
-          style={{ fontFamily: 'serif' }}
+          style={{ 
+            fontFamily: "'Georgia', 'Times New Roman', 'STSong', 'SimSun', serif",
+            textShadow: isLight ? '2px 2px 4px rgba(0,0,0,0.1)' : '2px 2px 8px rgba(255,255,255,0.2)'
+          }}
         >
           {isLight ? t('calmTitle', '风平浪静') : t('stormyTitle', '狂风暴雨')}
         </motion.h1>
-        <p className="text-xl mt-4 tracking-wide opacity-70">
+        <motion.p 
+          className="text-xl md:text-2xl mt-6 tracking-[0.15em] opacity-70"
+          style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+        >
           {isLight 
             ? t('calmSubtitle', '在这风平浪静的日子里，正是整理知识、规划学习的好时机') 
             : t('stormySubtitle', '外面风雨交加，不妨静下心来休息，为知识充电')}
-        </p>
+        </motion.p>
+        
+        {/* 航海记录 - 放在副标题下面 */}
+        <VoyageStats />
       </div>
 
       {!isLight && <Rain />}

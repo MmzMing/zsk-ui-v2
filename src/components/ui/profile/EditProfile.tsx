@@ -9,7 +9,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Input, Textarea, Card, CardBody, Avatar } from '@heroui/react'
 import { Upload, Check, X, User, Image, Link } from 'lucide-react'
-import type { UserInfo, SysUser } from '@/types'
+import type { UserInfo } from '@/types'
+import type { SysUser } from '@/api/auth'
 import { getSystemUserInfo, updateSystemUserInfo } from '@/api/profile'
 
 /**

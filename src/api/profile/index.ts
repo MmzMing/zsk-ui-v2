@@ -5,7 +5,7 @@
 
 import { get, post, put, del } from '../request'
 import type { PaginationParams, PaginationData } from '@/types/api.types'
-import type { SysUser } from '@/types/user.types'
+import type { SysUser } from '../auth'
 
 /**
  * 消息类型
@@ -46,57 +46,9 @@ export interface NotificationSettings {
   system: boolean
 }
 
-/**
- * 修改密码请求参数
- */
-export interface ChangePasswordParams {
-  /** 当前密码 */
-  currentPassword: string
-  /** 新密码 */
-  newPassword: string
-}
 
-/**
- * 用户资料数据类型
- */
-export interface UserProfile {
-  /** 用户ID */
-  id: string
-  /** 用户名 */
-  name: string
-  /** 头像 */
-  avatar: string
-  /** 个人简介 */
-  bio: string
-  /** 用户角色 */
-  role: string
-  /** 关注数 */
-  following: number
-  /** 粉丝数 */
-  followers: number
-  /** 获赞数 */
-  likes: number
-  /** 创建时间 */
-  createdAt: string
-  /** 邮箱 */
-  email?: string
-  /** 电话 */
-  phone?: string
-  /** 位置 */
-  location?: string
-}
 
-/**
- * 用户资料更新请求参数
- */
-export interface UserProfileUpdate {
-  /** 用户名 */
-  name?: string
-  /** 头像 */
-  avatar?: string
-  /** 个人简介 */
-  bio?: string
-}
+
 
 /**
  * 用户作品数据类型
@@ -145,18 +97,32 @@ export interface Favorite {
 }
 
 /**
+ * 用户统计数据类型
+ */
+export interface UserStats {
+  userId: number
+  likeCount: number
+  fanCount: number
+  collectCount: number
+}
+
+/**
+ * 用户统计响应类型
+ */
+export interface UserStatsResponse {
+  code: number
+  msg: string
+  data: UserStats | null
+}
+
+/**
  * 关注/粉丝数据类型
  */
 export interface Follow {
-  /** 用户ID */
   id: string
-  /** 用户名 */
   name: string
-  /** 头像 */
   avatar: string
-  /** 个人简介 */
   bio: string
-  /** 关注时间 */
   createdAt: string
 }
 
@@ -188,15 +154,6 @@ export async function deleteUserWork(id: string): Promise<void> {
 }
 
 /**
- * 获取用户收藏列表
- * @param params - 查询参数
- * @returns 用户收藏列表
- */
-export async function getUserFavorites(params?: PaginationParams): Promise<PaginationData<Favorite>> {
-  return get('/api/profile/favorites', params as unknown as Record<string, unknown>)
-}
-
-/**
  * 取消收藏
  * @param id - 收藏ID
  */
@@ -204,23 +161,6 @@ export async function deleteFavorite(id: string): Promise<void> {
   return del(`/api/profile/favorites/${id}`)
 }
 
-/**
- * 获取用户关注列表
- * @param params - 查询参数
- * @returns 用户关注列表
- */
-export async function getUserFollowing(params?: PaginationParams): Promise<PaginationData<Follow>> {
-  return get('/api/profile/following', params as unknown as Record<string, unknown>)
-}
-
-/**
- * 获取用户粉丝列表
- * @param params - 查询参数
- * @returns 用户粉丝列表
- */
-export async function getUserFollowers(params?: PaginationParams): Promise<PaginationData<Follow>> {
-  return get('/api/profile/followers', params as unknown as Record<string, unknown>)
-}
 
 /**
  * 关注用户
@@ -294,13 +234,14 @@ export async function getNotificationSettings(): Promise<NotificationSettings> {
 export async function updateNotificationSettings(settings: Partial<NotificationSettings>): Promise<NotificationSettings> {
   return put('/api/profile/settings/notifications', settings as unknown as Record<string, unknown>)
 }
+//--已对齐后端接口
 
 /**
- * 修改密码
- * @param params - 修改密码参数
+ * 获取用户统计数据（点赞、粉丝、收藏）
+ * @returns 用户统计数据
  */
-export async function changePassword(params: ChangePasswordParams): Promise<void> {
-  return post('/api/profile/settings/change-password', params as unknown as Record<string, unknown>)
+export async function getUserStats(): Promise<UserStatsResponse> {
+  return get('/document/content/user/stats')
 }
 
 /**

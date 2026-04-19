@@ -12,8 +12,8 @@ import {
   HiOutlineCog, 
   HiOutlineLogout,
   HiOutlineHeart,
-  HiOutlineUserAdd,
-  HiOutlineChat,
+  HiOutlineBookmark,
+  HiUsers,
   HiUser
 } from 'react-icons/hi'
 import { cn } from '@/utils'
@@ -21,24 +21,12 @@ import { useUserStore } from '@/stores/user'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/hooks'
 
-// 用户统计数据
-interface UserStats {
-  /** 点赞数 */
-  likes: number
-  /** 关注数 */
-  following: number
-  /** 评论数 */
-  comments: number
-}
-
 // 组件属性
 interface UserDropdownProps {
   /** 用户名 */
   name?: string
   /** 头像地址 */
   avatar?: string
-  /** 用户统计数据 */
-  stats?: UserStats
   /** 触发器尺寸 */
   triggerSize?: 'sm' | 'md' | 'lg'
   /** 自定义类名 */
@@ -56,13 +44,12 @@ function formatNumber(num: number): string {
 export default function UserDropdown({
   name = '用户',
   avatar,
-  stats = { likes: 0, following: 0, comments: 0 },
   triggerSize = 'sm',
   className
 }: UserDropdownProps) {
   const { t } = useTranslation('navigation')
   const navigate = useNavigate()
-  const { logout, userInfo } = useUserStore()
+  const { logout, userInfo, userStats } = useUserStore()
   const { actualTheme } = useTheme()
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const triggerRef = useRef<HTMLDivElement>(null)
@@ -176,15 +163,15 @@ export default function UserDropdown({
             <div className="flex justify-around items-center px-4 py-2 border-b border-default-200/50">
               <div className="flex items-center gap-1.5">
                 <HiOutlineHeart className="text-xl text-default-600" />
-                <span className="text-sm text-default-700">{formatNumber(stats.likes)}</span>
+                <span className="text-sm text-default-700">{formatNumber(userStats?.likeCount || 0)}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <HiOutlineUserAdd className="text-xl text-default-600" />
-                <span className="text-sm text-default-700">{formatNumber(stats.following)}</span>
+                <HiOutlineBookmark className="text-xl text-default-600" />
+                <span className="text-sm text-default-700">{formatNumber(userStats?.collectCount || 0)}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <HiOutlineChat className="text-xl text-default-600" />
-                <span className="text-sm text-default-700">{formatNumber(stats.comments)}</span>
+                <HiUsers className="text-xl text-default-600" />
+                <span className="text-sm text-default-700">{formatNumber(userStats?.fanCount || 0)}</span>
               </div>
             </div>
 

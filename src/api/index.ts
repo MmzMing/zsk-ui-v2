@@ -4,5 +4,6 @@
 
 export * from './config'
 export * from './request'
-export * from './menu'
+export * from './admin/menu'
 export * from './profile'
+export * from './auth'

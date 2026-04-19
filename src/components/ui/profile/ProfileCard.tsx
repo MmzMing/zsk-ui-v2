@@ -9,8 +9,10 @@ import { useTranslation } from 'react-i18next'
 import { Avatar, Button } from '@heroui/react'
 import { CardContainer, CardBody, CardItem } from '@/components/ui/aceternity/DraggableCard'
 import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
-import { PenLine, Heart, UserPlus, Users, Bell, Shield } from 'lucide-react'
-import type { UserInfo, SysUser } from '@/types/user.types'
+import { PenLine, Heart, BookMarked, Users, Bell, Shield } from 'lucide-react'
+import type { UserInfo } from '@/types/user.types'
+import type { SysUser } from '@/api/auth'
+import { useUserStore } from '@/stores/user'
 
 /**
  * Tab 类型
@@ -48,6 +50,7 @@ export function ProfileCard({
   className,
 }: ProfileCardProps) {
   const { t } = useTranslation('profile')
+  const { userStats } = useUserStore()
 
   // ===== 9. 页面初始化与事件绑定 =====
   if (loading) {
@@ -133,10 +136,22 @@ export function ProfileCard({
               radius="full"
               className="w-10 h-10 hover:bg-gray-200"
             >
-              <UserPlus className="w-5 h-5 text-[var(--primary-color)]" />
+              <Heart className="w-5 h-5 text-[var(--primary-color)]" />
             </Button>
-            <span className="text-sm font-medium text-[var(--color-default-900,gray-900)] mt-1">0</span>
-            <span className="text-xs text-gray-500">{t('card.following')}</span>
+            <span className="text-sm font-medium text-[var(--color-default-900,gray-900)] mt-1">{userStats?.likeCount || 0}</span>
+            <span className="text-xs text-gray-500">{t('card.likes')}</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Button
+              isIconOnly
+              variant="light"
+              radius="full"
+              className="w-10 h-10 hover:bg-gray-200"
+            >
+              <BookMarked className="w-5 h-5 text-[var(--primary-color)]" />
+            </Button>
+            <span className="text-sm font-medium text-[var(--color-default-900,gray-900)] mt-1">{userStats?.collectCount || 0}</span>
+            <span className="text-xs text-gray-500">{t('card.collections')}</span>
           </div>
           <div className="flex flex-col items-center">
             <Button
@@ -147,20 +162,8 @@ export function ProfileCard({
             >
               <Users className="w-5 h-5 text-[var(--primary-color)]" />
             </Button>
-            <span className="text-sm font-medium text-[var(--color-default-900,gray-900)] mt-1">0</span>
+            <span className="text-sm font-medium text-[var(--color-default-900,gray-900)] mt-1">{userStats?.fanCount || 0}</span>
             <span className="text-xs text-gray-500">{t('card.followers')}</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Button
-              isIconOnly
-              variant="light"
-              radius="full"
-              className="w-10 h-10 hover:bg-gray-200"
-            >
-              <Heart className="w-5 h-5 text-[var(--primary-color)]" />
-            </Button>
-            <span className="text-sm font-medium text-[var(--color-default-900,gray-900)] mt-1">0</span>
-            <span className="text-xs text-gray-500">{t('card.likes')}</span>
           </div>
         </CardItem>
 

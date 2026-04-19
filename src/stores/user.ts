@@ -5,6 +5,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { UserInfo, TokenInfo } from '@/types'
+import type { UserStats } from '@/api/profile'
 
 interface UserState {
   userInfo: UserInfo | null
@@ -12,12 +13,14 @@ interface UserState {
   isLoggedIn: boolean
   isLoading: boolean
   permissions: string[]
+  userStats: UserStats | null
 
   setUserInfo: (user: UserInfo | null) => void
   setTokenInfo: (token: TokenInfo | null) => void
   logout: () => void
   setLoading: (loading: boolean) => void
   setPermissions: (permissions: string[]) => void
+  setUserStats: (stats: UserStats | null) => void
 }
 
 export const useUserStore = create<UserState>()(
@@ -28,6 +31,7 @@ export const useUserStore = create<UserState>()(
       isLoggedIn: false,
       isLoading: false,
       permissions: [],
+      userStats: null,
 
       setUserInfo: (user) =>
         set({
@@ -46,6 +50,7 @@ export const useUserStore = create<UserState>()(
           tokenInfo: null,
           isLoggedIn: false,
           permissions: [],
+          userStats: null,
         }),
 
       setLoading: (loading) =>
@@ -57,6 +62,11 @@ export const useUserStore = create<UserState>()(
         set({
           permissions,
         }),
+
+      setUserStats: (stats) =>
+        set({
+          userStats: stats,
+        }),
     }),
     {
       name: 'zsk-user-store',
@@ -65,6 +75,7 @@ export const useUserStore = create<UserState>()(
         tokenInfo: state.tokenInfo,
         isLoggedIn: state.isLoggedIn,
         permissions: state.permissions,
+        userStats: state.userStats,
       }),
     }
   )

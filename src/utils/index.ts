@@ -7,6 +7,7 @@ export * from './format'
 export * from './storage'
 export * from './validate'
 export * from './toast'
+export * from './logger'
 // 别名导出
 export { getStorageValue as getStorage } from './storage'
 

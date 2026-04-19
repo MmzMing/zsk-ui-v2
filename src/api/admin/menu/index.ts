@@ -4,7 +4,7 @@
  * 主要由后端API权限控制显示
  */
 
-import { get, post, put, del } from './request'
+import { get, post, put, del } from '../../request'
 import type { MenuItem } from '@/constants/menu'
 import type { PaginationParams, PaginationData } from '@/types/api.types'
 
@@ -12,15 +12,10 @@ import type { PaginationParams, PaginationData } from '@/types/api.types'
  * 菜单API数据结构（后端返回格式）
  */
 export interface MenuApiItem extends Omit<MenuItem, 'icon'> {
-  /** 菜单ID */
   id: string
-  /** 图标名称（字符串形式，用于动态加载） */
   icon?: string
-  /** 父菜单ID */
   parentId?: string
-  /** 创建时间 */
   createdAt: string
-  /** 更新时间 */
   updatedAt: string
 }
 
@@ -33,7 +28,6 @@ export type MenuListResponse = PaginationData<MenuApiItem>
  * 菜单树响应类型
  */
 export interface MenuTreeResponse {
-  /** 菜单树结构 */
   menus: MenuItem[]
 }
 

@@ -144,6 +144,8 @@ export const STORAGE_KEYS = {
   TOKEN: 'access_token',
   /** 用户信息 */
   USER_INFO: 'zsk_user_info',
+  /** 用户统计数据 */
+  USER_STATS: 'zsk_user_stats',
   /** 应用设置 */
   APP_SETTINGS: 'zsk_app_settings',
   /** 侧边栏状态 */

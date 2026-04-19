@@ -11,7 +11,7 @@ import { MessagesPanel } from '@/components/ui/profile/MessagesPanel'
 import { SecurityPanel } from '@/components/ui/profile/SecurityPanel'
 import { getUserWorks, getSystemUserInfo } from '@/api/profile'
 import type { UserWork } from '@/api/profile'
-import type { SysUser } from '@/types/user.types'
+import type { SysUser } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
 
 /**
