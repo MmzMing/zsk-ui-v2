@@ -90,7 +90,7 @@ export function ProfileCard({
 
   return (
     <CardContainer className={`inter-var ${className || ''}`}>
-      <CardBody className="p-6 space-y-5 bg-[var(--color-default-50,#F9FAFB)] rounded-[1rem] shadow-xl h-auto w-72">
+      <CardBody className="p-6 space-y-5 bg-transparent border-0 rounded-none shadow-none h-auto w-72">
         <CardItem translateZ="50" className="flex flex-col items-center text-center space-y-3">
           <Avatar
             src={userInfo?.avatar}

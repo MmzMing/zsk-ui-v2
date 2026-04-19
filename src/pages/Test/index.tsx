@@ -2,7 +2,7 @@
  * 测试开发环境组件页面
  */
 
-import { Button, Card, Divider } from '@heroui/react'
+import { Button, Card, Divider, Input } from '@heroui/react'
 import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
 import Editor from '@/components/ui/editor'
 import { useState } from 'react'
@@ -259,6 +259,34 @@ export default function TestPage() {
             </div>
           </Card>
         </div>
+
+        <Divider />
+
+        {/* 输入框测试区域 */}
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl font-bold">输入框测试</h2>
+            <p className="text-default-500 text-sm">
+              HeroUI Input 组件测试，包含边框样式和清除功能
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <Input 
+              variant="bordered" 
+              placeholder="请输入内容..." 
+              clearable 
+              defaultValue="这是带清除功能的边框输入框"
+            />
+            <Input 
+              placeholder="请输入内容..." 
+              defaultValue="这是普通输入框"
+            />
+          </div>
+        </section>
+
+        <Divider />
+
         {/* 气泡聊天组件测试区域 */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">

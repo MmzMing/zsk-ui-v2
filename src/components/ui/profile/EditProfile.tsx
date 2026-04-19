@@ -221,10 +221,10 @@ export function EditProfile({ userInfo }: EditProfileProps) {
   // ===== 6. UI渲染逻辑区域 =====
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Card className="shadow-lg">
+      <Card className="bg-transparent border-0 shadow-none">
         <CardBody className="p-0">
           {/* 头部区域：头像 + 昵称 + 编辑按钮 */}
-          <div className="p-4 border-b border-default-200 flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* 头像区域 */}
               <div 
@@ -269,9 +269,9 @@ export function EditProfile({ userInfo }: EditProfileProps) {
             {/* 编辑按钮 */}
             {!isEditing && (
               <Button
-                variant="light"
+                variant="flat"
                 onClick={() => setIsEditing(true)}
-                className="bg-default-200/50 text-default-700 hover:bg-default-300/50 transition-all duration-300 hover:scale-105"
+                className="bg-transparent text-primary hover:bg-transparent hover:text-primary/80 transition-colors duration-300"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {t('edit.editProfile')}
@@ -280,7 +280,7 @@ export function EditProfile({ userInfo }: EditProfileProps) {
           </div>
 
           {/* 表单内容区域 */}
-          <div className="p-6 space-y-4">
+          <div className="space-y-4 mt-6">
             {/* 头像上传错误提示 */}
             {avatarError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
@@ -295,11 +295,12 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                 {t('edit.name')}
               </label>
               <Input
+                variant="bordered"
                 value={isEditing ? (editSysUser.nickName || displayName || '') : (displayName || '')}
                 onChange={(e) => handleSysUserChange('nickName', e.target.value)}
                 disabled={!isEditing}
                 placeholder={t('edit.placeholderName')}
-                className="transition-all duration-300"
+                className="bg-transparent transition-all duration-300"
               />
             </div>
 
@@ -310,11 +311,12 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                 {t('edit.avatarUrl')}
               </label>
               <Input
+                variant="bordered"
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
                 placeholder={t('edit.placeholderAvatarUrl')}
                 disabled={!isEditing}
-                className="transition-all duration-300"
+                className="bg-transparent transition-all duration-300"
               />
             </div>
 
@@ -322,6 +324,8 @@ export function EditProfile({ userInfo }: EditProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-default-700">{t('edit.bio')}</label>
               <Textarea
+                isClearable
+                variant="bordered"
                 value={isEditing ? (editSysUser.bio || displayBio || '') : (displayBio || '')}
                 onChange={(e) => handleSysUserChange('bio', e.target.value)}
                 disabled={!isEditing}
@@ -335,9 +339,10 @@ export function EditProfile({ userInfo }: EditProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-default-700">{t('edit.email')}</label>
               <Input
+                variant="bordered"
                 value={displayEmail || t('card.unbound')}
                 disabled
-                className="transition-all duration-300"
+                className="bg-transparent transition-all duration-300"
               />
             </div>
 
@@ -345,11 +350,12 @@ export function EditProfile({ userInfo }: EditProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-default-700">{t('edit.phone')}</label>
               <Input
+                variant="bordered"
                 value={isEditing ? (editSysUser.phonenumber || displayPhone || '') : (displayPhone || t('card.notSet'))}
                 onChange={(e) => handleSysUserChange('phonenumber', e.target.value)}
                 disabled={!isEditing}
                 placeholder={t('edit.placeholderPhone')}
-                className="transition-all duration-300"
+                className="bg-transparent transition-all duration-300"
               />
             </div>
 
@@ -358,6 +364,7 @@ export function EditProfile({ userInfo }: EditProfileProps) {
               <label className="text-sm font-medium text-default-700">{t('edit.age')}</label>
               {isEditing ? (
                 <Input
+                  variant="bordered"
                   type="number"
                   value={editSysUser.age?.toString() || displayAge?.toString() || ''}
                   onChange={(e) => {
@@ -368,13 +375,14 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                   placeholder={t('edit.placeholderAge')}
                   min="1"
                   max="120"
-                  className="transition-all duration-300"
+                  className="bg-transparent transition-all duration-300"
                 />
               ) : (
                 <Input
+                  variant="bordered"
                   value={displayAge?.toString() || t('card.notSet')}
                   disabled
-                  className="transition-all duration-300"
+                  className="bg-transparent transition-all duration-300"
                 />
               )}
             </div>
@@ -382,7 +390,7 @@ export function EditProfile({ userInfo }: EditProfileProps) {
 
           {/* 编辑操作按钮 */}
           {isEditing && (
-            <div className="flex justify-end gap-3 px-6 pb-6">
+            <div className="flex justify-end gap-3 mt-6">
               <Button
                 variant="light"
                 onClick={handleCancel}

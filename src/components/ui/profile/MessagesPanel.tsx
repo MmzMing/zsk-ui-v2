@@ -142,100 +142,97 @@ export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
 
   // ===== 8. UI渲染逻辑区域 =====
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-4 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-default-500" />
+          {(['all', 'system', 'comment', 'like', 'follow'] as const).map(type => (
+            <Button
+              key={type}
+              variant="flat"
+              size="sm"
+              className={`transition-all duration-300 bg-transparent hover:bg-transparent ${filter === type ? 'text-primary' : 'text-default-600 hover:text-default-900'}`}
+              onClick={() => setFilter(type)}
+            >
+              {type === 'all' ? t('messages.all') : getTypeLabel(type)}
+            </Button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <Button
+              variant="flat"
+              onClick={handleMarkAllRead}
+              className="text-primary hover:text-primary/80 transition-all duration-300 bg-transparent hover:bg-transparent"
+            >
+              <Check className="w-4 h-4 mr-2" />
+              {t('messages.markAllRead')}
+            </Button>
+          )}
+          <Button
+            isIconOnly
+            variant="flat"
+            onClick={() => setShowSettings(!showSettings)}
+            className="transition-all duration-300 bg-transparent hover:bg-transparent"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
 
-      <Card className="shadow-lg">
-        <CardBody className="p-0">
-          <div className="p-4 border-b border-default-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-default-500" />
-              {(['all', 'system', 'comment', 'like', 'follow'] as const).map(type => (
-                <Button
-                  key={type}
-                  variant="light"
-                  size="sm"
-                  className={`transition-all duration-300 hover:scale-105 ${filter === type ? 'bg-default-200/50 text-default-700' : ''}`}
-                  onClick={() => setFilter(type)}
-                >
-                  {type === 'all' ? t('messages.all') : getTypeLabel(type)}
-                </Button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <Button
-                  variant="light"
-                  onClick={handleMarkAllRead}
-                  className="bg-[var(--primary-color)]/20 text-[var(--primary-color)] hover:bg-[var(--primary-color)]/30 transition-all duration-300 hover:scale-105"
-                >
-                  <Check className="w-4 h-4 mr-2" />
-                  {t('messages.markAllRead')}
-                </Button>
-              )}
-              <Button
-                isIconOnly
-                variant="light"
-                onClick={() => setShowSettings(!showSettings)}
-                className="transition-all duration-300 hover:scale-105"
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
-            </div>
+      <div className="border-b border-default-200" />
+
+      <div className="divide-y divide-default-200">
+        {filteredMessages.length === 0 ? (
+          <div className="p-12 text-center">
+            <Bell className="w-12 h-12 text-default-300 mx-auto mb-4" />
+            <p className="text-default-500">{t('messages.noMessages')}</p>
           </div>
-
-          <div className="divide-y divide-default-100">
-            {filteredMessages.length === 0 ? (
-              <div className="p-12 text-center">
-                <Bell className="w-12 h-12 text-default-300 mx-auto mb-4" />
-                <p className="text-default-500">{t('messages.noMessages')}</p>
-              </div>
-            ) : (
-              filteredMessages.map((msg, index) => (
-                <div
-                  key={msg.id}
-                  className={`p-4 hover:bg-default-50 transition-all duration-300 animate-in slide-in-from-left-2 duration-300 ${index > 0 ? `delay-${index * 50}` : ''}`}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${!msg.isRead ? 'bg-primary/10 scale-110' : 'bg-default-100'}`}>
-                      {getIcon(msg.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge
-                          variant="flat"
-                          className={msg.isRead ? 'bg-default-100 text-default-600' : 'bg-primary/10 text-primary'}
-                        >
-                          {getTypeLabel(msg.type)}
-                        </Badge>
-                        {!msg.isRead && (
-                          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        )}
-                      </div>
-                      <p className={`text-sm ${msg.isRead ? 'text-default-600' : 'text-default-900 font-medium'}`}>
-                        {msg.content}
-                      </p>
-                      <p className="text-xs text-default-400 mt-1">
-                        {msg.createdAt}
-                      </p>
-                    </div>
+        ) : (
+          filteredMessages.map((msg, index) => (
+            <div
+              key={msg.id}
+              className="py-4 animate-in slide-in-from-left-2 duration-300"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${!msg.isRead ? 'bg-primary/10' : 'bg-default-100'}`}>
+                  {getIcon(msg.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge
+                      variant="flat"
+                      className={msg.isRead ? 'bg-default-100 text-default-600' : 'bg-primary/10 text-primary'}
+                    >
+                      {getTypeLabel(msg.type)}
+                    </Badge>
                     {!msg.isRead && (
-                      <Button
-                        variant="light"
-                        size="sm"
-                        onClick={() => handleMarkAsRead(msg.id)}
-                        className="flex-shrink-0 transition-all duration-300 hover:scale-105"
-                      >
-                        <Check className="w-4 h-4" />
-                      </Button>
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                     )}
                   </div>
+                  <p className={`text-sm ${msg.isRead ? 'text-default-600' : 'text-default-900 font-medium'}`}>
+                    {msg.content}
+                  </p>
+                  <p className="text-xs text-default-400 mt-1">
+                    {msg.createdAt}
+                  </p>
                 </div>
-              ))
-            )}
-          </div>
-        </CardBody>
-      </Card>
+                {!msg.isRead && (
+                    <Button
+                      variant="flat"
+                      size="sm"
+                      onClick={() => handleMarkAsRead(msg.id)}
+                      className="flex-shrink-0 transition-all duration-300 bg-transparent hover:bg-transparent"
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                  )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   )
 }
