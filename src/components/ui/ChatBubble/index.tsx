@@ -159,6 +159,8 @@ const SPEED_RECOVER_DELAY = 300
 
 /**
  * 使用 IntersectionObserver 检测元素是否进入视窗
+ * 
+ * 具有"粘性"行为：一旦元素进入过视窗，就保持 isInView 为 true，不再隐藏
  */
 function useInView(options: IntersectionObserverInit = {}) {
   const ref = useRef<HTMLDivElement>(null)
@@ -166,7 +168,9 @@ function useInView(options: IntersectionObserverInit = {}) {
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      setIsInView(entry.isIntersecting)
+      if (entry.isIntersecting) {
+        setIsInView(true)
+      }
     }, {
       threshold: 0.1,
       rootMargin: '0px 0px -100px 0px',
