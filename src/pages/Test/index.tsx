@@ -7,9 +7,43 @@ import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
 import Editor from '@/components/ui/editor'
 import { useState } from 'react'
 import { toast } from '@/utils/toast'
+import { ChatBubble } from '@/components/ui/ChatBubble'
+import type { ChatItem, ChatQuestion } from '@/components/ui/ChatBubble'
+
+// 演示用聊天数据（网站问答风格）
+const DEMO_CHAT_ITEMS: ChatItem[] = [
+  { id: '1', type: 'message', role: 'user', content: '什么是智数科云平台？' },
+  { id: '2', type: 'message', role: 'bot', content: '智数科云是一个企业级智能数据服务平台，提供数据采集、分析和可视化解决方案。' },
+  { id: '3', type: 'message', role: 'user', content: '如何开始使用？' },
+  { id: '4', type: 'message', role: 'bot', content: '您可以注册账号后免费试用基础功能，我们提供详细的入门指南和在线教程帮助您快速上手。' },
+  { id: '5', type: 'message', role: 'user', content: '平台是否易于使用？' },
+  { id: '6', type: 'message', role: 'bot', content: '是的，我们的界面设计注重用户体验，无论是技术人员还是业务人员都能轻松操作。' },
+  { id: '7', type: 'divider', content: '更多常见问题' },
+]
+
+// 底部可点击问题列表
+const DEMO_QUESTIONS: ChatQuestion[] = [
+  {
+    id: 'q1',
+    label: '平台支持哪些数据源接入？',
+    reply: '支持主流数据库（MySQL、PostgreSQL、MongoDB等）、云存储服务（阿里云、腾讯云、AWS）以及API接口的数据接入。',
+  },
+  {
+    id: 'q2',
+    label: '如何保障数据安全？',
+    reply: '我们采用企业级加密传输和存储方案，支持私有化部署，并通过了等保三级认证，确保您的数据安全无忧。',
+  },
+  {
+    id: 'q3',
+    label: '有技术支持服务吗？',
+    reply: '提供7x24小时在线技术支持，企业客户可享受专属客户经理和定制化培训服务。',
+  },
+]
 
 export default function TestPage() {
   const [content, setContent] = useState('<p>Hello Tiptap!</p>')
+  // 用 key 控制 ChatBubble 重新挂载以重播动画
+  const [chatKey, setChatKey] = useState(0)
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -18,6 +52,37 @@ export default function TestPage() {
           <h1 className="text-2xl font-bold">组件测试页面</h1>
           <p className="text-default-500">用于测试开发环境中的组件效果</p>
         </div>
+
+        <Divider />
+
+        {/* 气泡聊天组件测试区域 */}
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-xl font-bold">气泡聊天组件</h2>
+              <p className="text-default-500 text-sm">
+                微信/QQ 风格左右布局，气泡弹出动效，打字机效果，聊天记录依次弹出，滑动加速
+              </p>
+            </div>
+            <Button
+              variant="bordered"
+              size="sm"
+              onClick={() => setChatKey(k => k + 1)}
+            >
+              重播动画
+            </Button>
+          </div>
+
+          {/* 聊天区域：无边框无背景，直接铺在页面上 */}
+          <div className="w-full max-w-4xl mx-auto">
+            <ChatBubble
+              key={chatKey}
+              items={DEMO_CHAT_ITEMS}
+              questions={DEMO_QUESTIONS}
+              typingSpeed={38}
+            />
+          </div>
+        </section>
 
         <Divider />
 
