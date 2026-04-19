@@ -440,3 +440,82 @@ textarea,
   }
 }
 
+/* ===== antd Tree 深色主题样式 ===== */
+.ant-tree {
+  background-color: var(--color-card) !important;
+}
+
+.ant-tree-title-content {
+  background-color: transparent !important;
+}
+
+.ant-tree-treenode {
+  color: var(--color-foreground) !important;
+}
+
+.ant-tree-treenode:hover {
+  background-color: var(--color-accent) !important;
+}
+
+.ant-tree-node-selected {
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary-foreground) !important;
+}
+
+.ant-tree-node-selected .ant-tree-title-content {
+  color: var(--color-primary-foreground) !important;
+}
+
+.ant-tree-indent-unit {
+  border-color: var(--color-border) !important;
+}
+
+.ant-tree-switcher {
+  color: var(--color-muted-foreground) !important;
+}
+
+.ant-tree-drag-ghost {
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary-foreground) !important;
+}
+
+.ant-tree-drag-between-line {
+  border-color: var(--color-primary) !important;
+}
+
+/* ===== antd Tree 拖拽手柄图标样式 ===== */
+/* 暗黑主题下拖拽手柄为白色，亮色主题下为黑色 */
+:root.dark .ant-tree-draggable-icon,
+:root.dark .ant-tree-drag-handle,
+:root.dark .ant-tree-node-icon,
+:root.dark .anticon-drag-dot {
+  color: #ffffff !important;
+  opacity: 0.85 !important;
+}
+
+:root:not(.dark) .ant-tree-draggable-icon,
+:root:not(.dark) .ant-tree-drag-handle,
+:root:not(.dark) .ant-tree-node-icon,
+:root:not(.dark) .anticon-drag-dot {
+  color: #000000 !important;
+  opacity: 0.85 !important;
+}
+
+/* 拖拽手柄悬停效果 */
+.ant-tree-draggable-icon:hover,
+.ant-tree-drag-handle:hover,
+.ant-tree-node-icon:hover {
+  opacity: 1 !important;
+}
+
+/* 处理伪元素样式 */
+:root.dark .ant-tree-treenode:before,
+:root.dark .ant-tree-drag-handle:before {
+  color: #ffffff !important;
+}
+
+:root:not(.dark) .ant-tree-treenode:before,
+:root:not(.dark) .ant-tree-drag-handle:before {
+  color: #000000 !important;
+}
+

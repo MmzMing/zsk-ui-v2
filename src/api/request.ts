@@ -43,6 +43,18 @@ request.interceptors.request.use(
   }
 )
 
+// 清除登录状态并跳转到登录页
+function handleAuthError(message?: string): void {
+  removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
+  removeStorage(STORAGE_KEYS.TOKEN, 'local')
+  removeStorage(STORAGE_KEYS.USER_INFO, 'cookie')
+  removeStorage(STORAGE_KEYS.USER_INFO, 'local')
+  toast.error(message || '登录已过期，请重新登录')
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login'
+  }
+}
+
 // 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse & { success?: boolean }>) => {
@@ -50,7 +62,17 @@ request.interceptors.response.use(
 
     // 检查业务状态码：兼容 code === 0（前端约定）和 code === 200（后端实际返回）
     const isSuccess = data.code === 0 || (data.code === 200 && data.success !== false)
+    
     if (!isSuccess) {
+      // 检查业务层鉴权错误：业务码为 401 或错误信息包含鉴权相关关键词
+      const isAuthError = data.code === 401 || 
+                         (data.msg && data.msg.includes('鉴权')) ||
+                         (data.msg && data.msg.includes('登录'))
+      
+      if (isAuthError) {
+        handleAuthError(data.msg)
+      }
+      
       const error = new Error(data.msg || '请求失败')
       return Promise.reject(error)
     }
@@ -64,16 +86,7 @@ request.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // Token 过期或无效，清除本地存储和 Cookie
-          removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
-          removeStorage(STORAGE_KEYS.TOKEN, 'local')
-          removeStorage(STORAGE_KEYS.USER_INFO, 'cookie')
-          removeStorage(STORAGE_KEYS.USER_INFO, 'local')
-          toast.error('登录已过期，请重新登录')
-          // 跳转到登录页
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login'
-          }
+          handleAuthError()
           break
         case 403:
           toast.error('没有权限访问该资源')

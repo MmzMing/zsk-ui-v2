@@ -219,14 +219,14 @@ export const MENU_STATUS_OPTIONS: MenuStatusOption[] = [
 ]
 
 /**
- * react-arborist 树节点数据结构
- * 必须包含 id、name 字段以符合 react-arborist 的 SimpleData 约束
+ * antd Tree 树节点数据结构
+ * 兼容 antd Tree 组件的 DataNode 格式
  */
 export interface MenuNodeData {
-  /** 节点ID */
-  id: string
-  /** 节点名称（react-arborist 必需字段） */
-  name: string
+  /** 节点key（antd Tree 必需字段） */
+  key: string
+  /** 节点标题（antd Tree 必需字段） */
+  title: string
   /** 子节点 */
   children?: MenuNodeData[]
   /** 菜单类型 */
@@ -237,6 +237,8 @@ export interface MenuNodeData {
   icon?: string
   /** 路由路径 */
   path?: string
+  /** 是否禁用拖入 */
+  droppable?: boolean
   /** 关联的完整菜单数据 */
   menuData: SysMenu
 }

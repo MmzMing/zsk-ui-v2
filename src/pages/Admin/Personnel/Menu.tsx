@@ -2,19 +2,20 @@
  * 菜单管理页面
  *
  * 左右分栏布局：
- * - 左侧：菜单树结构（react-arborist），支持拖拽排序、展开折叠
+ * - 左侧：菜单树结构（antd Tree），支持拖拽排序、展开折叠
  * - 右侧：查询工具栏 + 菜单详情列表，支持新增/编辑/删除/批量操作
  *
  * 核心交互：
  * - 选中左侧菜单节点 → 右侧展示其子菜单列表
  * - 未选中任何节点 → 右侧展示一级菜单列表
  * - 新增子菜单时自动继承父菜单相关属性（路径、状态、权限标识等）
+ * - 拖拽排序支持拖入到二级菜单（目录/菜单类型），按钮类型节点禁止拖入
  */
 
 // ===== 1. 依赖导入区域 =====
 
 // React 核心
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 
 // HeroUI 组件
 import {
@@ -53,16 +54,15 @@ import {
   Pencil,
   RefreshCw,
   FolderTree,
-  ChevronRight,
-  ChevronDown,
   Folder,
   MousePointerClick,
   Menu as MenuIcon,
   icons as LucideIcons
 } from 'lucide-react'
 
-// 第三方组件
-import { Tree, type NodeRendererProps, type TreeApi } from 'react-arborist'
+// antd 组件
+import { Tree } from 'antd'
+import type { TreeProps, DataNode } from 'antd/es/tree'
 
 // 工具函数
 import { toast } from '@/utils/toast'
@@ -155,27 +155,27 @@ function getMenuStatusColor(status: MenuStatus): 'success' | 'danger' {
 }
 
 /**
- * 将后端菜单数据转换为 react-arborist 树节点格式
+ * 将扁平菜单数据转换为 antd Tree 树节点格式
  * 按 orderNum 升序排序，确保菜单树按配置顺序展示
  *
- * @param menus - 后端返回的菜单列表
- * @returns react-arborist 兼容的树节点数组
+ * @param menus - 后端返回的扁平菜单列表
+ * @param parentId - 父菜单ID，用于递归构建子树
+ * @returns antd Tree 兼容的树节点数组
  */
-function convertToTreeData(menus: SysMenu[]): MenuNodeData[] {
+function convertToTreeData(menus: SysMenu[], parentId: string = '0'): MenuNodeData[] {
   return menus
-    .slice()
+    .filter(menu => menu.parentId === parentId)
     .sort((a, b) => a.orderNum - b.orderNum)
     .map(menu => ({
-      id: menu.id,
-      name: menu.menuName,
+      key: menu.id,
+      title: menu.menuName,
       menuType: menu.menuType,
       status: menu.status,
       icon: menu.icon,
       path: menu.path,
+      droppable: menu.menuType !== 'F',
       menuData: menu,
-      children: menu.children && menu.children.length > 0
-        ? convertToTreeData(menu.children)
-        : undefined
+      children: convertToTreeData(menus, menu.id)
     }))
 }
 
@@ -249,57 +249,6 @@ function renderIcon(iconName?: string, size = 16, className?: string) {
 }
 
 // ===== 5. 子组件区域 =====
-
-/**
- * 菜单树节点渲染组件
- *
- * 用于 react-arborist Tree 的 nodeRenderer，展示每个菜单节点：
- * - 展开/折叠箭头（仅含子节点的目录）
- * - 类型图标（目录/菜单/按钮各有默认图标，也可自定义 Lucide 图标）
- * - 菜单名称
- * - 类型标签（Chip）
- * - 选中/聚焦/停用状态的视觉反馈
- */
-function MenuTreeNode({ node, style, dragHandle }: NodeRendererProps<MenuNodeData>) {
-  const menuType = node.data.menuType
-  const status = node.data.status
-  const isDisabled = status === '1'
-
-  const TypeIcon = menuType === 'M' ? MenuIcon : menuType === 'C' ? Folder : MousePointerClick
-  const CustomIcon = node.data.icon ? getLucideIcon(node.data.icon) : null
-  const DisplayIcon = CustomIcon || TypeIcon
-
-  return (
-    <div
-      ref={dragHandle}
-      style={style}
-      className={cn(
-        'flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md transition-colors',
-        node.isSelected && 'bg-primary/10 text-primary',
-        node.isFocused && 'ring-1 ring-primary/30',
-        isDisabled && 'opacity-50'
-      )}
-      onClick={(e) => node.handleClick(e)}
-    >
-      {node.isInternal && (
-        <span className="flex-shrink-0 text-default-400">
-          {node.isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </span>
-      )}
-      {!node.isInternal && <span className="w-[14px] flex-shrink-0" />}
-      <DisplayIcon size={16} className={cn('flex-shrink-0', node.isSelected ? 'text-primary' : 'text-default-400')} />
-      <span className="truncate text-sm">{node.data.name}</span>
-      <Chip
-        size="sm"
-        variant="flat"
-        color={getMenuTypeColor(menuType)}
-        className="ml-auto flex-shrink-0 text-tiny"
-      >
-        {getMenuTypeLabel(menuType)}
-      </Chip>
-    </div>
-  )
-}
 
 /**
  * 图标选择组件
@@ -768,8 +717,8 @@ export default function PersonnelMenu() {
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
   /** 查询参数 */
   const [queryParams, setQueryParams] = useState<SysMenuQueryParams>({})
-  /** react-arborist 树实例引用 */
-  const treeRef = useRef<TreeApi<MenuNodeData> | null>(null)
+  /** antd Tree 展开的节点 key 列表 */
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([])
 
   /** 编辑弹窗控制 */
   const editModal = useDisclosure()
@@ -803,10 +752,10 @@ export default function PersonnelMenu() {
   const tableData = useMemo(() => {
     let data: SysMenu[] = []
 
-    if (selectedMenu && selectedMenu.children && selectedMenu.children.length > 0) {
-      data = [...selectedMenu.children]
+    if (selectedMenu) {
+      data = menuList.filter(m => m.parentId === selectedMenu.id)
     } else if (!selectedMenuId) {
-      data = [...menuList]
+      data = menuList.filter(m => m.parentId === '0')
     }
 
     if (queryParams.menuName) {
@@ -831,12 +780,7 @@ export default function PersonnelMenu() {
    * 用于自动计算下一个排序号（orderNum = siblingCount + 1）
    */
   const createSiblingCount = useMemo(() => {
-    if (createParentId === '0') {
-      return menuList.length
-    }
-    const flatList = flattenMenus(menuList)
-    const parent = flatList.find(m => m.id === createParentId)
-    return parent?.children?.length ?? 0
+    return menuList.filter(m => m.parentId === createParentId).length
   }, [createParentId, menuList])
 
   // ===== 6. 错误处理函数区域 =====
@@ -885,15 +829,22 @@ export default function PersonnelMenu() {
   }, [fetchMenuList])
 
   /**
-   * 树节点选中事件
+   * antd Tree 节点选中事件
    * 更新当前选中的菜单 ID，右侧表格随之切换展示内容
    */
-  const handleTreeNodeSelect = useCallback((nodes: { id: string }[]) => {
-    if (nodes.length > 0) {
-      setSelectedMenuId(nodes[0].id)
+  const handleTreeSelect: TreeProps['onSelect'] = useCallback((selectedKeysValue: React.Key[]) => {
+    if (selectedKeysValue.length > 0) {
+      setSelectedMenuId(String(selectedKeysValue[0]))
     } else {
       setSelectedMenuId(null)
     }
+  }, [])
+
+  /**
+   * antd Tree 节点展开/折叠事件
+   */
+  const handleExpand: TreeProps['onExpand'] = useCallback((expandedKeysValue: React.Key[]) => {
+    setExpandedKeys(expandedKeysValue)
   }, [])
 
   /**
@@ -942,16 +893,68 @@ export default function PersonnelMenu() {
   }, [selectedKeys, handleDeleteMenu])
 
   /**
-   * 树节点拖拽移动事件
+   * 在树形数据中按 key 查找节点及其父节点信息
+   * 用于拖拽时判断目标节点的层级和类型
+   */
+  const findNodeInTree = useCallback((nodes: MenuNodeData[], targetKey: React.Key): {
+    node: MenuNodeData | null
+    parent: MenuNodeData | null
+    depth: number
+  } => {
+    const find = (items: MenuNodeData[], parent: MenuNodeData | null, depth: number): {
+      node: MenuNodeData | null
+      parent: MenuNodeData | null
+      depth: number
+    } => {
+      for (const item of items) {
+        if (item.key === targetKey) {
+          return { node: item, parent, depth }
+        }
+        if (item.children) {
+          const result = find(item.children, item, depth + 1)
+          if (result.node) return result
+        }
+      }
+      return { node: null, parent: null, depth: 0 }
+    }
+    return find(nodes, null, 0)
+  }, [])
+
+  /**
+   * antd Tree 拖拽放置事件
+   * 支持拖拽到二级菜单（目录/菜单类型），按钮类型节点禁止作为放置目标
    * 先乐观更新本地状态，再调用批量更新接口同步到后端
    * 失败时回滚到快照数据
    */
-  const handleMoveNode = useCallback(async (args: {
-    dragIds: string[]
-    parentId: string | null
-    index: number
+  const handleDrop: TreeProps['onDrop'] = useCallback(async (info: {
+    dragNode: { key: React.Key }
+    node: { key: React.Key }
+    dropPosition: number
+    dropToGap: boolean
   }) => {
-    const newParentId = args.parentId ?? '0'
+    const dragKey = info.dragNode.key
+    const dropKey = info.node.key
+    const dropPosition = info.dropPosition
+    const dropToGap = info.dropToGap
+
+    const dropInfo = findNodeInTree(treeData, dropKey)
+
+    if (!dropInfo.node) return
+
+    if (!dropToGap && dropInfo.node.menuType === 'F') {
+      toast.warning('按钮类型节点不能作为父节点')
+      return
+    }
+
+    if (!dropToGap && dropInfo.depth >= 2) {
+      toast.warning('最多支持二级菜单层级')
+      return
+    }
+
+    if (dropToGap && dropInfo.depth > 2) {
+      toast.warning('最多支持二级菜单层级')
+      return
+    }
 
     const snapshot = menuList
 
@@ -973,38 +976,70 @@ export default function PersonnelMenu() {
           return false
         }
 
-        for (const id of args.dragIds) {
-          removeNode(updated, id)
-        }
+        removeNode(updated, String(dragKey))
 
-        const insertInto = (list: SysMenu[], targetParentId: string, insertIndex: number): boolean => {
-          if (targetParentId === '0') {
-            const clampedIndex = Math.min(insertIndex, list.length)
-            list.splice(clampedIndex, 0, ...dragNodes)
-            return true
-          }
-          for (const item of list) {
-            if (item.id === targetParentId) {
-              if (!item.children) item.children = []
-              const clampedIndex = Math.min(insertIndex, item.children.length)
-              item.children.splice(clampedIndex, 0, ...dragNodes)
-              return true
+        const dragNode = dragNodes[0]
+        if (!dragNode) return prev
+
+        if (dropToGap) {
+          const dropParentId = dropInfo.parent?.key
+          const newParentId = dropParentId ? String(dropParentId) : '0'
+
+          const insertInto = (list: SysMenu[], targetParentId: string, insertIndex: number): boolean => {
+            if (targetParentId === '0') {
+              const targetIdx = list.findIndex(m => m.id === String(dropKey))
+              if (targetIdx !== -1) {
+                const finalIdx = dropPosition < 0 ? targetIdx : Math.min(dropPosition, list.length)
+                list.splice(finalIdx, 0, dragNode)
+                return true
+              }
             }
-            if (item.children && insertInto(item.children, targetParentId, insertIndex)) return true
+            for (const item of list) {
+              if (item.id === targetParentId) {
+                if (!item.children) item.children = []
+                const targetIdx = item.children.findIndex(m => m.id === String(dropKey))
+                if (targetIdx !== -1) {
+                  const finalIdx = dropPosition < 0 ? targetIdx : Math.min(dropPosition, item.children.length)
+                  item.children.splice(finalIdx, 0, dragNode)
+                  return true
+                }
+              }
+              if (item.children && insertInto(item.children, targetParentId, insertIndex)) return true
+            }
+            return false
           }
-          return false
-        }
 
-        insertInto(updated, newParentId, args.index)
+          insertInto(updated, newParentId, dropPosition)
+          dragNode.parentId = newParentId
+        } else {
+          const insertAsChild = (list: SysMenu[]): boolean => {
+            for (const item of list) {
+              if (item.id === String(dropKey)) {
+                if (!item.children) item.children = []
+                item.children.push(dragNode)
+                dragNode.parentId = item.id
+                return true
+              }
+              if (item.children && insertAsChild(item.children)) return true
+            }
+            return false
+          }
+
+          insertAsChild(updated)
+        }
 
         return updated
       })
 
-      const batchData: SysMenuBatchUpdate[] = args.dragIds.map((id, idx) => ({
-        id,
+      const newParentId = dropToGap
+        ? (dropInfo.parent?.key ? String(dropInfo.parent.key) : '0')
+        : String(dropKey)
+
+      const batchData: SysMenuBatchUpdate[] = [{
+        id: String(dragKey),
         parentId: newParentId,
-        orderNum: args.index + idx
-      }))
+        orderNum: Math.max(0, dropPosition)
+      }]
 
       await batchUpdateMenu(batchData)
       toast.success('排序更新成功')
@@ -1013,7 +1048,22 @@ export default function PersonnelMenu() {
       toast.error('排序更新失败，已恢复')
       setMenuList(snapshot)
     }
-  }, [menuList])
+  }, [menuList, treeData, findNodeInTree])
+
+  /**
+   * antd Tree 是否允许放置
+   * 按钮类型节点（F）禁止拖入子节点
+   */
+  const allowDrop: TreeProps['allowDrop'] = useCallback(({ dropNode, dropPosition }: {
+    dropNode: { key: React.Key; menuType?: MenuType }
+    dropPosition: number
+  }) => {
+    const nodeData = dropNode as unknown as MenuNodeData
+    if (nodeData.menuType === 'F' && dropPosition === 0) {
+      return false
+    }
+    return true
+  }, [])
 
   /** 更新查询参数中的指定字段 */
   const handleQueryChange = useCallback(<K extends keyof SysMenuQueryParams>(key: K, value: SysMenuQueryParams[K]) => {
@@ -1026,6 +1076,41 @@ export default function PersonnelMenu() {
   }, [])
 
   // ===== 8. UI渲染逻辑区域 =====
+
+  /**
+   * antd Tree 自定义节点渲染
+   * 展示每个菜单节点：类型图标 + 菜单名称 + 类型标签
+   */
+  const renderTreeTitle = useCallback((nodeData: DataNode) => {
+    const data = nodeData as unknown as MenuNodeData
+    const menuType = data.menuType
+    const status = data.status
+    const isDisabled = status === '1'
+
+    const TypeIcon = menuType === 'M' ? MenuIcon : menuType === 'C' ? Folder : MousePointerClick
+    const CustomIcon = data.icon ? getLucideIcon(data.icon) : null
+    const DisplayIcon = CustomIcon || TypeIcon
+
+    return (
+      <div
+        className={cn(
+          'flex items-center gap-2 py-1 cursor-pointer',
+          isDisabled && 'opacity-50'
+        )}
+      >
+        <DisplayIcon size={16} className="flex-shrink-0 text-default-400" />
+        <span className="truncate text-sm">{data.title}</span>
+        <Chip
+          size="sm"
+          variant="flat"
+          color={getMenuTypeColor(menuType)}
+          className="ml-auto flex-shrink-0 text-tiny"
+        >
+          {getMenuTypeLabel(menuType)}
+        </Chip>
+      </div>
+    )
+  }, [])
 
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-4 p-4 md:p-0 h-full">
@@ -1061,29 +1146,26 @@ export default function PersonnelMenu() {
               </Tooltip>
             </div>
           </div>
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto p-3">
             {isLoading ? (
               <div className="flex items-center justify-center h-48">
                 <Spinner size="sm" label="加载中..." />
               </div>
             ) : treeData.length > 0 ? (
               <Tree
-                ref={treeRef as React.RefObject<TreeApi<MenuNodeData>>}
-                data={treeData}
-                openByDefault={false}
-                width="100%"
-                rowHeight={36}
-                indent={20}
-                onSelect={handleTreeNodeSelect}
-                onMove={handleMoveNode}
-                disableDrop={({ parentNode }) => {
-                  if (!parentNode) return false
-                  if (parentNode.data.menuType === 'F') return true
-                  return false
-                }}
-              >
-                {MenuTreeNode}
-              </Tree>
+                treeData={treeData as DataNode[]}
+                selectable
+                selectedKeys={selectedMenuId ? [selectedMenuId] : []}
+                expandedKeys={expandedKeys}
+                onSelect={handleTreeSelect}
+                onExpand={handleExpand}
+                draggable
+                blockNode
+                allowDrop={allowDrop}
+                onDrop={handleDrop}
+                titleRender={renderTreeTitle}
+                className="p-2 bg-default-900"
+              />
             ) : (
               <div className="flex items-center justify-center h-48 text-default-400 text-sm">
                 暂无菜单数据
