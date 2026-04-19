@@ -2,5 +2,17 @@
   "calmTitle": "Calm Seas",
   "stormyTitle": "Stormy Weather",
   "calmSubtitle": "On this calm day, it's the perfect time to organize your knowledge and plan your learning",
-  "stormySubtitle": "With the wind and rain outside, why not take a moment to rest and recharge your knowledge"
+  "stormySubtitle": "With the wind and rain outside, why not take a moment to rest and recharge your knowledge",
+  "logTitle": "Voyage Log",
+  "recordTitle": "Sailing Record",
+  "stats": {
+    "uptimeLabel": "Sailing Time",
+    "uptimeTooltip": "Website uptime",
+    "visitorsLabel": "Crew Members",
+    "visitorsTooltip": "Total visitors",
+    "statusLabel": "Voyage Status",
+    "statusTooltip": "Current service status",
+    "statusValue": "Smooth Sailing",
+    "loading": "Loading..."
+  }
 }

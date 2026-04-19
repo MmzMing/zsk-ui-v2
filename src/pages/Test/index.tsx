@@ -55,34 +55,6 @@ export default function TestPage() {
 
         <Divider />
 
-        {/* 气泡聊天组件测试区域 */}
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-xl font-bold">气泡聊天组件</h2>
-              <p className="text-default-500 text-sm">
-                微信/QQ 风格左右布局，气泡弹出动效，打字机效果，聊天记录依次弹出，滑动加速
-              </p>
-            </div>
-            <Button
-              variant="bordered"
-              size="sm"
-              onClick={() => setChatKey(k => k + 1)}
-            >
-              重播动画
-            </Button>
-          </div>
-
-          {/* 聊天区域：无边框无背景，直接铺在页面上 */}
-          <div className="w-full max-w-4xl mx-auto">
-            <ChatBubble
-              key={chatKey}
-              items={DEMO_CHAT_ITEMS}
-              questions={DEMO_QUESTIONS}
-              typingSpeed={38}
-            />
-          </div>
-        </section>
 
         <Divider />
 
@@ -287,7 +259,34 @@ export default function TestPage() {
             </div>
           </Card>
         </div>
+        {/* 气泡聊天组件测试区域 */}
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-xl font-bold">气泡聊天组件</h2>
+              <p className="text-default-500 text-sm">
+                微信/QQ 风格左右布局，气泡弹出动效，打字机效果，聊天记录依次弹出，滑动加速
+              </p>
+            </div>
+            <Button
+              variant="bordered"
+              size="sm"
+              onClick={() => setChatKey(k => k + 1)}
+            >
+              重播动画
+            </Button>
+          </div>
 
+          {/* 聊天区域：无边框无背景，直接铺在页面上 */}
+          <div className="w-full max-w-4xl mx-auto">
+            <ChatBubble
+              key={chatKey}
+              items={DEMO_CHAT_ITEMS}
+              questions={DEMO_QUESTIONS}
+              typingSpeed={38}
+            />
+          </div>
+        </section>
         <Card className="p-6">
           <h3 className="font-bold mb-4">后续测试项</h3>
           <ul className="list-disc list-inside space-y-2 text-default-600">

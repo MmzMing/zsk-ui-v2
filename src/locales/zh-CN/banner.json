@@ -2,5 +2,17 @@
   "calmTitle": "风平浪静",
   "stormyTitle": "狂风暴雨",
   "calmSubtitle": "在这风平浪静的日子里，正是整理知识、规划学习的好时机",
-  "stormySubtitle": "外面风雨交加，不妨静下心来休息，为知识充电"
+  "stormySubtitle": "外面风雨交加，不妨静下心来休息，为知识充电",
+  "logTitle": "航海日志",
+  "recordTitle": "航行记录",
+  "stats": {
+    "uptimeLabel": "航海时长",
+    "uptimeTooltip": "网站运行总时长",
+    "visitorsLabel": "船员人数",
+    "visitorsTooltip": "累计浏览人数",
+    "statusLabel": "航行状态",
+    "statusTooltip": "当前服务状态",
+    "statusValue": "一帆风顺",
+    "loading": "加载中..."
+  }
 }

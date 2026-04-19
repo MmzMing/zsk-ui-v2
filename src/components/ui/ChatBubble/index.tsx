@@ -7,6 +7,7 @@
  * - 滚动加速（滚动时自动加快打字速度）
  * - 视口触发（进入视口后自动开始动画）
  * - 可交互问题气泡（点击展开/收起回复）
+ * - 独立懒加载（每个气泡单独检测视口）
  *
  * 使用全局主题色变量，自动适配深色/浅色主题
  *
@@ -59,22 +60,21 @@ interface ChatBubbleProps {
   items: ChatItem[]
   questions?: ChatQuestion[]
   typingSpeed?: number
-  itemDelay?: number
   className?: string
 }
 
 /** 气泡组件 Props 接口 */
 interface BubbleItemProps {
   message: ChatMessage
-  visible: boolean
   typingSpeed: number
+  isAccelerated: boolean
 }
 
 /** 问题气泡组件 Props 接口 */
 interface QuestionBubbleProps {
   question: ChatQuestion
-  visible: boolean
   typingSpeed: number
+  isAccelerated: boolean
 }
 
 // ===== 3. 样式常量区域 =====
@@ -151,22 +151,54 @@ const AVATAR_ANIMATE_VISIBLE = { opacity: 1, scale: 1 }
 /** 头像隐藏动画状态 */
 const AVATAR_ANIMATE_HIDDEN = { opacity: 0, scale: 0 }
 
+// 滚动加速配置
+const ACCELERATED_SPEED = 2
+const SPEED_RECOVER_DELAY = 300
+
 // ===== 4. 工具 Hook 区域 =====
+
+/**
+ * 使用 IntersectionObserver 检测元素是否进入视窗
+ */
+function useInView(options: IntersectionObserverInit = {}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isInView, setIsInView] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsInView(entry.isIntersecting)
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px',
+      ...options,
+    })
+
+    const element = ref.current
+    if (element) observer.observe(element)
+
+    return () => observer.disconnect()
+  }, [options])
+
+  return [ref, isInView] as const
+}
 
 /**
  * 打字机效果 Hook
  *
  * 通过 speedRef 实时响应速度变化，无需重启动画
+ * 支持加速模式，滚动时直接完成打字
  *
  * @param text - 要显示的文本内容
  * @param shouldStart - 是否开始打字动画
  * @param typingSpeed - 打字速度（毫秒/字符）
+ * @param isAccelerated - 是否处于加速模式
  * @param resetKey - 重置键，变化时重新开始打字（用于收起再展开场景）
  */
 function useTypewriter(
   text: string,
   shouldStart: boolean,
   typingSpeed: number,
+  isAccelerated: boolean,
   resetKey?: number,
 ) {
   const [displayed, setDisplayed] = useState('')
@@ -174,12 +206,10 @@ function useTypewriter(
   const startedRef = useRef(false)
   const indexRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // 通过 ref 实时读取速度，避免重启 effect
   const speedRef = useRef(typingSpeed)
   speedRef.current = typingSpeed
 
   useEffect(() => {
-    // resetKey 变化时重置状态，允许重新播放
     startedRef.current = false
     indexRef.current = 0
     setDisplayed('')
@@ -197,9 +227,10 @@ function useTypewriter(
 
     const tick = () => {
       if (indexRef.current < text.length) {
+        const currentSpeed = isAccelerated ? ACCELERATED_SPEED : speedRef.current
         indexRef.current++
         setDisplayed(text.slice(0, indexRef.current))
-        timerRef.current = setTimeout(tick, speedRef.current)
+        timerRef.current = setTimeout(tick, currentSpeed)
       } else {
         setIsDone(true)
       }
@@ -211,6 +242,14 @@ function useTypewriter(
       if (timerRef.current) clearTimeout(timerRef.current)
     }
   }, [shouldStart, text])
+
+  useEffect(() => {
+    if (isAccelerated && !isDone) {
+      setDisplayed(text)
+      setIsDone(true)
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [isAccelerated, text, isDone])
 
   return { displayed, isDone }
 }
@@ -296,22 +335,28 @@ const TypingCursor = memo(function TypingCursor() {
 })
 
 /**
- * 普通气泡组件（memo 拦截父组件因 currentSpeed 变化导致的无效重渲染）
+ * 普通气泡组件（独立懒加载）
  *
  * @param message - 消息数据
- * @param visible - 是否可见（控制入场动画）
  * @param typingSpeed - 打字速度
+ * @param isAccelerated - 是否处于滚动加速模式
  */
-const BubbleItem = memo(function BubbleItem({ message, visible, typingSpeed }: BubbleItemProps) {
+const BubbleItem = memo(function BubbleItem({ message, typingSpeed, isAccelerated }: BubbleItemProps) {
   const isUser = message.role === 'user'
+  const [ref, isInView] = useInView()
   const [avatarVisible, setAvatarVisible] = useState(false)
   const [bubbleVisible, setBubbleVisible] = useState(false)
   const [typingStarted, setTypingStarted] = useState(false)
 
-  const { displayed, isDone } = useTypewriter(message.content, typingStarted, typingSpeed)
+  const { displayed, isDone } = useTypewriter(
+    message.content,
+    typingStarted,
+    typingSpeed,
+    isAccelerated,
+  )
 
   useEffect(() => {
-    if (!visible) return
+    if (!isInView) return
 
     setAvatarVisible(true)
 
@@ -321,12 +366,20 @@ const BubbleItem = memo(function BubbleItem({ message, visible, typingSpeed }: B
     }, 180)
 
     return () => clearTimeout(t)
-  }, [visible])
+  }, [isInView])
 
-  if (!visible) return null
+  if (!isInView) {
+    return (
+      <div ref={ref} className={`flex items-end ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className="flex-shrink-0" style={{ width: 52, height: 52, marginRight: isUser ? 0 : 14, marginLeft: isUser ? 14 : 0 }} />
+        <div style={{ ...(isUser ? USER_BUBBLE_STYLE : BOT_BUBBLE_STYLE), opacity: 0 }} />
+      </div>
+    )
+  }
 
   return (
     <motion.div
+      ref={ref}
       className={`flex items-end ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -354,22 +407,20 @@ const BubbleItem = memo(function BubbleItem({ message, visible, typingSpeed }: B
 })
 
 /**
- * 分隔线组件（memo 避免无效重渲染）
+ * 分隔线组件（独立懒加载）
  *
  * @param content - 分隔线文字
- * @param visible - 是否可见
  */
-const DividerItem = memo(function DividerItem({
-  content,
-  visible,
-}: {
-  content: string
-  visible: boolean
-}) {
-  if (!visible) return null
+const DividerItem = memo(function DividerItem({ content }: { content: string }) {
+  const [ref, isInView] = useInView()
+
+  if (!isInView) {
+    return <div ref={ref} className="flex items-center gap-5 my-3" style={{ opacity: 0, height: 24 }} />
+  }
 
   return (
     <motion.div
+      ref={ref}
       className="flex items-center gap-5 my-3"
       initial={{ opacity: 0, y: 10, scale: 0.92 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -388,50 +439,50 @@ const DividerItem = memo(function DividerItem({
 })
 
 /**
- * 可交互问题气泡组件（memo 拦截父组件无效重渲染）
+ * 可交互问题气泡组件（独立懒加载）
  *
  * 点击问题气泡可展开/收起 Bot 回复，带有平滑的高度动画
  * 收起后再次展开会重新播放打字机动画
  *
  * @param question - 问题数据
- * @param visible - 是否可见
  * @param typingSpeed - 打字速度
+ * @param isAccelerated - 是否处于滚动加速模式
  */
 const QuestionBubble = memo(function QuestionBubble({
   question,
-  visible,
   typingSpeed,
+  isAccelerated,
 }: QuestionBubbleProps) {
+  const [ref, isInView] = useInView()
   const [avatarVisible, setAvatarVisible] = useState(false)
   const [bubbleVisible, setBubbleVisible] = useState(false)
   const [replyOpen, setReplyOpen] = useState(false)
   const [replyAvatarVisible, setReplyAvatarVisible] = useState(false)
   const [replyBubbleVisible, setReplyBubbleVisible] = useState(false)
   const [replyTypingStarted, setReplyTypingStarted] = useState(false)
-  // 每次展开时递增，触发打字机重置，实现重新播放
   const [replyResetKey, setReplyResetKey] = useState(0)
 
   const { displayed, isDone } = useTypewriter(
     question.reply,
     replyTypingStarted,
     typingSpeed,
+    isAccelerated,
     replyResetKey,
   )
 
   useEffect(() => {
-    if (!visible) return
+    if (!isInView) return
 
     setAvatarVisible(true)
     const t = setTimeout(() => setBubbleVisible(true), 180)
 
     return () => clearTimeout(t)
-  }, [visible])
+  }, [isInView])
 
   const handleToggle = useCallback(() => {
     if (!replyOpen) {
       setReplyOpen(true)
       setReplyAvatarVisible(true)
-      // 每次展开递增 resetKey，让打字机重新开始
       setReplyResetKey((k) => k + 1)
       setReplyTypingStarted(false)
 
@@ -447,13 +498,21 @@ const QuestionBubble = memo(function QuestionBubble({
     }
   }, [replyOpen])
 
-  // 根据展开状态选择预定义样式对象，避免每次渲染创建新对象
   const questionBubbleStyle = replyOpen ? QUESTION_BUBBLE_ACTIVE_STYLE : QUESTION_BUBBLE_DEFAULT_STYLE
 
-  if (!visible) return null
+  if (!isInView) {
+    return (
+      <div ref={ref} className="flex flex-col">
+        <div className="flex items-end flex-row-reverse">
+          <div className="flex-shrink-0" style={{ width: 52, height: 52, marginLeft: 14 }} />
+          <div style={{ ...QUESTION_BUBBLE_DEFAULT_STYLE, opacity: 0 }} />
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex flex-col">
+    <div ref={ref} className="flex flex-col">
       <motion.div
         className="flex items-end flex-row-reverse"
         initial={{ opacity: 0, y: 20 }}
@@ -484,7 +543,6 @@ const QuestionBubble = memo(function QuestionBubble({
       <motion.div
         initial={false}
         animate={{
-          // 打字未完成时用 'auto' 让容器随内容自然撑开，避免截断
           height: replyOpen ? 'auto' : 0,
           opacity: replyOpen ? 1 : 0,
           marginTop: replyOpen ? 24 : 0,
@@ -526,17 +584,14 @@ const QuestionBubble = memo(function QuestionBubble({
  * @param items - 聊天消息列表
  * @param questions - 可交互问题列表（可选）
  * @param typingSpeed - 打字速度（毫秒/字符），默认 40
- * @param itemDelay - 条目间渐进延迟（毫秒），默认 500
  * @param className - 自定义类名
  */
 export function ChatBubble({
   items,
   questions = [],
   typingSpeed = 40,
-  itemDelay = 500,
   className = '',
 }: ChatBubbleProps) {
-  // useMemo 避免每次渲染重建数组，防止子组件 key 不稳定
   const allEntries = useMemo(
     () => [
       ...items.map((item) => ({ kind: 'item' as const, data: item })),
@@ -544,57 +599,23 @@ export function ChatBubble({
     ],
     [items, questions],
   )
-  const total = allEntries.length
 
-  const [visibleCount, setVisibleCount] = useState(0)
-  const [currentSpeed, setCurrentSpeed] = useState(typingSpeed)
-  const triggerRef = useRef<HTMLDivElement>(null)
-  const startedRef = useRef(false)
+  const [isAccelerated, setIsAccelerated] = useState(false)
   const speedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // 用 ref 记录是否正在加速，避免滚动时重复 setState
   const isAcceleratingRef = useRef(false)
 
   useEffect(() => {
-    const el = triggerRef.current
-    if (!el) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0].isIntersecting || startedRef.current) return
-
-        startedRef.current = true
-        observer.disconnect()
-
-        let count = 1
-        setVisibleCount(1)
-
-        const interval = setInterval(() => {
-          count++
-          setVisibleCount(count)
-          if (count >= total) clearInterval(interval)
-        }, itemDelay)
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
-    )
-
-    observer.observe(el)
-
-    return () => observer.disconnect()
-  }, [total, itemDelay])
-
-  useEffect(() => {
     const handleScroll = () => {
-      // 已经在加速状态时只重置计时器，不重复 setState
       if (!isAcceleratingRef.current) {
         isAcceleratingRef.current = true
-        setCurrentSpeed(8)
+        setIsAccelerated(true)
       }
 
       if (speedResetTimerRef.current) clearTimeout(speedResetTimerRef.current)
       speedResetTimerRef.current = setTimeout(() => {
         isAcceleratingRef.current = false
-        setCurrentSpeed(typingSpeed)
-      }, 800)
+        setIsAccelerated(false)
+      }, SPEED_RECOVER_DELAY)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -603,29 +624,25 @@ export function ChatBubble({
       window.removeEventListener('scroll', handleScroll)
       if (speedResetTimerRef.current) clearTimeout(speedResetTimerRef.current)
     }
-  }, [typingSpeed])
+  }, [])
 
   return (
     <div className={`relative w-full ${className}`}>
-      <div ref={triggerRef} style={{ height: 1, marginBottom: -1 }} />
-
       <div className="flex flex-col gap-10 w-full px-6 py-8">
-        {allEntries.map((entry, index) => {
-          const isVisible = index < visibleCount
-
+        {allEntries.map((entry) => {
           if (entry.kind === 'item') {
             const item = entry.data
 
             if (item.type === 'divider') {
-              return <DividerItem key={item.id} content={item.content} visible={isVisible} />
+              return <DividerItem key={item.id} content={item.content} />
             }
 
             return (
               <BubbleItem
                 key={item.id}
                 message={item}
-                visible={isVisible}
-                typingSpeed={currentSpeed}
+                typingSpeed={typingSpeed}
+                isAccelerated={isAccelerated}
               />
             )
           }
@@ -634,8 +651,8 @@ export function ChatBubble({
             <QuestionBubble
               key={entry.data.id}
               question={entry.data}
-              visible={isVisible}
-              typingSpeed={currentSpeed}
+              typingSpeed={typingSpeed}
+              isAccelerated={isAccelerated}
             />
           )
         })}

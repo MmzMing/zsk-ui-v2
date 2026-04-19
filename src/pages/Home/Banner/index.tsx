@@ -1,3 +1,4 @@
+// ===== 1. 依赖导入区域 =====
 import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { cn } from '@/utils'
@@ -5,11 +6,28 @@ import { useTheme } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { Anchor, Ship, Clock, Users } from 'lucide-react'
 
-// 粗糙颗粒感滤镜 SVG
+// ===== 2. TODO待处理导入区域 =====
+
+// ===== 3. 状态控制逻辑区域 =====
+
+// ===== 4. 通用工具函数区域 =====
+
+// ===== 5. 注释代码函数区 =====
+
+// ===== 6. 错误处理函数区域 =====
+
+// ===== 7. 数据处理函数区域 =====
+
+// ===== 8. UI渲染逻辑区域 =====
+
+/**
+ * SVG 滤镜组件 - 提供纸张纹理和边缘粗糙效果
+ * 用于增强视觉层次感和复古风格
+ */
 const TextureFilters = () => (
   <svg className="hidden">
     <defs>
-      {/* 纸张纹理滤镜 */}
+      {/* 纸张纹理滤镜 - 模拟粗糙纸张质感 */}
       <filter id="paper-texture">
         <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" />
         <feColorMatrix type="saturate" values="0" />
@@ -19,7 +37,7 @@ const TextureFilters = () => (
         <feBlend mode="multiply" in="SourceGraphic" />
       </filter>
       
-      {/* 边缘粗糙滤镜 - 模拟剪纸边缘 */}
+      {/* 边缘粗糙滤镜 - 模拟剪纸边缘不规则效果 */}
       <filter id="rough-edges">
         <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="1" result="noise" />
         <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
@@ -28,9 +46,14 @@ const TextureFilters = () => (
   </svg>
 )
 
-// 闪电组件
+/**
+ * 闪电组件 - 随机生成闪电路径动画
+ * 
+ * @param {Object} props - 组件属性
+ * @param {boolean} props.isBig - 是否为大闪电效果
+ */
 const Lightning = ({ isBig }: { isBig: boolean }) => {
-  // 生成随机闪电路径
+  // 生成随机闪电路径 - 使用分形噪声原理生成自然闪电形状
   const points = useMemo(() => {
     let path = "M 50 0 "
     let x = 50
@@ -60,16 +83,19 @@ const Lightning = ({ isBig }: { isBig: boolean }) => {
   )
 }
 
-// 雨滴组件
+/**
+ * 雨滴组件 - 生成随机下落的雨滴效果
+ * 仅在暗色主题下显示，营造暴风雨氛围
+ */
 const Rain = () => {
-  // 生成随机雨滴
+  // 生成随机雨滴数据 - 控制雨滴位置、延迟和下落速度
   const raindrops = useMemo(() => {
-    return Array.from({ length: 50 }).map((_, i) => ({
+    return Array.from({ length: 30 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * -100}%`,
       delay: Math.random() * 2,
-      duration: 0.5 + Math.random() * 0.5
+      duration: 0.8 + Math.random() * 0.6
     }))
   }, [])
 
@@ -78,15 +104,15 @@ const Rain = () => {
       {raindrops.map((drop) => (
         <motion.div
           key={drop.id}
-          className="absolute w-[2px] h-[40px] bg-white/30"
+          className="absolute w-[1.5px] h-[30px] bg-white/20"
           style={{ 
             left: drop.left, 
             top: drop.top,
-            transform: 'rotate(15deg)' // 雨滴倾斜
+            transform: 'rotate(15deg)' // 雨滴倾斜角度，模拟风雨效果
           }}
           animate={{
             y: ["0vh", "120vh"],
-            opacity: [0, 0.8, 0]
+            opacity: [0, 0.5, 0]
           }}
           transition={{
             duration: drop.duration,
@@ -100,7 +126,19 @@ const Rain = () => {
   )
 }
 
-// 波浪组件
+/**
+ * 波浪组件 - 生成不同类型的波浪动画效果
+ * 
+ * @param {Object} props - 波浪属性
+ * @param {number} props.delay - 动画延迟时间(秒)
+ * @param {number} props.duration - 动画周期(秒)
+ * @param {string} props.yOffset - 垂直偏移量
+ * @param {string} props.color - 波浪颜色
+ * @param {number} props.zIndex - z-index层级
+ * @param {number} [props.amplitude=20] - 波浪振幅
+ * @param {number} [props.direction=1] - 移动方向(1向右/-1向左)
+ * @param {'ripple' | 'normal' | 'violent'} [props.type='normal'] - 波浪类型
+ */
 const WaveLayer = ({ 
   delay, 
   duration, 
@@ -124,11 +162,11 @@ const WaveLayer = ({
   const { actualTheme } = useTheme()
   const isLight = actualTheme === 'light'
   
-  // 锯齿状/倒钩状波浪路径
+  // 锯齿状/倒钩状波浪路径定义
   const paths = {
-    // 涟漪：平缓的起伏
+    // 涟漪：平缓的起伏效果，用于明亮主题
     ripple: "M0,60 C300,70 600,50 900,60 C1050,65 1200,55 1200,60 L1200,500 L0,500 Z",
-    // 普通波浪：尖锐的锯齿
+    // 普通波浪：尖锐的锯齿效果
     normal: (() => {
       let d = "M0,100 ";
       for(let i=0; i<12; i++) {
@@ -137,14 +175,14 @@ const WaveLayer = ({
       d += "L 1200 500 L 0 500 Z";
       return d;
     })(),
-    // 剧烈巨浪：更夸张的倒钩，参考图片中的尖浪
+    // 剧烈巨浪：更夸张的倒钩，模拟暴风雨中的尖浪效果
     violent: (() => {
       let d = "M0,150 ";
       for(let i=0; i<8; i++) {
         // 模仿图片中的尖刺：左侧平缓，右侧陡峭
         d += `C ${i*150+50} 150, ${i*150+80} 0, ${i*150+150} 150 `; 
       }
-      d += "L 1200 800 L 0 800 Z"; // 加深底部闭合区域以防露底
+      d += "L 1200 800 L 0 800 Z";
       return d;
     })()
   }
@@ -183,13 +221,16 @@ const WaveLayer = ({
   )
 }
 
-// 小船组件
+/**
+ * 小船组件 - 模拟小船在波浪中航行的效果
+ * 根据主题不同，摆动幅度有所区别
+ */
 const Boat = () => {
   const controls = useAnimation()
   const { actualTheme } = useTheme()
   const isLight = actualTheme === 'light'
 
-  // 随机不规则摆动逻辑 - 明亮主题更平缓
+  // 随机不规则摆动逻辑 - 明亮主题更平缓，暗色主题更剧烈
   useEffect(() => {
     let isMounted = true
     
@@ -252,9 +293,13 @@ const Boat = () => {
   )
 }
 
-// 航海记录组件
+/**
+ * 航海记录组件 - 展示网站运行统计数据
+ * 包括运行时长、访问人数和服务状态
+ */
 const VoyageStats = () => {
   const { actualTheme } = useTheme()
+  const { t } = useTranslation('banner')
   const isLight = actualTheme === 'light'
   const [stats, setStats] = useState({
     uptime: '',
@@ -263,10 +308,11 @@ const VoyageStats = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
+  // 获取统计数据 - 从 API 或使用默认值
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/stats')
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stats`)
         if (response.ok) {
           const data = await response.json()
           setStats({
@@ -274,12 +320,14 @@ const VoyageStats = () => {
             visitors: data.visitors || 0
           })
         } else {
+          // API 失败时使用默认值
           setStats({
             uptime: formatUptime(86400 * 30),
             visitors: 12345
           })
         }
       } catch {
+        // 网络异常时使用默认值
         setStats({
           uptime: formatUptime(86400 * 30),
           visitors: 12345
@@ -292,6 +340,12 @@ const VoyageStats = () => {
     fetchStats()
   }, [])
 
+  /**
+   * 格式化运行时长显示
+   * 
+   * @param {number} seconds - 总秒数
+   * @returns {string} 格式化后的时长字符串
+   */
   const formatUptime = (seconds: number): string => {
     const days = Math.floor(seconds / 86400)
     const hours = Math.floor((seconds % 86400) / 3600)
@@ -299,6 +353,13 @@ const VoyageStats = () => {
     return `${days}天 ${hours}小时 ${minutes}分钟`
   }
 
+  /**
+   * 格式化数字显示
+   * 超过1万时显示为"X.X万"格式
+   * 
+   * @param {number} num - 数字
+   * @returns {string} 格式化后的数字字符串
+   */
   const formatNumber = (num: number): string => {
     if (num >= 10000) {
       return (num / 10000).toFixed(1) + '万'
@@ -306,31 +367,32 @@ const VoyageStats = () => {
     return num.toLocaleString()
   }
 
+  // 统计数据项配置
   const statItems = [
     {
       icon: Clock,
-      label: '航海时长',
-      value: isLoading ? '加载中...' : stats.uptime,
-      tooltip: '网站运行总时长'
+      label: t('stats.uptimeLabel', '航海时长'),
+      value: isLoading ? t('stats.loading', '加载中...') : stats.uptime,
+      tooltip: t('stats.uptimeTooltip', '网站运行总时长')
     },
     {
       icon: Users,
-      label: '船员人数',
+      label: t('stats.visitorsLabel', '船员人数'),
       value: isLoading ? '---' : formatNumber(stats.visitors),
-      tooltip: '累计浏览人数'
+      tooltip: t('stats.visitorsTooltip', '累计浏览人数')
     },
     {
       icon: Ship,
-      label: '航行状态',
-      value: '一帆风顺',
-      tooltip: '当前服务状态'
+      label: t('stats.statusLabel', '航行状态'),
+      value: t('stats.statusValue', '一帆风顺'),
+      tooltip: t('stats.statusTooltip', '当前服务状态')
     }
   ]
 
   return (
     <motion.div
       className={cn(
-        "mt-8 flex gap-8 md:gap-12",
+        "mt-4 sm:mt-6 md:mt-8 flex flex-wrap gap-4 sm:gap-6 md:gap-8 lg:gap-12",
         isLight ? "text-slate-600" : "text-gray-400"
       )}
       initial={{ opacity: 0, y: 20 }}
@@ -341,15 +403,15 @@ const VoyageStats = () => {
         <div key={item.label} className="relative">
           <motion.div
             className={cn(
-              "flex items-center gap-2 cursor-help",
+              "flex items-center gap-1.5 sm:gap-2 cursor-help",
               isLight ? "hover:text-slate-800" : "hover:text-white"
             )}
             whileHover={{ scale: 1.05 }}
             onMouseEnter={() => setHoveredItem(item.label)}
             onMouseLeave={() => setHoveredItem(null)}
           >
-            <item.icon className="w-5 h-5" />
-            <span className="text-sm font-medium">{item.value}</span>
+            <item.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-sm font-medium">{item.value}</span>
           </motion.div>
           
           {/* 悬停提示框 */}
@@ -382,13 +444,24 @@ const VoyageStats = () => {
   )
 }
 
+// ===== 9. 页面初始化与事件绑定 =====
+
+// ===== 10. TODO任务管理区域 =====
+
+// ===== 11. 导出区域 =====
+
+/**
+ * 首页 Banner 组件 - 展示暴风雨/风平浪静主题的动态背景
+ * 包含闪电、雨滴、波浪、小船等动画效果
+ * 根据主题模式显示不同的视觉风格
+ */
 export default function HomeBanner() {
   const { actualTheme } = useTheme()
   const isLight = actualTheme === 'light'
   const [lightningState, setLightningState] = useState<'none' | 'normal' | 'big'>('none')
   const { t } = useTranslation('banner')
   
-  // 闪电控制逻辑 - 仅在暗色主题显示
+  // 闪电控制逻辑 - 仅在暗色主题显示，随机生成闪电效果
   useEffect(() => {
     if (isLight) {
       setLightningState('none')
@@ -421,23 +494,29 @@ export default function HomeBanner() {
           : (lightningState === 'normal' ? "bg-[#2a2a2a]" : "bg-[#0f0f0f]"),
       lightningState === 'big' && !isLight && "animate-shake"
     )}>
+      {/* SVG 滤镜定义 */}
       <TextureFilters />
       
+      {/* 纸张纹理叠加层 */}
       <div className="absolute inset-0 z-40 pointer-events-none opacity-40 mix-blend-overlay"
            style={{ filter: isLight ? 'none' : 'url(#paper-texture)' }} />
 
+      {/* 主内容区域 - 响应式布局 */}
       <div className={cn(
-        "absolute top-20 left-20 z-40 pointer-events-none",
+        "absolute top-24 sm:top-28 md:top-32 lg:top-20 xl:top-20 left-5 sm:left-8 md:left-12 lg:left-20 xl:left-20 z-40 pointer-events-none px-4",
         isLight ? "text-slate-800" : "mix-blend-difference text-[#e0e0e0]"
       )}>
-        <motion.div className="flex items-center gap-3 mb-4">
-          <Anchor className="w-8 h-8" />
-          <span className="text-sm tracking-[0.3em] uppercase opacity-60">
-            {isLight ? '航海日志' : '航行记录'}
+        {/* 标题区域 */}
+        <motion.div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <Anchor className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8" />
+          <span className="text-xs sm:text-sm tracking-[0.2em] uppercase opacity-60">
+            {isLight ? t('logTitle', '航海日志') : t('recordTitle', '航行记录')}
           </span>
         </motion.div>
+        
+        {/* 主标题动画 */}
         <motion.h1 
-          className="text-8xl md:text-9xl font-black tracking-[0.1em]"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black tracking-[0.05em] sm:tracking-[0.1em]"
           animate={{ opacity: [0.6, 0.8, 0.6] }}
           transition={{ duration: 3, repeat: Infinity }}
           style={{ 
@@ -447,8 +526,10 @@ export default function HomeBanner() {
         >
           {isLight ? t('calmTitle', '风平浪静') : t('stormyTitle', '狂风暴雨')}
         </motion.h1>
+        
+        {/* 副标题 */}
         <motion.p 
-          className="text-xl md:text-2xl mt-6 tracking-[0.15em] opacity-70"
+          className="text-sm sm:text-base md:text-lg lg:text-xl mt-4 sm:mt-6 tracking-[0.1em] sm:tracking-[0.15em] opacity-70 max-w-[90%] sm:max-w-[80%]"
           style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
         >
           {isLight 
@@ -456,18 +537,21 @@ export default function HomeBanner() {
             : t('stormySubtitle', '外面风雨交加，不妨静下心来休息，为知识充电')}
         </motion.p>
         
-        {/* 航海记录 - 放在副标题下面 */}
+        {/* 航海记录统计 */}
         <VoyageStats />
       </div>
 
+      {/* 雨滴效果 - 仅暗色主题显示 */}
       {!isLight && <Rain />}
 
+      {/* 闪电效果 - 仅暗色主题显示 */}
       <AnimatePresence>
         {lightningState !== 'none' && !isLight && (
           <Lightning isBig={lightningState === 'big'} />
         )}
       </AnimatePresence>
 
+      {/* 乌云效果 - 仅暗色主题显示 */}
       {!isLight && (
         <div className="absolute top-0 w-full h-64 opacity-30 z-0">
           <svg viewBox="0 0 1000 200" className="w-full h-full" preserveAspectRatio="none">
@@ -567,9 +651,10 @@ export default function HomeBanner() {
         </>
       )}
 
-      {/* 小船 - 明亮主题调整颜色 */}
+      {/* 小船 - 不同主题调整颜色 */}
       <Boat />
 
+      {/* 自定义动画样式 */}
       <style>{`
         @keyframes shake {
           0% { transform: translate(0, 0) rotate(0deg); }
