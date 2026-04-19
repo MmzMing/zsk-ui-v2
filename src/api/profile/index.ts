@@ -308,7 +308,7 @@ export async function changePassword(params: ChangePasswordParams): Promise<void
  * @param id - 用户ID
  * @returns 用户详细信息
  */
-export async function getSystemUserInfo(id: number): Promise<SysUser> {
+export async function getSystemUserInfo(id: string): Promise<SysUser> {
   return get(`/system/user/${id}`)
 }
 

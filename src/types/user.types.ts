@@ -60,7 +60,7 @@ export interface LoginResult {
   /** 过期时间（秒） */
   expiresIn: number
   /** 用户 ID */
-  userId: number
+  userId: string
   /** 用户名 */
   username: string
   /** 昵称 */
@@ -129,16 +129,16 @@ export interface TurnstileResult {
  * SysUserApi
  */
 export interface SysUserApi {
+    /** 用户ID */
+  id?: string
   /** 用户头像 */
   avatar?: string
   /** 头像图片ID */
-  avatarId?: number
+  avatarId?: string
   /** 删除标志（0代表存在 2代表删除） */
   deleted?: number
   /** 用户邮箱 */
   email?: string
-  /** 用户ID */
-  id?: number
   /** 最后登录时间 */
   loginDate?: string
   /** 最后登录IP */
@@ -173,16 +173,16 @@ export interface SysUserApi {
  * SysUser
  */
 export interface SysUser {
+  /** 用户ID */
+  id?: string
   /** 用户头像 */
   avatar?: string
   /** 头像图片ID */
-  avatarId?: number
+  avatarId?: string
   /** 删除标志（0代表存在 2代表删除） */
   deleted?: number
   /** 用户邮箱 */
   email?: string
-  /** 用户ID */
-  id?: number
   /** 最后登录时间 */
   loginDate?: string
   /** 最后登录IP */

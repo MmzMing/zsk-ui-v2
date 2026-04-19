@@ -240,7 +240,7 @@ const Boat = () => {
           className="w-full h-full object-contain drop-shadow-2xl"
           style={{ 
             filter: isLight 
-              ? 'brightness(1)' 
+              ? 'url(#rough-edges) brightness(0.8)' 
               : 'url(#rough-edges) brightness(0)',
             transform: 'scaleX(-1)',
             opacity: isLight ? 0.9 : 1
@@ -284,7 +284,7 @@ export default function HomeBanner() {
     <div className={cn(
       "relative w-full h-screen overflow-hidden transition-colors duration-75 z-0",
       isLight 
-        ? "bg-gradient-to-b from-sky-300 via-sky-200 to-amber-100" 
+        ? "bg-gradient-to-b from-white via-gray-100 to-gray-200" 
         : lightningState === 'big' 
           ? "bg-[#cfcfcf]" 
           : (lightningState === 'normal' ? "bg-[#2a2a2a]" : "bg-[#0f0f0f]"),
@@ -309,7 +309,7 @@ export default function HomeBanner() {
         </motion.h1>
         <p className="text-xl mt-4 tracking-wide opacity-70">
           {isLight 
-            ? t('calmSubtitle', '在这阳光明媚的日子里，正是整理知识、规划学习的好时机') 
+            ? t('calmSubtitle', '在这风平浪静的日子里，正是整理知识、规划学习的好时机') 
             : t('stormySubtitle', '外面风雨交加，不妨静下心来休息，为知识充电')}
         </p>
       </div>
@@ -338,7 +338,7 @@ export default function HomeBanner() {
             delay={0} 
             duration={30} 
             yOffset="-5%" 
-            color="text-cyan-200" 
+            color="text-gray-200" 
             zIndex={10} 
             amplitude={5}
             direction={1}
@@ -348,7 +348,7 @@ export default function HomeBanner() {
             delay={1} 
             duration={25} 
             yOffset="-10%" 
-            color="text-sky-300" 
+            color="text-gray-300" 
             zIndex={20} 
             amplitude={10}
             direction={-1}
@@ -358,7 +358,7 @@ export default function HomeBanner() {
             delay={2} 
             duration={20} 
             yOffset="-15%" 
-            color="text-blue-400" 
+            color="text-gray-400" 
             zIndex={30} 
             amplitude={15}
             direction={1}
@@ -369,7 +369,7 @@ export default function HomeBanner() {
             delay={3} 
             duration={18} 
             yOffset="-25%" 
-            color="text-blue-500" 
+            color="text-gray-500" 
             zIndex={50} 
             amplitude={20}
             direction={-1}

@@ -71,10 +71,10 @@ export function EditProfile({ userInfo }: EditProfileProps) {
     const fetchUserInfo = async () => {
       if (userInfo?.id) {
         try {
-          const userId = parseInt(userInfo.id, 10)
-          const data = await getSystemUserInfo(userId)
+          const data = await getSystemUserInfo(userInfo.id)
           setSysUser(data)
-          setEditSysUser({
+          setAvatarUrl(data.avatar || '')
+        setEditSysUser({
             id: data.id,
             nickName: data.nickName,
             avatar: data.avatar,
@@ -294,7 +294,7 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                 {t('edit.name')}
               </label>
               <Input
-                value={isEditing ? (editSysUser.nickName || displayName) : displayName}
+                value={isEditing ? (editSysUser.nickName || displayName || '') : (displayName || '')}
                 onChange={(e) => handleSysUserChange('nickName', e.target.value)}
                 disabled={!isEditing}
                 placeholder={t('edit.placeholderName')}
@@ -321,7 +321,7 @@ export function EditProfile({ userInfo }: EditProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-default-700">{t('edit.bio')}</label>
               <Textarea
-                value={isEditing ? (editSysUser.bio || displayBio) : displayBio}
+                value={isEditing ? (editSysUser.bio || displayBio || '') : (displayBio || '')}
                 onChange={(e) => handleSysUserChange('bio', e.target.value)}
                 disabled={!isEditing}
                 placeholder={t('edit.placeholderBio')}
@@ -344,7 +344,7 @@ export function EditProfile({ userInfo }: EditProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-default-700">{t('edit.phone')}</label>
               <Input
-                value={isEditing ? (editSysUser.phonenumber || displayPhone) : displayPhone || t('card.notSet')}
+                value={isEditing ? (editSysUser.phonenumber || displayPhone || '') : (displayPhone || t('card.notSet'))}
                 onChange={(e) => handleSysUserChange('phonenumber', e.target.value)}
                 disabled={!isEditing}
                 placeholder={t('edit.placeholderPhone')}

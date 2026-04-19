@@ -29,8 +29,7 @@ export default function ProfilePage() {
     const fetchSysUser = async () => {
       if (userInfo?.id) {
         try {
-          const userId = parseInt(userInfo.id, 10)
-          const data = await getSystemUserInfo(userId)
+          const data = await getSystemUserInfo(userInfo.id)
           setSysUser(data)
         } catch (error) {
           console.error('获取系统用户信息失败：', error)
