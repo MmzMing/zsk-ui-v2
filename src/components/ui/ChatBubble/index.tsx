@@ -1,15 +1,15 @@
 /**
  * ChatBubble 气泡聊天组件
- * 
+ *
  * 实现微信/QQ 风格的左右布局聊天界面，支持：
  * - 打字机效果（逐字显示）
  * - 气泡弹出动画（弹簧动画）
  * - 滚动加速（滚动时自动加快打字速度）
  * - 视口触发（进入视口后自动开始动画）
  * - 可交互问题气泡（点击展开/收起回复）
- * 
+ *
  * 使用全局主题色变量，自动适配深色/浅色主题
- * 
+ *
  * @example
  * ```tsx
  * <ChatBubble
@@ -21,8 +21,8 @@
  */
 
 // ===== 1. 依赖导入区域 =====
-import { useEffect, useRef, useState, useCallback, CSSProperties } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useRef, useState, useCallback, useMemo, memo, CSSProperties } from 'react'
+import { motion } from 'framer-motion'
 import { useUserStore } from '@/stores/user'
 
 // ===== 2. 类型定义区域 =====
@@ -79,7 +79,7 @@ interface QuestionBubbleProps {
 
 // ===== 3. 样式常量区域 =====
 
-/** 气泡基础样式 */
+/** 气泡基础样式（移除 backdropFilter，减少 GPU 合成层开销） */
 const BUBBLE_BASE: CSSProperties = {
   maxWidth: 600,
   minWidth: 220,
@@ -88,8 +88,6 @@ const BUBBLE_BASE: CSSProperties = {
   fontSize: 18,
   lineHeight: 1.7,
   wordBreak: 'break-word',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
 }
 
 /** 用户气泡样式（深色背景，金色文字） */
@@ -104,11 +102,29 @@ const USER_BUBBLE_STYLE: CSSProperties = {
 /** Bot 气泡样式（金色背景，黑色文字） */
 const BOT_BUBBLE_STYLE: CSSProperties = {
   ...BUBBLE_BASE,
-  border: '1px solid rgba(245, 165, 36,)',
+  border: '1px solid rgba(245, 165, 36, 0.8)',
   background: 'rgba(245, 165, 36, 0.65)',
   borderRadius: '20px 20px 20px 5px',
   color: '#000000',
   transformOrigin: '0% 50%',
+}
+
+/** 问题气泡激活样式（点击后高亮） */
+const QUESTION_BUBBLE_ACTIVE_STYLE: CSSProperties = {
+  ...USER_BUBBLE_STYLE,
+  cursor: 'pointer',
+  userSelect: 'none',
+  background: 'rgba(245, 165, 36, 0.65)',
+  color: 'var(--color-background)',
+  transition: 'background 0.25s, color 0.25s',
+}
+
+/** 问题气泡默认样式 */
+const QUESTION_BUBBLE_DEFAULT_STYLE: CSSProperties = {
+  ...USER_BUBBLE_STYLE,
+  cursor: 'pointer',
+  userSelect: 'none',
+  transition: 'background 0.25s, color 0.25s',
 }
 
 /** 气泡弹出动画参数（弹簧效果） */
@@ -117,29 +133,63 @@ const BUBBLE_SPRING = { type: 'spring' as const, stiffness: 280, damping: 20 }
 /** 头像弹出动画参数（弹簧效果，比气泡稍快） */
 const AVATAR_SPRING = { type: 'spring' as const, stiffness: 320, damping: 22 }
 
+/** 气泡初始动画状态 */
+const BUBBLE_INITIAL = { opacity: 0, scaleX: 0.08, scaleY: 0.3 }
+
+/** 气泡显示动画状态 */
+const BUBBLE_ANIMATE_VISIBLE = { opacity: 1, scaleX: 1, scaleY: 1 }
+
+/** 气泡隐藏动画状态 */
+const BUBBLE_ANIMATE_HIDDEN = { opacity: 0, scaleX: 0.08, scaleY: 0.3 }
+
+/** 头像初始动画状态 */
+const AVATAR_INITIAL = { opacity: 0, scale: 0 }
+
+/** 头像显示动画状态 */
+const AVATAR_ANIMATE_VISIBLE = { opacity: 1, scale: 1 }
+
+/** 头像隐藏动画状态 */
+const AVATAR_ANIMATE_HIDDEN = { opacity: 0, scale: 0 }
+
 // ===== 4. 工具 Hook 区域 =====
 
 /**
  * 打字机效果 Hook
- * 
+ *
+ * 通过 speedRef 实时响应速度变化，无需重启动画
+ *
  * @param text - 要显示的文本内容
  * @param shouldStart - 是否开始打字动画
  * @param typingSpeed - 打字速度（毫秒/字符）
- * @returns {object} - 包含显示文本和完成状态
+ * @param resetKey - 重置键，变化时重新开始打字（用于收起再展开场景）
  */
-function useTypewriter(text: string, shouldStart: boolean, typingSpeed: number) {
+function useTypewriter(
+  text: string,
+  shouldStart: boolean,
+  typingSpeed: number,
+  resetKey?: number,
+) {
   const [displayed, setDisplayed] = useState('')
   const [isDone, setIsDone] = useState(false)
   const startedRef = useRef(false)
   const indexRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // 通过 ref 实时读取速度，避免重启 effect
   const speedRef = useRef(typingSpeed)
-  
   speedRef.current = typingSpeed
 
   useEffect(() => {
+    // resetKey 变化时重置状态，允许重新播放
+    startedRef.current = false
+    indexRef.current = 0
+    setDisplayed('')
+    setIsDone(false)
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }, [resetKey])
+
+  useEffect(() => {
     if (!shouldStart || startedRef.current) return
-    
+
     startedRef.current = true
     indexRef.current = 0
     setDisplayed('')
@@ -156,11 +206,11 @@ function useTypewriter(text: string, shouldStart: boolean, typingSpeed: number) 
     }
 
     timerRef.current = setTimeout(tick, speedRef.current)
-    
-    return () => { 
-      if (timerRef.current) clearTimeout(timerRef.current) 
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [shouldStart])
+  }, [shouldStart, text])
 
   return { displayed, isDone }
 }
@@ -171,19 +221,13 @@ function useTypewriter(text: string, shouldStart: boolean, typingSpeed: number) 
 const BOT_AVATAR_URL = 'https://i.stardots.io/784774835/StarDots-2026041821090663484.jpg'
 
 /**
- * Bot 头像组件
- * 
- * @returns {JSX.Element} - Bot 头像元素
+ * Bot 头像组件（memo 避免父组件重渲染时重复渲染）
  */
-function BotAvatar() {
+const BotAvatar = memo(function BotAvatar() {
   return (
     <div
       className="flex-shrink-0 rounded-full overflow-hidden"
-      style={{
-        width: 52,
-        height: 52,
-        marginRight: 14,
-      }}
+      style={{ width: 52, height: 52, marginRight: 14 }}
     >
       <img
         src={BOT_AVATAR_URL}
@@ -196,16 +240,14 @@ function BotAvatar() {
       />
     </div>
   )
-}
+})
 
 /**
- * 用户头像组件
- * 
+ * 用户头像组件（memo 避免父组件重渲染时重复渲染）
+ *
  * 优先从 userStore 获取头像，若无则显示用户名首字母
- * 
- * @returns {JSX.Element} - 用户头像元素
  */
-function UserAvatar() {
+const UserAvatar = memo(function UserAvatar() {
   const userInfo = useUserStore((s) => s.userInfo)
   const avatar = userInfo?.avatar
   const name = userInfo?.name ?? 'U'
@@ -226,7 +268,9 @@ function UserAvatar() {
           src={avatar}
           alt={name}
           className="w-full h-full object-cover"
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+          }}
         />
       ) : (
         <span className="text-base font-semibold" style={{ color: 'var(--color-warning)' }}>
@@ -235,16 +279,12 @@ function UserAvatar() {
       )}
     </div>
   )
-}
+})
 
 /**
- * 打字光标组件
- * 
- * 显示闪烁光标，模拟打字中效果
- * 
- * @returns {JSX.Element} - 光标元素
+ * 打字光标组件（memo 避免重复创建动画实例）
  */
-function TypingCursor() {
+const TypingCursor = memo(function TypingCursor() {
   return (
     <motion.span
       className="inline-block w-0.5 bg-current ml-1 align-text-bottom"
@@ -253,19 +293,16 @@ function TypingCursor() {
       transition={{ duration: 0.8, repeat: Infinity, repeatType: 'reverse' }}
     />
   )
-}
+})
 
 /**
- * 普通气泡组件
- * 
- * 渲染单条聊天消息，包含头像和气泡
- * 
+ * 普通气泡组件（memo 拦截父组件因 currentSpeed 变化导致的无效重渲染）
+ *
  * @param message - 消息数据
  * @param visible - 是否可见（控制入场动画）
  * @param typingSpeed - 打字速度
- * @returns {JSX.Element} - 气泡元素
  */
-function BubbleItem({ message, visible, typingSpeed }: BubbleItemProps) {
+const BubbleItem = memo(function BubbleItem({ message, visible, typingSpeed }: BubbleItemProps) {
   const isUser = message.role === 'user'
   const [avatarVisible, setAvatarVisible] = useState(false)
   const [bubbleVisible, setBubbleVisible] = useState(false)
@@ -275,231 +312,222 @@ function BubbleItem({ message, visible, typingSpeed }: BubbleItemProps) {
 
   useEffect(() => {
     if (!visible) return
-    
+
     setAvatarVisible(true)
-    
+
     const t = setTimeout(() => {
       setBubbleVisible(true)
       requestAnimationFrame(() => setTypingStarted(true))
     }, 180)
-    
+
     return () => clearTimeout(t)
   }, [visible])
 
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className={`flex items-end ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' as const }}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={avatarVisible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-            transition={AVATAR_SPRING}
-          >
-            {isUser ? <UserAvatar /> : <BotAvatar />}
-          </motion.div>
+  if (!visible) return null
 
-          <motion.div
-            style={isUser ? USER_BUBBLE_STYLE : BOT_BUBBLE_STYLE}
-            initial={{ opacity: 0, scaleX: 0.08, scaleY: 0.3 }}
-            animate={bubbleVisible ? { opacity: 1, scaleX: 1, scaleY: 1 } : { opacity: 0, scaleX: 0.08, scaleY: 0.3 }}
-            transition={BUBBLE_SPRING}
-          >
-            {displayed}
-            {typingStarted && !isDone && <TypingCursor />}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+  return (
+    <motion.div
+      className={`flex items-end ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' as const }}
+    >
+      <motion.div
+        initial={AVATAR_INITIAL}
+        animate={avatarVisible ? AVATAR_ANIMATE_VISIBLE : AVATAR_ANIMATE_HIDDEN}
+        transition={AVATAR_SPRING}
+      >
+        {isUser ? <UserAvatar /> : <BotAvatar />}
+      </motion.div>
+
+      <motion.div
+        style={isUser ? USER_BUBBLE_STYLE : BOT_BUBBLE_STYLE}
+        initial={BUBBLE_INITIAL}
+        animate={bubbleVisible ? BUBBLE_ANIMATE_VISIBLE : BUBBLE_ANIMATE_HIDDEN}
+        transition={BUBBLE_SPRING}
+      >
+        {displayed}
+        {typingStarted && !isDone && <TypingCursor />}
+      </motion.div>
+    </motion.div>
   )
-}
+})
 
 /**
- * 分隔线组件
- * 
- * 用于分隔聊天内容区域
- * 
+ * 分隔线组件（memo 避免无效重渲染）
+ *
  * @param content - 分隔线文字
  * @param visible - 是否可见
- * @returns {JSX.Element} - 分隔线元素
  */
-function DividerItem({ content, visible }: { content: string; visible: boolean }) {
+const DividerItem = memo(function DividerItem({
+  content,
+  visible,
+}: {
+  content: string
+  visible: boolean
+}) {
+  if (!visible) return null
+
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="flex items-center gap-5 my-3"
-          initial={{ opacity: 0, y: 10, scale: 0.92 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        >
-          <div className="flex-1 h-px" style={{ background: 'var(--color-divider)' }} />
-          <span
-            className="text-sm whitespace-nowrap px-2"
-            style={{ color: 'var(--color-warning)', letterSpacing: '0.05em' }}
-          >
-            {content}
-          </span>
-          <div className="flex-1 h-px" style={{ background: 'var(--color-divider)' }} />
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div
+      className="flex items-center gap-5 my-3"
+      initial={{ opacity: 0, y: 10, scale: 0.92 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+    >
+      <div className="flex-1 h-px" style={{ background: 'var(--color-divider)' }} />
+      <span
+        className="text-sm whitespace-nowrap px-2"
+        style={{ color: 'var(--color-warning)', letterSpacing: '0.05em' }}
+      >
+        {content}
+      </span>
+      <div className="flex-1 h-px" style={{ background: 'var(--color-divider)' }} />
+    </motion.div>
   )
-}
+})
 
 /**
- * 可交互问题气泡组件
- * 
+ * 可交互问题气泡组件（memo 拦截父组件无效重渲染）
+ *
  * 点击问题气泡可展开/收起 Bot 回复，带有平滑的高度动画
- * 
+ * 收起后再次展开会重新播放打字机动画
+ *
  * @param question - 问题数据
  * @param visible - 是否可见
  * @param typingSpeed - 打字速度
- * @returns {JSX.Element} - 问题气泡元素
  */
-function QuestionBubble({ question, visible, typingSpeed }: QuestionBubbleProps) {
+const QuestionBubble = memo(function QuestionBubble({
+  question,
+  visible,
+  typingSpeed,
+}: QuestionBubbleProps) {
   const [avatarVisible, setAvatarVisible] = useState(false)
   const [bubbleVisible, setBubbleVisible] = useState(false)
   const [replyOpen, setReplyOpen] = useState(false)
   const [replyAvatarVisible, setReplyAvatarVisible] = useState(false)
   const [replyBubbleVisible, setReplyBubbleVisible] = useState(false)
   const [replyTypingStarted, setReplyTypingStarted] = useState(false)
-  const [replyHeight, setReplyHeight] = useState(0)
-  const replyContentRef = useRef<HTMLDivElement>(null)
+  // 每次展开时递增，触发打字机重置，实现重新播放
+  const [replyResetKey, setReplyResetKey] = useState(0)
 
-  const { displayed, isDone } = useTypewriter(question.reply, replyTypingStarted, typingSpeed)
+  const { displayed, isDone } = useTypewriter(
+    question.reply,
+    replyTypingStarted,
+    typingSpeed,
+    replyResetKey,
+  )
 
   useEffect(() => {
     if (!visible) return
-    
+
     setAvatarVisible(true)
     const t = setTimeout(() => setBubbleVisible(true), 180)
-    
+
     return () => clearTimeout(t)
   }, [visible])
-
-  useEffect(() => {
-    const el = replyContentRef.current
-    if (!el) return
-    
-    const ro = new ResizeObserver(() => setReplyHeight(el.scrollHeight))
-    ro.observe(el)
-    
-    return () => ro.disconnect()
-  }, [])
 
   const handleToggle = useCallback(() => {
     if (!replyOpen) {
       setReplyOpen(true)
       setReplyAvatarVisible(true)
-      
+      // 每次展开递增 resetKey，让打字机重新开始
+      setReplyResetKey((k) => k + 1)
+      setReplyTypingStarted(false)
+
       setTimeout(() => {
         setReplyBubbleVisible(true)
         requestAnimationFrame(() => setReplyTypingStarted(true))
       }, 180)
     } else {
-      if (replyContentRef.current) setReplyHeight(replyContentRef.current.scrollHeight)
       setReplyOpen(false)
       setReplyBubbleVisible(false)
       setReplyAvatarVisible(false)
+      setReplyTypingStarted(false)
     }
   }, [replyOpen])
 
-  const questionBubbleStyle: CSSProperties = {
-    ...USER_BUBBLE_STYLE,
-    cursor: 'pointer',
-    userSelect: 'none',
-    background: replyOpen ? 'rgba(245, 165, 36, 0.65)' : USER_BUBBLE_STYLE.background as string,
-    color: replyOpen ? 'var(--color-background)' : USER_BUBBLE_STYLE.color as string,
-    transition: 'background 0.25s, color 0.25s',
-  }
+  // 根据展开状态选择预定义样式对象，避免每次渲染创建新对象
+  const questionBubbleStyle = replyOpen ? QUESTION_BUBBLE_ACTIVE_STYLE : QUESTION_BUBBLE_DEFAULT_STYLE
+
+  if (!visible) return null
 
   return (
     <div className="flex flex-col">
-      <AnimatePresence>
-        {visible && (
-          <motion.div
-            className="flex items-end flex-row-reverse"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' as const }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={avatarVisible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-              transition={AVATAR_SPRING}
-            >
-              <UserAvatar />
-            </motion.div>
+      <motion.div
+        className="flex items-end flex-row-reverse"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' as const }}
+      >
+        <motion.div
+          initial={AVATAR_INITIAL}
+          animate={avatarVisible ? AVATAR_ANIMATE_VISIBLE : AVATAR_ANIMATE_HIDDEN}
+          transition={AVATAR_SPRING}
+        >
+          <UserAvatar />
+        </motion.div>
 
-            <motion.div
-              style={questionBubbleStyle}
-              initial={{ opacity: 0, scaleX: 0.08, scaleY: 0.3 }}
-              animate={bubbleVisible ? { opacity: 1, scaleX: 1, scaleY: 1 } : { opacity: 0, scaleX: 0.08, scaleY: 0.3 }}
-              transition={BUBBLE_SPRING}
-              onClick={bubbleVisible ? handleToggle : undefined}
-              whileHover={bubbleVisible ? { scale: 1.02 } : {}}
-              whileTap={bubbleVisible ? { scale: 0.98 } : {}}
-            >
-              {question.label}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <motion.div
+          style={questionBubbleStyle}
+          initial={BUBBLE_INITIAL}
+          animate={bubbleVisible ? BUBBLE_ANIMATE_VISIBLE : BUBBLE_ANIMATE_HIDDEN}
+          transition={BUBBLE_SPRING}
+          onClick={bubbleVisible ? handleToggle : undefined}
+          whileHover={bubbleVisible ? { scale: 1.02 } : {}}
+          whileTap={bubbleVisible ? { scale: 0.98 } : {}}
+        >
+          {question.label}
+        </motion.div>
+      </motion.div>
 
       <motion.div
         initial={false}
         animate={{
-          height: replyOpen ? replyHeight : 0,
+          // 打字未完成时用 'auto' 让容器随内容自然撑开，避免截断
+          height: replyOpen ? 'auto' : 0,
           opacity: replyOpen ? 1 : 0,
           marginTop: replyOpen ? 24 : 0,
         }}
         transition={{ duration: 0.42, ease: [0.4, 0, 0.2, 1] }}
         style={{ overflow: 'hidden' }}
       >
-        <div ref={replyContentRef}>
-          <div className="flex items-end flex-row">
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={replyAvatarVisible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-              transition={AVATAR_SPRING}
-            >
-              <BotAvatar />
-            </motion.div>
+        <div className="flex items-end flex-row">
+          <motion.div
+            initial={AVATAR_INITIAL}
+            animate={replyAvatarVisible ? AVATAR_ANIMATE_VISIBLE : AVATAR_ANIMATE_HIDDEN}
+            transition={AVATAR_SPRING}
+          >
+            <BotAvatar />
+          </motion.div>
 
-            <motion.div
-              style={BOT_BUBBLE_STYLE}
-              initial={{ opacity: 0, scaleX: 0.08, scaleY: 0.3 }}
-              animate={replyBubbleVisible ? { opacity: 1, scaleX: 1, scaleY: 1 } : { opacity: 0, scaleX: 0.08, scaleY: 0.3 }}
-              transition={BUBBLE_SPRING}
-            >
-              {isDone ? question.reply : displayed}
-              {replyTypingStarted && !isDone && <TypingCursor />}
-            </motion.div>
-          </div>
+          <motion.div
+            style={BOT_BUBBLE_STYLE}
+            initial={BUBBLE_INITIAL}
+            animate={replyBubbleVisible ? BUBBLE_ANIMATE_VISIBLE : BUBBLE_ANIMATE_HIDDEN}
+            transition={BUBBLE_SPRING}
+          >
+            {isDone ? question.reply : displayed}
+            {replyTypingStarted && !isDone && <TypingCursor />}
+          </motion.div>
         </div>
       </motion.div>
     </div>
   )
-}
+})
 
 // ===== 6. 主组件区域 =====
 
 /**
  * ChatBubble 主组件
- * 
+ *
  * 整合所有子组件，实现完整的聊天界面
- * 
+ *
  * @param items - 聊天消息列表
  * @param questions - 可交互问题列表（可选）
  * @param typingSpeed - 打字速度（毫秒/字符），默认 40
  * @param itemDelay - 条目间渐进延迟（毫秒），默认 500
  * @param className - 自定义类名
- * @returns {JSX.Element} - 聊天组件
  */
 export function ChatBubble({
   items,
@@ -508,10 +536,14 @@ export function ChatBubble({
   itemDelay = 500,
   className = '',
 }: ChatBubbleProps) {
-  const allEntries = [
-    ...items.map((item) => ({ kind: 'item' as const, data: item })),
-    ...questions.map((q) => ({ kind: 'question' as const, data: q })),
-  ]
+  // useMemo 避免每次渲染重建数组，防止子组件 key 不稳定
+  const allEntries = useMemo(
+    () => [
+      ...items.map((item) => ({ kind: 'item' as const, data: item })),
+      ...questions.map((q) => ({ kind: 'question' as const, data: q })),
+    ],
+    [items, questions],
+  )
   const total = allEntries.length
 
   const [visibleCount, setVisibleCount] = useState(0)
@@ -519,45 +551,54 @@ export function ChatBubble({
   const triggerRef = useRef<HTMLDivElement>(null)
   const startedRef = useRef(false)
   const speedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // 用 ref 记录是否正在加速，避免滚动时重复 setState
+  const isAcceleratingRef = useRef(false)
 
   useEffect(() => {
     const el = triggerRef.current
     if (!el) return
-    
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (!entries[0].isIntersecting || startedRef.current) return
-        
+
         startedRef.current = true
         observer.disconnect()
-        
+
         let count = 1
         setVisibleCount(1)
-        
+
         const interval = setInterval(() => {
           count++
           setVisibleCount(count)
           if (count >= total) clearInterval(interval)
         }, itemDelay)
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
     )
-    
+
     observer.observe(el)
-    
+
     return () => observer.disconnect()
   }, [total, itemDelay])
 
   useEffect(() => {
     const handleScroll = () => {
-      setCurrentSpeed(8)
-      
+      // 已经在加速状态时只重置计时器，不重复 setState
+      if (!isAcceleratingRef.current) {
+        isAcceleratingRef.current = true
+        setCurrentSpeed(8)
+      }
+
       if (speedResetTimerRef.current) clearTimeout(speedResetTimerRef.current)
-      speedResetTimerRef.current = setTimeout(() => setCurrentSpeed(typingSpeed), 800)
+      speedResetTimerRef.current = setTimeout(() => {
+        isAcceleratingRef.current = false
+        setCurrentSpeed(typingSpeed)
+      }, 800)
     }
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true })
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll)
       if (speedResetTimerRef.current) clearTimeout(speedResetTimerRef.current)
@@ -567,40 +608,34 @@ export function ChatBubble({
   return (
     <div className={`relative w-full ${className}`}>
       <div ref={triggerRef} style={{ height: 1, marginBottom: -1 }} />
-      
+
       <div className="flex flex-col gap-10 w-full px-6 py-8">
         {allEntries.map((entry, index) => {
           const isVisible = index < visibleCount
-          
+
           if (entry.kind === 'item') {
             const item = entry.data
-            
+
             if (item.type === 'divider') {
-              return (
-                <DividerItem 
-                  key={item.id} 
-                  content={item.content} 
-                  visible={isVisible} 
-                />
-              )
+              return <DividerItem key={item.id} content={item.content} visible={isVisible} />
             }
-            
+
             return (
-              <BubbleItem 
-                key={item.id} 
-                message={item} 
-                visible={isVisible} 
-                typingSpeed={currentSpeed} 
+              <BubbleItem
+                key={item.id}
+                message={item}
+                visible={isVisible}
+                typingSpeed={currentSpeed}
               />
             )
           }
-          
+
           return (
-            <QuestionBubble 
-              key={entry.data.id} 
-              question={entry.data} 
-              visible={isVisible} 
-              typingSpeed={currentSpeed} 
+            <QuestionBubble
+              key={entry.data.id}
+              question={entry.data}
+              visible={isVisible}
+              typingSpeed={currentSpeed}
             />
           )
         })}
