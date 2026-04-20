@@ -5,13 +5,14 @@
  * - 顶部工具栏：搜索框（用户名/手机号/邮箱）、状态筛选、新增按钮
  * - 中部表格：用户列表，支持多选批量操作
  * - 底部：后端分页控件
- * - 弹窗：新增/编辑用户、删除确认、重置密码、用户详情
+ * - 弹窗：新增/编辑用户、删除确认、切换角色、用户详情
  *
  * 核心交互：
  * - 搜索/筛选 → 调用后端分页接口刷新列表
  * - 新增/编辑 → 弹窗表单提交
- * - 批量操作 → 批量删除、批量重置密码
+ * - 批量操作 → 批量删除
  * - 状态切换 → 调用专用状态切换接口
+ * - 角色切换 → 弹窗展示所有角色，勾选绑定
  */
 
 // ===== 1. 依赖导入区域 =====
@@ -39,13 +40,16 @@ import {
   ModalFooter,
   Card,
   CardBody,
-  Spinner,
   useDisclosure,
   Tooltip,
   Pagination,
   Avatar,
   Textarea,
-  Switch
+  Switch,
+  Checkbox,
+  CheckboxGroup,
+  Divider,
+  Spinner
 } from '@heroui/react'
 
 // 图标（Lucide React）
@@ -56,7 +60,7 @@ import {
   Pencil,
   RefreshCw,
   Users,
-  KeyRound,
+  Shield,
   Eye
 } from 'lucide-react'
 
@@ -76,10 +80,11 @@ import {
   createUser,
   updateUser,
   deleteUser,
-  resetUserPassword,
-  batchResetUserPassword,
+  getUserRoles,
+  updateUserRoles,
   toggleUserStatus
 } from '@/api/admin/user'
+import { getRoleList } from '@/api/admin/role'
 
 // 类型定义
 import type {
@@ -93,6 +98,7 @@ import type {
   SysUserPageData
 } from '@/types/sysuser.types'
 import { USER_STATUS_OPTIONS, USER_SEX_OPTIONS } from '@/types/sysuser.types'
+import type { SysRole } from '@/types/role.types'
 
 // ===== 2. TODO待处理导入区域 =====
 
@@ -524,6 +530,149 @@ function UserDetailModal({ isOpen, onOpenChange, userData, onEdit }: UserDetailM
 // ===== 11. 导出区域 =====
 
 /**
+ * 用户角色切换弹窗组件
+ *
+ * 展示所有可用角色列表，已绑定的角色默认勾选，
+ * 支持勾选/取消勾选来更改用户的角色绑定
+ * 保存时使用全量替换接口
+ */
+interface UserRoleModalProps {
+  /** 弹窗是否打开 */
+  isOpen: boolean
+  /** 弹窗打开/关闭状态变更回调 */
+  onOpenChange: (open: boolean) => void
+  /** 用户数据 */
+  userData: SysUser | null
+  /** 操作成功后的回调 */
+  onSuccess: () => void
+}
+
+function UserRoleModal({ isOpen, onOpenChange, userData, onSuccess }: UserRoleModalProps) {
+  const [allRoles, setAllRoles] = useState<SysRole[]>([])
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([])
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    if (isOpen && userData) {
+      fetchRolesAndUserBindings()
+    }
+  }, [isOpen, userData])
+
+  const fetchRolesAndUserBindings = async () => {
+    if (!userData) return
+    setIsLoadingRoles(true)
+    try {
+      const [roles, userRoleIds] = await Promise.all([
+        getRoleList(),
+        getUserRoles(userData.id)
+      ])
+      setAllRoles(roles.filter(r => r.status === '0'))
+      setSelectedRoleIds(userRoleIds.map(String))
+    } catch (error) {
+      console.error('获取角色数据失败：', error)
+      toast.error('获取角色数据失败')
+    } finally {
+      setIsLoadingRoles(false)
+    }
+  }
+
+  const handleSave = useCallback(async () => {
+    if (!userData) return
+    setIsSaving(true)
+    try {
+      await updateUserRoles(userData.id, selectedRoleIds)
+      toast.success('角色更新成功')
+      onSuccess()
+      onOpenChange(false)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '角色更新失败'
+      toast.error(message)
+      console.error('角色更新失败：', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [userData, selectedRoleIds, onSuccess, onOpenChange])
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      size="md"
+      scrollBehavior="inside"
+    >
+      <ModalContent>
+        <ModalHeader>
+          <div className="flex items-center gap-2">
+            <Shield size={18} className="text-primary" />
+            <span>切换角色 - {userData?.nickName || userData?.userName}</span>
+          </div>
+        </ModalHeader>
+        <ModalBody className="gap-3">
+          {isLoadingRoles ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="sm" label="加载角色数据..." />
+            </div>
+          ) : allRoles.length === 0 ? (
+            <div className="text-center py-8 text-default-400 text-sm">
+              暂无可用角色
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-default-400">
+                勾选需要绑定的角色，保存后将全量替换当前用户的角色
+              </p>
+              <Divider />
+              <CheckboxGroup
+                value={selectedRoleIds}
+                onChange={(values) => setSelectedRoleIds(values as string[])}
+                className="gap-2"
+              >
+                {allRoles.map((role) => (
+                  <Checkbox
+                    key={role.id}
+                    value={role.id}
+                    classNames={{
+                      base: 'w-full max-w-full p-2 hover:bg-default-100 rounded-lg transition-colors',
+                      label: 'w-full'
+                    }}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{role.roleName}</span>
+                        <span className="text-xs text-default-400">{role.roleKey}</span>
+                      </div>
+                      {role.remark && (
+                        <span className="text-xs text-default-300 truncate max-w-32">
+                          {role.remark}
+                        </span>
+                      )}
+                    </div>
+                  </Checkbox>
+                ))}
+              </CheckboxGroup>
+            </>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="flat" onPress={() => onOpenChange(false)}>
+            取消
+          </Button>
+          <Button
+            color="primary"
+            isLoading={isSaving}
+            isDisabled={isLoadingRoles}
+            onPress={handleSave}
+          >
+            保存
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+}
+
+/**
  * 用户管理主页面组件
  *
  * 页面布局：
@@ -565,6 +714,11 @@ export default function PersonnelUser() {
   const detailModal = useDisclosure()
   /** 详情查看的用户数据 */
   const [detailUser, setDetailUser] = useState<SysUser | null>(null)
+
+  /** 角色切换弹窗控制 */
+  const roleModal = useDisclosure()
+  /** 角色切换的用户数据 */
+  const [roleUser, setRoleUser] = useState<SysUser | null>(null)
 
   /** 搜索关键词输入（用于搜索框的即时值，与 queryParams 分离避免频繁请求） */
   const [searchKeyword, setSearchKeyword] = useState('')
@@ -677,38 +831,12 @@ export default function PersonnelUser() {
   }, [detailModal])
 
   /**
-   * 重置用户密码
-   * 重置后密码为系统默认值
+   * 打开角色切换弹窗
    */
-  const handleResetPassword = useCallback(async (id: string) => {
-    try {
-      await resetUserPassword(id)
-      toast.success('密码重置成功')
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '密码重置失败'
-      toast.error(message)
-      console.error('密码重置失败：', error)
-    }
-  }, [])
-
-  /**
-   * 批量重置选中用户的密码
-   */
-  const handleBatchResetPassword = useCallback(async () => {
-    if (selectedKeys.size === 0) {
-      toast.warning('请选择要重置密码的用户')
-      return
-    }
-    try {
-      await batchResetUserPassword(Array.from(selectedKeys).join(','))
-      toast.success('批量重置密码成功')
-      setSelectedKeys(new Set())
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '批量重置密码失败'
-      toast.error(message)
-      console.error('批量重置密码失败：', error)
-    }
-  }, [selectedKeys])
+  const handleSwitchRole = useCallback((user: SysUser) => {
+    setRoleUser(user)
+    roleModal.onOpen()
+  }, [roleModal])
 
   /**
    * 批量删除选中的用户
@@ -836,26 +964,15 @@ export default function PersonnelUser() {
               </Button>
               <div className="hidden sm:flex-1" />
               {selectedKeys.size > 0 && (
-                <>
-                  <Button
-                    size="sm"
-                    color="danger"
-                    variant="flat"
-                    startContent={<Trash2 size={14} />}
-                    onPress={handleBatchDelete}
-                  >
-                    批量删除({selectedKeys.size})
-                  </Button>
-                  <Button
-                    size="sm"
-                    color="warning"
-                    variant="flat"
-                    startContent={<KeyRound size={14} />}
-                    onPress={handleBatchResetPassword}
-                  >
-                    批量重置密码({selectedKeys.size})
-                  </Button>
-                </>
+                <Button
+                  size="sm"
+                  color="danger"
+                  variant="flat"
+                  startContent={<Trash2 size={14} />}
+                  onPress={handleBatchDelete}
+                >
+                  批量删除({selectedKeys.size})
+                </Button>
               )}
             </div>
           </div>
@@ -960,15 +1077,15 @@ export default function PersonnelUser() {
                               <Pencil size={14} />
                             </Button>
                           </Tooltip>
-                          <Tooltip content="重置密码" size="sm">
+                          <Tooltip content="切换角色" size="sm">
                             <Button
                               isIconOnly
                               size="sm"
                               variant="light"
-                              color="warning"
-                              onPress={() => handleResetPassword(item.id)}
+                              color="secondary"
+                              onPress={() => handleSwitchRole(item)}
                             >
-                              <KeyRound size={14} />
+                              <Shield size={14} />
                             </Button>
                           </Tooltip>
                           <Tooltip content="删除" size="sm">
@@ -1038,6 +1155,14 @@ export default function PersonnelUser() {
         onOpenChange={detailModal.onOpenChange}
         userData={detailUser}
         onEdit={handleEditUser}
+      />
+
+      {/* 用户角色切换弹窗 */}
+      <UserRoleModal
+        isOpen={roleModal.isOpen}
+        onOpenChange={roleModal.onOpenChange}
+        userData={roleUser}
+        onSuccess={fetchUserList}
       />
     </div>
   )

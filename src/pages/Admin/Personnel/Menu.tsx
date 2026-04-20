@@ -38,7 +38,6 @@ import {
   Textarea,
   Card,
   CardBody,
-  Spinner,
   useDisclosure,
   Tooltip,
   Popover,
@@ -57,8 +56,7 @@ import {
   FolderTree,
   Folder,
   MousePointerClick,
-  Menu as MenuIcon,
-  icons as LucideIcons
+  Menu as MenuIcon
 } from 'lucide-react'
 
 // antd 组件
@@ -68,6 +66,7 @@ import type { TreeProps, DataNode } from 'antd/es/tree'
 // 工具函数
 import { toast } from '@/utils/toast'
 import { cn } from '@/utils'
+import { AVAILABLE_ICONS, getLucideIcon, renderIcon } from '@/utils/icons'
 
 // 通用状态组件
 import { StatusState } from '@/components/ui/StatusState'
@@ -101,13 +100,7 @@ import {
 
 // ===== 3. 常量定义区域 =====
 
-/** 可选图标列表，用于图标选择弹窗 */
-const AVAILABLE_ICONS = [
-  'home', 'folder', 'file', 'settings', 'menu', 'users', 'shield', 'video',
-  'upload', 'check', 'database', 'activity', 'monitor', 'tag', 'key', 'bot',
-  'message', 'edit', 'refresh', 'cog', 'list', 'search', 'plus', 'trash',
-  'pencil', 'globe', 'mail', 'bell', 'star', 'heart', 'bookmark', 'clock'
-]
+// 图标列表从 @/utils/icons 导入
 
 // ===== 4. 通用工具函数区域 =====
 
@@ -194,54 +187,6 @@ function flattenMenus(menus: SysMenu[]): SysMenu[] {
   return result
 }
 
-// ===== 图标动态解析工具 =====
-
-/** Lucide 图标组件类型定义 */
-type LucideIconComponent = React.ComponentType<{ size?: number; className?: string }>
-
-/**
- * 将 kebab-case / snake_case 字符串转换为 PascalCase
- * 用于从 Lucide 图标库中按名称动态查找图标组件
- *
- * @param str - 原始字符串（如 'home', 'folder-tree'）
- * @returns PascalCase 格式字符串（如 'Home', 'FolderTree'）
- */
-function toPascalCase(str: string): string {
-  return str
-    .split(/[-_\s]+/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join('')
-}
-
-/**
- * 根据图标名称动态获取 Lucide 图标组件
- * 图标名称会自动转换为 PascalCase 以匹配 Lucide 导出键名
- *
- * @param iconName - 图标名称（如 'home', 'folder-tree'）
- * @returns 匹配的图标组件，未找到时返回 null
- */
-function getLucideIcon(iconName: string): LucideIconComponent | null {
-  const pascalName = toPascalCase(iconName)
-  const IconComponent = (LucideIcons as Record<string, LucideIconComponent>)[pascalName]
-  return IconComponent ?? null
-}
-
-/**
- * 渲染菜单图标
- * 根据图标名称动态解析并渲染对应的 Lucide 图标组件
- *
- * @param iconName - 图标名称
- * @param size - 图标尺寸，默认 16
- * @param className - 额外的 CSS 类名
- * @returns 渲染后的图标 JSX，未找到时返回 null
- */
-function renderIcon(iconName?: string, size = 16, className?: string) {
-  if (!iconName) return null
-  const IconComponent = getLucideIcon(iconName)
-  if (!IconComponent) return null
-  return <IconComponent size={size} className={className} />
-}
-
 // ===== 5. 子组件区域 =====
 
 /**
@@ -280,7 +225,7 @@ function IconSelect({ value, onChange }: IconSelectProps) {
           {value || '选择图标'}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72">
+      <PopoverContent className="w-80">
         <div className="p-2 space-y-2">
           <Input
             size="sm"
@@ -289,24 +234,25 @@ function IconSelect({ value, onChange }: IconSelectProps) {
             onValueChange={setSearch}
             startContent={<Search size={14} />}
           />
-          <div className="grid grid-cols-6 gap-1 max-h-48 overflow-y-auto">
+          <div className="grid grid-cols-8 gap-1">
             {filtered.map(name => {
               const IconComponent = getLucideIcon(name)
               return (
-                <Tooltip key={name} content={name} size="sm" delay={300}>
-                  <button
-                    className={cn(
-                      'p-2 rounded-md text-center transition-colors hover:bg-primary/10',
-                      value === name && 'bg-primary/20 text-primary'
-                    )}
-                    onClick={() => onChange(name)}
-                  >
-                    {IconComponent
-                      ? <IconComponent size={18} />
-                      : <span className="text-xs">{name.slice(0, 2)}</span>
-                    }
-                  </button>
-                </Tooltip>
+                <button
+                  key={name}
+                  title={name}
+                  className={cn(
+                    'p-2 rounded-md text-center transition-colors hover:bg-primary/10',
+                    value === name && 'bg-primary/20 text-primary'
+                  )}
+                  onClick={() => onChange(name)}
+                  aria-label={`选择图标: ${name}`}
+                >
+                  {IconComponent
+                    ? <IconComponent size={18} />
+                    : <span className="text-xs">{name.slice(0, 2)}</span>
+                  }
+                </button>
               )
             })}
           </div>
@@ -713,6 +659,8 @@ export default function PersonnelMenu() {
   const [queryParams, setQueryParams] = useState<SysMenuQueryParams>({})
   /** antd Tree 展开的节点 key 列表 */
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([])
+  /** antd Tree 勾选的节点 key 列表（checkStrictly 模式，父子不关联） */
+  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([])
 
   /** 编辑弹窗控制 */
   const editModal = useDisclosure()
@@ -808,6 +756,7 @@ export default function PersonnelMenu() {
       toast.success('删除成功')
       fetchMenuList()
       setSelectedKeys(new Set())
+      setCheckedKeys([])
     } catch (error) {
       const message = error instanceof Error ? error.message : '删除失败'
       toast.error(message)
@@ -857,6 +806,27 @@ export default function PersonnelMenu() {
   const handleExpand: TreeProps['onExpand'] = useCallback((expandedKeysValue: React.Key[]) => {
     setExpandedKeys(expandedKeysValue)
   }, [])
+
+  /**
+   * antd Tree 节点勾选事件
+   * checkStrictly 模式下父子节点不关联，勾选状态独立
+   */
+  const handleCheck: TreeProps['onCheck'] = useCallback((checkedKeysValue: React.Key[] | { checked: React.Key[]; halfChecked: React.Key[] }) => {
+    const keys = Array.isArray(checkedKeysValue) ? checkedKeysValue : checkedKeysValue.checked
+    setCheckedKeys(keys)
+  }, [])
+
+  /**
+   * 批量删除树中勾选的菜单节点
+   * checkStrictly 模式下仅删除实际勾选的节点，不自动关联子节点
+   */
+  const handleTreeBatchDelete = useCallback(() => {
+    if (checkedKeys.length === 0) {
+      toast.warning('请勾选要删除的菜单')
+      return
+    }
+    handleDeleteMenu(checkedKeys.map(key => String(key)))
+  }, [checkedKeys, handleDeleteMenu])
 
   /**
    * 打开新增菜单弹窗
@@ -1134,6 +1104,19 @@ export default function PersonnelMenu() {
               <span className="font-semibold text-sm">菜单结构</span>
             </div>
             <div className="flex items-center gap-1">
+              {checkedKeys.length > 0 && (
+                <Tooltip content={`批量删除(${checkedKeys.length})`} size="sm">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    color="danger"
+                    onPress={handleTreeBatchDelete}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </Tooltip>
+              )}
               <Tooltip content="新增一级菜单" size="sm">
                 <Button
                   isIconOnly
@@ -1168,6 +1151,10 @@ export default function PersonnelMenu() {
                 expandedKeys={expandedKeys}
                 onSelect={handleTreeSelect}
                 onExpand={handleExpand}
+                checkable
+                checkedKeys={checkedKeys}
+                checkStrictly
+                onCheck={handleCheck}
                 draggable
                 blockNode
                 allowDrop={allowDrop}

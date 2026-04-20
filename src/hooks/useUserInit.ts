@@ -16,7 +16,7 @@ import { useUserStore } from '@/stores/user'
 import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
 import { getStorageValue, setStorage, STORAGE_KEYS } from '@/utils/storage'
-import { logger, toast } from '@/utils'
+import { toast } from '@/utils'
 import type { UserInfo } from '@/types'
 import type { UserStats } from '@/api/profile'
 
@@ -190,7 +190,7 @@ async function initUserInfo(
       // 构建标准化的用户信息对象
       const user = {
         id: String(sysUser.id ?? ''),
-        name: sysUser.userName ?? '',
+        name: sysUser.nickName ?? '',
         email: sysUser.email ?? '',
         avatar: sysUser.avatar,
         role,
