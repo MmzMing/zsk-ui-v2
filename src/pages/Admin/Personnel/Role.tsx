@@ -73,6 +73,9 @@ import { toast } from '@/utils/toast'
 import { cn } from '@/utils'
 import { formatDateTime } from '@/utils/format'
 
+// 通用状态组件
+import { StatusState } from '@/components/ui/StatusState'
+
 // API 接口
 import {
   getRoleList,
@@ -995,9 +998,7 @@ export default function PersonnelRole() {
           {/* 角色列表表格 */}
           <div className="flex-1 p-3 overflow-auto mt-2">
             {isLoading ? (
-              <div className="flex items-center justify-center h-48">
-                <Spinner size="sm" label="加载中..." />
-              </div>
+              <StatusState type="loading" scene="admin" />
             ) : (
               <Table
                 aria-label="角色列表"
@@ -1017,11 +1018,7 @@ export default function PersonnelRole() {
                 </TableHeader>
                 <TableBody
                   items={filteredRoleList.map(item => ({ ...item, key: item.id }))}
-                  emptyContent={
-                    <div className="py-8 text-default-400 text-sm">
-                      暂无角色数据
-                    </div>
-                  }
+                  emptyContent={<StatusState type="empty" scene="admin" />}
                 >
                   {(item) => (
                     <TableRow
@@ -1211,9 +1208,7 @@ export default function PersonnelRole() {
 
                       {/* 菜单权限树 */}
                       {isMenuLoading ? (
-                        <div className="flex items-center justify-center h-48">
-                          <Spinner size="sm" label="加载权限数据..." />
-                        </div>
+                        <StatusState type="loading" scene="admin" />
                       ) : menuTreeData.length > 0 ? (
                         <div className="max-h-[50vh] overflow-auto">
                           <Tree
@@ -1227,9 +1222,7 @@ export default function PersonnelRole() {
                           />
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center h-48 text-default-400 text-sm">
-                          暂无菜单数据
-                        </div>
+                        <StatusState type="empty" scene="admin" />
                       )}
                     </div>
                   </Tab>
@@ -1280,9 +1273,7 @@ export default function PersonnelRole() {
 
                       {/* 关联用户列表 */}
                       {isUserLoading ? (
-                        <div className="flex items-center justify-center h-48">
-                          <Spinner size="sm" label="加载用户数据..." />
-                        </div>
+                        <StatusState type="loading" scene="admin" />
                       ) : roleUserIds.length > 0 ? (
                         <Table
                           aria-label="关联用户列表"
@@ -1335,9 +1326,7 @@ export default function PersonnelRole() {
                           </TableBody>
                         </Table>
                       ) : (
-                        <div className="flex items-center justify-center h-48 text-default-400 text-sm">
-                          暂无关联用户
-                        </div>
+                        <StatusState type="empty" scene="admin" />
                       )}
                     </div>
                   </Tab>
@@ -1346,10 +1335,13 @@ export default function PersonnelRole() {
             </>
           ) : (
             /* 未选中角色时的空状态 */
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-default-400">
-              <Shield size={48} className="opacity-30" />
-              <p className="text-sm">请从左侧选择一个角色查看详情</p>
-            </div>
+            <StatusState 
+              type="empty" 
+              scene="admin"
+              title="请选择角色"
+              description="请从左侧选择一个角色查看详情"
+              full
+            />
           )}
         </CardBody>
       </Card>

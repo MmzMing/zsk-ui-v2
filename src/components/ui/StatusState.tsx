@@ -114,11 +114,11 @@ export function StatusState({
           {type === 'loading' ? (
             <motion.div
               key="loading"
-              initial={{ opacity: 0, rotate: 0 }}
-              animate={{ opacity: 1, rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              <Spinner size="lg" color="primary" variant="wave" />
+              <Spinner classNames={{label: "text-foreground mt-4"}} size="lg" color="primary" variant="wave" />
             </motion.div>
           ) : (
             <motion.div

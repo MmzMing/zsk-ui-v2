@@ -64,6 +64,9 @@ import {
 import { toast } from '@/utils/toast'
 import { formatDateTime } from '@/utils/format'
 
+// 通用状态组件
+import { StatusState } from '@/components/ui/StatusState'
+
 // 常量配置
 import { PAGINATION } from '@/constants'
 
@@ -860,9 +863,7 @@ export default function PersonnelUser() {
           {/* 用户列表表格 */}
           <div className="flex-1 p-3">
             {isLoading ? (
-              <div className="flex items-center justify-center h-48">
-                <Spinner size="sm" label="加载中..." />
-              </div>
+              <StatusState type="loading" scene="admin" />
             ) : (
               <Table
                 aria-label="用户列表"
@@ -888,11 +889,7 @@ export default function PersonnelUser() {
                 </TableHeader>
                 <TableBody
                   items={userList.map(item => ({ ...item, key: item.id }))}
-                  emptyContent={
-                    <div className="py-8 text-default-400 text-sm">
-                      暂无用户数据
-                    </div>
-                  }
+                  emptyContent={<StatusState type="empty" scene="admin" />}
                 >
                   {(item) => (
                     <TableRow key={item.id}>

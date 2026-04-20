@@ -14,6 +14,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { GlobalLoading } from '@/components/ui/GlobalLoading'
 import { GlobalModal } from '@/components/ui/GlobalModal'
 import { Watermark } from '@/components/ui/Watermark'
+import { StatusState } from '@/components/ui/StatusState'
 
 const HomePage = lazy(() => import('@/pages/Home'))
 const TestPage = lazy(() => import('@/pages/Test'))
@@ -49,7 +50,6 @@ const DocumentAudit = lazy(() => import('@/pages/Admin/Document/Audit'))
 
 // 系统管理页面
 const SystemConfig = lazy(() => import('@/pages/Admin/System/Config'))
-const SystemPermission = lazy(() => import('@/pages/Admin/System/Permission'))
 const SystemDictionary = lazy(() => import('@/pages/Admin/System/Dictionary'))
 
 // 系统运维页面
@@ -61,8 +61,8 @@ const OpsBehavior = lazy(() => import('@/pages/Admin/Ops/Behavior'))
 
 function PageLoading() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+    <div className="min-h-screen flex items-center justify-center bg-content">
+      <StatusState type="loading" />
     </div>
   )
 }
@@ -80,7 +80,7 @@ function RootLayout() {
   return (
     <>
       <Outlet />
-      <GlobalLoading />
+
       <GlobalModal />
       <Watermark />
     </>
@@ -236,10 +236,6 @@ export const routes: RouteObject[] = [
               {
                 path: 'config',
                 element: withSuspense(SystemConfig),
-              },
-              {
-                path: 'permission',
-                element: withSuspense(SystemPermission),
               },
               {
                 path: 'dictionary',

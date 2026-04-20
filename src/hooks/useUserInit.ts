@@ -16,7 +16,7 @@ import { useUserStore } from '@/stores/user'
 import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
 import { getStorageValue, setStorage, STORAGE_KEYS } from '@/utils/storage'
-import { logger } from '@/utils'
+import { logger, toast } from '@/utils'
 import type { UserInfo } from '@/types'
 import type { UserStats } from '@/api/profile'
 
@@ -87,6 +87,15 @@ export function useUserInit(): UseUserInitReturn {
         // 从 Cookie 获取 Token，判断用户是否已登录
         const token = getStorageValue<string>(STORAGE_KEYS.TOKEN, undefined, 'cookie')
         
+        // 检查是否存在缓存的用户信息
+        const cachedUserInfo = getStorageValue<CachedUserInfo>(STORAGE_KEYS.USER_INFO)
+
+        // 如果 cookie 为空但缓存中有用户信息，说明登录已过期
+        if (!token && cachedUserInfo) {
+          handleLoginExpired(setUserInfo, setUserStats)
+          return
+        }
+
         // 只有当 Cookie 中有 token 时，才处理用户信息
         if (token) {
           const now = Date.now()
@@ -97,9 +106,6 @@ export function useUserInit(): UseUserInitReturn {
           // ===== 用户统计数据初始化 =====
           await initUserStats(now, setUserStats)
         }
-      } catch (error) {
-        // 初始化过程中的未知错误，记录日志但不中断流程
-        logger.error('用户初始化过程中发生错误：', error)
       } finally {
         // 无论成功与否，都标记初始化完成
         setLoading(false)
@@ -115,6 +121,32 @@ export function useUserInit(): UseUserInitReturn {
 }
 
 // ===== 5. 辅助函数区域 =====
+
+/**
+ * 处理登录过期逻辑
+ * 清空缓存和状态，提示用户并跳转到登录页面
+ * 
+ * @param setUserInfo - 用户信息设置函数
+ * @param setUserStats - 用户统计数据设置函数
+ */
+function handleLoginExpired(
+  setUserInfo: (user: UserInfo | null) => void,
+  setUserStats: (stats: UserStats | null) => void
+): void {
+  // 清空缓存中的用户信息
+  setStorage(STORAGE_KEYS.USER_INFO, null)
+  setStorage(STORAGE_KEYS.USER_STATS, null)
+
+  // 清空状态管理中的用户信息
+  setUserInfo(null)
+  setUserStats(null)
+
+  // 提示用户登录已过期
+  toast.error('登录已过期，请重新登录')
+
+  // 使用 window.location 跳转到登录页面（避免 Router 上下文问题）
+  window.location.href = '/login'
+}
 
 /**
  * 初始化用户信息

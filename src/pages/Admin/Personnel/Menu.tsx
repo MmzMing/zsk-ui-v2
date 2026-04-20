@@ -69,6 +69,9 @@ import type { TreeProps, DataNode } from 'antd/es/tree'
 import { toast } from '@/utils/toast'
 import { cn } from '@/utils'
 
+// 通用状态组件
+import { StatusState } from '@/components/ui/StatusState'
+
 // API 接口
 import {
   getMenuList,
@@ -1156,9 +1159,7 @@ export default function PersonnelMenu() {
           </div>
           <div className="flex-1 overflow-auto p-3">
             {isLoading ? (
-              <div className="flex items-center justify-center h-48">
-                <Spinner size="sm" label="加载中..." />
-              </div>
+              <StatusState type="loading" scene="admin" />
             ) : treeData.length > 0 ? (
               <Tree
                 treeData={treeData as DataNode[]}
@@ -1175,9 +1176,7 @@ export default function PersonnelMenu() {
                 className="p-2 bg-default-900"
               />
             ) : (
-              <div className="flex items-center justify-center h-48 text-default-400 text-sm">
-                暂无菜单数据
-              </div>
+              <StatusState type="empty" scene="admin" />
             )}
           </div>
         </CardBody>
@@ -1287,10 +1286,10 @@ export default function PersonnelMenu() {
               <TableBody
                 items={tableData.map(item => ({ ...item, key: item.id }))}
                 emptyContent={
-                  <div className="py-8 text-default-400 text-sm">
-                    {selectedMenuId ? '该菜单下暂无子菜单' : '暂无菜单数据'}
-                  </div>
-                }
+                    selectedMenuId 
+                      ? <StatusState type="empty" scene="admin" title="暂无子菜单" description="该菜单下暂无子菜单" />
+                      : <StatusState type="empty" scene="admin" />
+                  }
               >
                 {(item) => (
                   <TableRow key={item.id}>

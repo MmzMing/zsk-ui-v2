@@ -17,7 +17,6 @@ import {
   CheckCircle,
   Database,
   ListChecks,
-  Key,
   Activity,
   MessageSquare,
   Video,
@@ -262,20 +261,11 @@ export const ADMIN_MENUS: MenuItem[] = [
         parentKey: 'system'
       },
       {
-        key: 'system-permission',
-        label: '权限列表',
-        path: '/admin/system/permission',
-        icon: Key,
-        order: 2,
-        permission: 'system:permission:view',
-        parentKey: 'system'
-      },
-      {
         key: 'system-dictionary',
         label: '字典管理',
         path: '/admin/system/dictionary',
         icon: Tag,
-        order: 3,
+        order: 2,
         permission: 'system:dictionary:view',
         parentKey: 'system'
       }

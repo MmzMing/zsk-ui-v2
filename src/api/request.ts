@@ -45,17 +45,18 @@ request.interceptors.request.use(
 )
 
 function handleAuthError(message?: string): void {
-  removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
-  removeStorage(STORAGE_KEYS.TOKEN, 'local')
-  removeStorage(STORAGE_KEYS.USER_INFO, 'cookie')
-  removeStorage(STORAGE_KEYS.USER_INFO, 'local')
-  useUserStore.getState().logout()
-  removeStorage('zsk-user-store', 'local')
-  removeStorage('zsk-app-settings', 'local')
+  // removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
+  // removeStorage(STORAGE_KEYS.TOKEN, 'local')
+  // removeStorage(STORAGE_KEYS.USER_INFO, 'cookie')
+  // removeStorage(STORAGE_KEYS.USER_INFO, 'local')
+  // useUserStore.getState().logout()
+  // removeStorage('zsk-user-store', 'local')
+  // removeStorage('zsk-app-settings', 'local')
+
+  // if (typeof window !== 'undefined') {
+  //   window.location.href = '/login'
+  // }
   toast.error(message || '登录已过期，请重新登录')
-  if (typeof window !== 'undefined') {
-    window.location.href = '/login'
-  }
 }
 
 // 响应拦截器
