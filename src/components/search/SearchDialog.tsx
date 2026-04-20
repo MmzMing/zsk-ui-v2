@@ -30,7 +30,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
   ]
 
   // 处理搜索提交
-  const handleSearch = (_: React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = () => {
     // 这里可以执行实际的搜索逻辑，比如跳转到搜索页面
     console.info('执行搜索...')
     // 延迟关闭，让用户看到消失动画

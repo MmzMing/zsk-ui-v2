@@ -43,7 +43,8 @@ import {
   Tooltip,
   Popover,
   PopoverTrigger,
-  PopoverContent
+  PopoverContent,
+  Switch
 } from '@heroui/react'
 
 // 图标（Lucide React）
@@ -142,16 +143,6 @@ function getMenuTypeColor(type: MenuType): 'primary' | 'secondary' | 'warning' {
     F: 'warning'
   }
   return colorMap[type]
-}
-
-/**
- * 获取菜单状态对应的 Chip 颜色
- *
- * @param status - 菜单状态枚举值
- * @returns 'success' 表示正常，'danger' 表示停用
- */
-function getMenuStatusColor(status: MenuStatus): 'success' | 'danger' {
-  return status === '0' ? 'success' : 'danger'
 }
 
 /**
@@ -821,6 +812,23 @@ export default function PersonnelMenu() {
     }
   }, [fetchMenuList])
 
+  /**
+   * 切换菜单状态
+   * @param id - 菜单ID
+   * @param status - 目标状态
+   */
+  const handleToggleMenuStatus = useCallback(async (id: string, status: MenuStatus) => {
+    try {
+      await updateMenu({ id, status })
+      toast.success('状态切换成功')
+      fetchMenuList()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '状态切换失败'
+      toast.error(message)
+      console.error('切换菜单状态失败：', error)
+    }
+  }, [fetchMenuList])
+
   // ===== 9. 页面初始化与事件绑定 =====
 
   /** 页面挂载时加载菜单列表 */
@@ -1177,9 +1185,9 @@ export default function PersonnelMenu() {
 
       {/* 右侧内容区 */}
       <Card className="flex-1 min-w-0">
-        <CardBody className="p-4 flex flex-col overflow-hidden">
+        <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 查询工具栏 */}
-          <div className="py-3 space-y-3">
+          <div className="p-3 py-3 space-y-3">
             <div className="flex items-center gap-2 flex-wrap">
               <Input
                 size="sm"
@@ -1255,16 +1263,16 @@ export default function PersonnelMenu() {
           </div>
 
           {/* 菜单详情列表 */}
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 p-3 overflow-auto">
             <Table
               aria-label="菜单详情列表"
               selectionMode="multiple"
               selectedKeys={selectedKeys}
               onSelectionChange={keys => setSelectedKeys(keys as Set<string>)}
-              classNames={{
-                wrapper: 'p-0',
-                thead: '[&>tr]:first:shadow-none',
-              }}
+                classNames={{
+                  wrapper: 'p-0',
+                  thead: '[&>tr]:first:shadow-none',
+                }}
             >
               <TableHeader>
                 <TableColumn key="menuName">菜单名称</TableColumn>
@@ -1309,9 +1317,13 @@ export default function PersonnelMenu() {
                       <span className="text-sm">{item.orderNum}</span>
                     </TableCell>
                     <TableCell>
-                      <Chip size="sm" variant="dot" color={getMenuStatusColor(item.status)}>
-                        {getMenuStatusLabel(item.status)}
-                      </Chip>
+                      <Switch
+                        size="sm"
+                        color="primary"
+                        isSelected={String(item.status) === '0'}
+                        onValueChange={(isSelected) => handleToggleMenuStatus(item.id, isSelected ? '0' : '1')}
+                        aria-label={getMenuStatusLabel(item.status as MenuStatus)}
+                      />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

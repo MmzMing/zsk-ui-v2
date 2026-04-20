@@ -161,6 +161,19 @@ div[data-slot="base"] .overflow-x-auto,
   scrollbar-width: none !important;
 }
 
+/* ===== HeroUI Pagination 滚动条隐藏 ===== */
+/* 隐藏 Pagination 组件的滚动条 */
+[role="navigation"]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+[role="navigation"] {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
 /* ===== 组件内容溢出修复 ===== */
 /* 确保 Chip, Code, Input, Tabs 内容有适当的内边距并自动扩展 */
 [data-slot="chip"],

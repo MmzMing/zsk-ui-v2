@@ -275,7 +275,7 @@ export default function TestPage() {
             <Input 
               variant="bordered" 
               placeholder="请输入内容..." 
-              clearable 
+              isClearable 
               defaultValue="这是带清除功能的边框输入框"
             />
             <Input 

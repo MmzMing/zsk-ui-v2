@@ -17,6 +17,8 @@ import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
 import { getStorageValue, setStorage, STORAGE_KEYS } from '@/utils/storage'
 import { logger } from '@/utils'
+import type { UserInfo } from '@/types'
+import type { UserStats } from '@/api/profile'
 
 // ===== 2. 类型定义区域 =====
 
@@ -32,7 +34,7 @@ interface UseUserInitReturn {
  * 用户信息缓存数据结构
  */
 interface CachedUserInfo {
-  user: any
+  user: UserInfo
   timestamp: number
 }
 
@@ -40,14 +42,17 @@ interface CachedUserInfo {
  * 用户统计数据缓存结构
  */
 interface CachedUserStats {
-  stats: any
+  stats: UserStats
   timestamp: number
 }
 
 // ===== 3. 常量定义区域 =====
 
-/** 缓存过期时间（毫秒）- 2小时 */
-const CACHE_EXPIRY = 1000 * 60 * 60 * 2
+/** 用户信息缓存过期时间（毫秒）- 2小时 */
+const USER_INFO_CACHE_EXPIRY = 1000 * 60 * 60 * 2
+
+/** 用户统计数据缓存过期时间（毫秒）- 30分钟 */
+const USER_STATS_CACHE_EXPIRY = 1000 * 60 * 30
 
 // ===== 4. Hook 定义区域 =====
 
@@ -120,13 +125,18 @@ export function useUserInit(): UseUserInitReturn {
  */
 async function initUserInfo(
   now: number,
-  setUserInfo: (user: any) => void
+  setUserInfo: (user: UserInfo | null) => void
 ): Promise<void> {
   // 尝试从 localStorage 获取缓存的用户信息
   const cachedUserInfo = getStorageValue<CachedUserInfo>(STORAGE_KEYS.USER_INFO)
 
+  // 检查缓存是否过期，如果过期则清除缓存
+  if (cachedUserInfo && now - cachedUserInfo.timestamp >= USER_INFO_CACHE_EXPIRY) {
+    setStorage(STORAGE_KEYS.USER_INFO, null)
+  }
+
   // 如果缓存存在且未过期，直接使用缓存
-  if (cachedUserInfo && now - cachedUserInfo.timestamp < CACHE_EXPIRY) {
+  if (cachedUserInfo && now - cachedUserInfo.timestamp < USER_INFO_CACHE_EXPIRY) {
     setUserInfo(cachedUserInfo.user)
     return
   }
@@ -159,13 +169,13 @@ async function initUserInfo(
         bio: sysUser.remark
       }
 
-      // 更新状态和缓存
+      // 更新状态和缓存（带过期时间戳）
       setUserInfo(user)
       setStorage(STORAGE_KEYS.USER_INFO, { user, timestamp: now })
     }
-  } catch (apiError) {
-    // 接口失败时，如果有缓存则使用缓存
-    if (cachedUserInfo) {
+  } catch {
+    // 接口失败时，如果有未过期的缓存则使用缓存
+    if (cachedUserInfo && now - cachedUserInfo.timestamp < USER_INFO_CACHE_EXPIRY) {
       setUserInfo(cachedUserInfo.user)
     }
   }
@@ -180,13 +190,18 @@ async function initUserInfo(
  */
 async function initUserStats(
   now: number,
-  setUserStats: (stats: any) => void
+  setUserStats: (stats: UserStats | null) => void
 ): Promise<void> {
   // 尝试从 localStorage 获取缓存的用户统计数据
   const cachedUserStats = getStorageValue<CachedUserStats>(STORAGE_KEYS.USER_STATS)
 
+  // 检查缓存是否过期，如果过期则清除缓存
+  if (cachedUserStats && now - cachedUserStats.timestamp >= USER_STATS_CACHE_EXPIRY) {
+    setStorage(STORAGE_KEYS.USER_STATS, null)
+  }
+
   // 如果缓存存在且未过期，直接使用缓存
-  if (cachedUserStats && now - cachedUserStats.timestamp < CACHE_EXPIRY) {
+  if (cachedUserStats && now - cachedUserStats.timestamp < USER_STATS_CACHE_EXPIRY) {
     setUserStats(cachedUserStats.stats)
     return
   }
@@ -197,13 +212,13 @@ async function initUserStats(
     
     // 验证响应的有效性（code 为 200 且有数据）
     if (statsResponse && statsResponse.code === 200 && statsResponse.data) {
-      // 更新状态和缓存
+      // 更新状态和缓存（带过期时间戳）
       setUserStats(statsResponse.data)
       setStorage(STORAGE_KEYS.USER_STATS, { stats: statsResponse.data, timestamp: now })
     }
-  } catch (apiError) {
-    // 接口失败时，如果有缓存则使用缓存
-    if (cachedUserStats) {
+  } catch {
+    // 接口失败时，如果有未过期的缓存则使用缓存
+    if (cachedUserStats && now - cachedUserStats.timestamp < USER_STATS_CACHE_EXPIRY) {
       setUserStats(cachedUserStats.stats)
     }
   }

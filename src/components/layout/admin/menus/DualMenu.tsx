@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button, ScrollShadow } from '@heroui/react'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import {
   HiOutlineMenuAlt2
 } from 'react-icons/hi'
@@ -37,7 +38,7 @@ function SubMenuItem({
   item: MenuItem
   activeKey: string
   onSelect: (item: MenuItem) => void 
-  t: any
+  t: TFunction
 }) {
   const isActive = activeKey === item.key
   const Icon = item.icon

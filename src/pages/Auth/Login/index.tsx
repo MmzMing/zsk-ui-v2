@@ -104,7 +104,7 @@ export default function LoginPage() {
       
       setEmailSent(true)
       toast.success(t('login.emailSent'))
-    } catch (error: any) {
+    } catch (error) {
       console.error('发送登录邮件失败：', error)
       toast.error('发送魔法链接失败，请稍后重试')
     } finally {
@@ -125,7 +125,7 @@ export default function LoginPage() {
       } else {
         toast.error('获取授权链接失败')
       }
-    } catch (error) {
+    } catch {
       toast.error('获取授权链接失败')
     }
   }

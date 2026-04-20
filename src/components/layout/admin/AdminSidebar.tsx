@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button, Tooltip, ScrollShadow } from '@heroui/react'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import {
   HiOutlineChevronDown
 } from 'react-icons/hi'
@@ -26,7 +27,7 @@ function SubMenuItem({
   item: MenuItem
   activeKey: string
   onSelect: (item: MenuItem) => void 
-  t: any
+  t: TFunction
 }) {
   const isActive = activeKey === item.key
   const Icon = item.icon
@@ -55,7 +56,6 @@ function MenuItemComponent({
   onSelect,
   expandedKeys,
   toggleExpand,
-  toggleSidebar,
   t
 }: { 
   item: MenuItem
@@ -64,8 +64,7 @@ function MenuItemComponent({
   onSelect: (item: MenuItem) => void
   expandedKeys: Set<string>
   toggleExpand: (key: string) => void
-  toggleSidebar: () => void
-  t: any
+  t: TFunction
 }) {
   const isActive = activeKey === item.key || (item.children && item.children.some(child => child.key === activeKey))
   const hasChildren = item.children && item.children.length > 0
@@ -91,8 +90,6 @@ function MenuItemComponent({
           )}
           onPress={() => {
             if (hasChildren) {
-              // 折叠状态下点击有子菜单的项，先展开侧边栏，再展开子菜单
-              toggleSidebar()
               toggleExpand(item.key)
             } else if (item.path) {
               onSelect(item)
@@ -184,11 +181,14 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
   const location = useLocation()
   const {
     sidebarCollapsed: collapsed,
-    toggleSidebar,
     adminSettings
   } = useAppStore()
   
   const { menuWidth, sidebarAccordion } = adminSettings
+  
+  const [isHovering, setIsHovering] = useState(false)
+  
+  const shouldExpand = !collapsed || isHovering
 
   // 获取当前激活的菜单项
   const activeKey = useMemo(() => {
@@ -281,13 +281,15 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
   return (
     <motion.aside
       initial={false}
-      animate={collapsed ? 'collapsed' : 'expanded'}
+      animate={shouldExpand ? 'expanded' : 'collapsed'}
       variants={sidebarVariants}
       transition={{ duration: 0.2, ease: 'easeInOut' }}
       className={cn(
         'h-screen bg-content1 border-r-[var(--admin-border-width)] border-divider flex flex-col',
         className
       )}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
       {/* Logo 区域 */}
       <div className="h-14 flex items-center justify-center px-4 border-b-[var(--admin-border-width)] border-divider">
@@ -302,12 +304,11 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
               <MenuItemComponent
                 key={item.key}
                 item={item}
-                collapsed={collapsed}
+                collapsed={!shouldExpand}
                 activeKey={activeKey}
                 onSelect={handleSelect}
                 expandedKeys={expandedKeys}
                 toggleExpand={toggleExpand}
-                toggleSidebar={toggleSidebar}
                 t={t}
               />
             ))}

@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, CardBody, Badge } from '@heroui/react'
+import { Button, Badge } from '@heroui/react'
 import { Bell, MessageCircle, Heart, UserPlus, Check, Settings, Filter } from 'lucide-react'
 
 export type MessageType = 'system' | 'comment' | 'like' | 'follow'

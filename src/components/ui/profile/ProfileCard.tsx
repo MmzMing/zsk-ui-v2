@@ -91,7 +91,7 @@ export function ProfileCard({
   return (
     <CardContainer className={`inter-var ${className || ''}`}>
       <CardBody className="p-6 space-y-5 bg-transparent border-0 rounded-none shadow-none h-auto w-72">
-        <CardItem translateZ="50" className="flex flex-col items-center text-center space-y-3">
+        <CardItem translateZ="30" className="flex flex-col items-center text-center space-y-3">
           <Avatar
             src={userInfo?.avatar}
             name={userInfo?.name?.charAt(0)}
@@ -107,28 +107,28 @@ export function ProfileCard({
           </div>
         </CardItem>
 
-        <CardItem translateZ="40" className="space-y-2">
+        <CardItem translateZ="60" className="space-y-2">
           <p className="text-sm text-gray-600 text-center leading-relaxed">
             {sysUser?.bio?.trim() || t('card.noBio')}
           </p>
         </CardItem>
 
-        <CardItem translateZ="30" className="space-y-2 pt-3 border-t border-gray-200">
-          <div className="flex items-center gap-3 text-sm text-gray-600">
+        <div className="space-y-2 pt-3 border-t border-gray-200">
+          <CardItem translateZ="40" className="flex items-center gap-3 text-sm text-gray-600">
             <FiMail className="text-lg text-[var(--primary-color)]" />
             <span>{userInfo?.email}</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
+          </CardItem>
+          <CardItem translateZ="50" className="flex items-center gap-3 text-sm text-gray-600">
             <FiPhone className="text-lg text-[var(--primary-color)]" />
             <span>{t('card.unbound')}</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
+          </CardItem>
+          <CardItem translateZ="60" className="flex items-center gap-3 text-sm text-gray-600">
             <FiMapPin className="text-lg text-[var(--primary-color)]" />
             <span>{t('card.notSet')}</span>
-          </div>
-        </CardItem>
+          </CardItem>
+        </div>
 
-        <CardItem translateZ="20" className="flex justify-center gap-6 pt-3 border-t border-gray-200">
+        <CardItem translateZ="50" className="flex justify-center gap-6 pt-3 border-t border-gray-200">
           <div className="flex flex-col items-center">
             <Button
               isIconOnly
@@ -167,7 +167,7 @@ export function ProfileCard({
           </div>
         </CardItem>
 
-        <CardItem translateZ="100" className="flex justify-center gap-2 pt-3 border-t border-gray-200">
+        <CardItem translateZ="80" className="flex justify-center gap-2 pt-3 border-t border-gray-200">
           {[
             { key: 'edit', icon: PenLine, label: t('card.editInfo') },
             { key: 'works', icon: Heart, label: t('card.manageWorks') },

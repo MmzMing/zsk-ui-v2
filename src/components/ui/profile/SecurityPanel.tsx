@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, CardBody, Switch, Badge } from '@heroui/react'
+import { Switch, Badge } from '@heroui/react'
 import { Mail, Shield, AlertCircle, ChevronRight } from 'lucide-react'
 
 /**
