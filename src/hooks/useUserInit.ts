@@ -16,7 +16,7 @@ import { useUserStore } from '@/stores/user'
 import { useMenuStore } from '@/stores/menu'
 import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
-import { getStorageValue, setStorage, STORAGE_KEYS } from '@/utils/storage'
+import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS } from '@/utils/storage'
 import { toast } from '@/utils'
 import type { UserInfo } from '@/types'
 import type { UserStats } from '@/api/profile'
@@ -139,19 +139,23 @@ function handleLoginExpired(
   setUserInfo: (user: UserInfo | null) => void,
   setUserStats: (stats: UserStats | null) => void
 ): void {
-  // 清空缓存中的用户信息
-  setStorage(STORAGE_KEYS.USER_INFO, null)
-  setStorage(STORAGE_KEYS.USER_STATS, null)
+  // 清空缓存中的用户信息（使用 removeStorage 彻底删除键）
+  removeStorage(STORAGE_KEYS.USER_INFO)
+  removeStorage(STORAGE_KEYS.USER_STATS)
+  removeStorage(STORAGE_KEYS.MENU_CACHE)
 
   // 清空状态管理中的用户信息
   setUserInfo(null)
   setUserStats(null)
 
-  // 提示用户登录已过期
-  toast.error('登录已过期，请重新登录')
-
-  // 使用 window.location 跳转到登录页面（避免 Router 上下文问题）
-  window.location.href = '/login'
+  // 检查当前页面是否已经是登录页面，避免无限跳转循环
+  const currentPath = window.location.pathname
+  if (currentPath !== '/login') {
+    toast.error('登录已过期，请重新登录')
+    setTimeout(() => {
+      window.location.href = '/login'
+    }, 2000)
+  }
 }
 
 /**
@@ -171,7 +175,7 @@ async function initUserInfo(
 
   // 检查缓存是否过期，如果过期则清除缓存
   if (cachedUserInfo && now - cachedUserInfo.timestamp >= USER_INFO_CACHE_EXPIRY) {
-    setStorage(STORAGE_KEYS.USER_INFO, null)
+    removeStorage(STORAGE_KEYS.USER_INFO)
   }
 
   // 如果缓存存在且未过期，直接使用缓存
@@ -239,7 +243,7 @@ async function initUserStats(
 
   // 检查缓存是否过期，如果过期则清除缓存
   if (cachedUserStats && now - cachedUserStats.timestamp >= USER_STATS_CACHE_EXPIRY) {
-    setStorage(STORAGE_KEYS.USER_STATS, null)
+    removeStorage(STORAGE_KEYS.USER_STATS)
   }
 
   // 如果缓存存在且未过期，直接使用缓存

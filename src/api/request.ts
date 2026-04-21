@@ -10,7 +10,7 @@ import axios, {
   type AxiosError,
 } from 'axios'
 import { API_CONFIG, type RequestConfig } from './config'
-import { getStorageValue } from '@/utils/storage'
+import { getStorageValue, removeStorage } from '@/utils/storage'
 import { STORAGE_KEYS } from '@/utils/storage'
 import { toast } from '@/utils/toast'
 import type { ApiResponse } from '@/types'
@@ -44,18 +44,22 @@ request.interceptors.request.use(
 )
 
 function handleAuthError(message?: string): void {
-  // removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
-  // removeStorage(STORAGE_KEYS.TOKEN, 'local')
-  // removeStorage(STORAGE_KEYS.USER_INFO, 'cookie')
-  // removeStorage(STORAGE_KEYS.USER_INFO, 'local')
-  // useUserStore.getState().logout()
-  // removeStorage('zsk-user-store', 'local')
-  // removeStorage('zsk-app-settings', 'local')
+  removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
+  removeStorage(STORAGE_KEYS.USER_INFO)
+  removeStorage(STORAGE_KEYS.USER_STATS)
+  removeStorage(STORAGE_KEYS.MENU_CACHE)
 
-  // if (typeof window !== 'undefined') {
-  //   window.location.href = '/login'
-  // }
-  toast.error(message || '登录已过期，请重新登录')
+  if (typeof window !== 'undefined') {
+    const currentPath = window.location.pathname
+    if (currentPath !== '/login') {
+      toast.error(message || '登录已过期，请重新登录')
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 2000)
+    }
+  } else {
+    toast.error(message || '登录已过期，请重新登录')
+  }
 }
 
 // 响应拦截器

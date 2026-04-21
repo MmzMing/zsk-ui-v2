@@ -73,7 +73,9 @@ function handleHttpError(error: ApiError): string {
       case 401:
         removeToken()
         removeUserInfo()
-        window.location.href = '/login'
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
         return '登录已过期，请重新登录'
       case 403:
         return '没有权限执行此操作'
@@ -148,7 +150,9 @@ request.interceptors.response.use(
       if (data.code === 401) {
         removeToken()
         removeUserInfo()
-        window.location.href = '/login'
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
       }
 
       return Promise.reject(new Error(data.msg))
