@@ -58,6 +58,7 @@ const CachePage = lazy(() => import('@/pages/Admin/Monitor/Cache'))
 const LogPage = lazy(() => import('@/pages/Admin/Monitor/Log'))
 const SystemPage = lazy(() => import('@/pages/Admin/Monitor/System'))
 const BehaviorPage = lazy(() => import('@/pages/Admin/Monitor/Behavior'))
+const SysLogPage = lazy(() => import('@/pages/Admin/Monitor/SysLog'))
 
 function PageLoading() {
   return (
@@ -265,6 +266,10 @@ export const routes: RouteObject[] = [
               {
                 path: 'behavior',
                 element: withSuspense(BehaviorPage),
+              },
+              {
+                path: 'syslog',
+                element: withSuspense(SysLogPage),
               },
             ],
           },
