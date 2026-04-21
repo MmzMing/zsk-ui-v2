@@ -86,7 +86,6 @@ import type {
   SysMenuQueryParams,
   SysMenuCreateInput,
   SysMenuUpdateInput,
-  SysMenuBatchUpdate,
   MenuNodeData,
   MenuType,
   MenuStatus
@@ -879,9 +878,11 @@ export default function PersonnelMenu() {
 
   /**
    * antd Tree 拖拽放置事件
-   * 支持拖拽到二级菜单（目录/菜单类型），按钮类型节点禁止作为放置目标
-   * 先乐观更新本地状态，再调用批量更新接口同步到后端
-   * 失败时回滚到快照数据
+   * 使用 antd 内置的拖拽参数处理：
+   * - dropPosition: -1=前置, 0=子节点, 1=后置
+   * - dropToGap: 是否放置到间隙中
+   * 
+   * 先调用后端批量更新接口，成功后刷新菜单列表
    */
   const handleDrop: TreeProps['onDrop'] = useCallback(async (info: {
     dragNode: { key: React.Key }
@@ -889,116 +890,58 @@ export default function PersonnelMenu() {
     dropPosition: number
     dropToGap: boolean
   }) => {
-    const dragKey = info.dragNode.key
-    const dropKey = info.node.key
+    const dragKey = String(info.dragNode.key)
+    const dropKey = String(info.node.key)
     const dropPosition = info.dropPosition
     const dropToGap = info.dropToGap
 
-    const dropNode = flatMenuList.find(m => m.id === String(dropKey))
-    if (!dropNode) return
+    const dragMenu = flatMenuList.find(m => m.id === dragKey)
+    const dropMenu = flatMenuList.find(m => m.id === dropKey)
 
-    if (!dropToGap && dropNode.menuType === 'F') {
+    if (!dragMenu || !dropMenu) {
+      toast.warning('节点数据异常')
+      return
+    }
+
+    if (!dropToGap && dropMenu.menuType === 'F') {
       toast.warning('按钮类型节点不能作为父节点')
       return
     }
 
-    const dropNodeParent = flatMenuList.find(m => m.id === dropNode.parentId)
-    const dropDepth = dropNodeParent ? (flatMenuList.find(m => m.id === dropNodeParent.parentId) ? 2 : 1) : 0
+    const getNodeLevel = (menu: SysMenu): number => {
+      if (menu.parentId === '0') return 1
+      const parent = flatMenuList.find(m => m.id === menu.parentId)
+      return parent ? getNodeLevel(parent) + 1 : 1
+    }
 
-    if (!dropToGap && dropDepth >= MAX_MENU_DEPTH) {
-      toast.warning('最多支持二级菜单层级')
+    const targetLevel = dropToGap ? getNodeLevel(dropMenu) : getNodeLevel(dropMenu) + 1
+    if (targetLevel > MAX_MENU_DEPTH) {
+      toast.warning(`最多支持${MAX_MENU_DEPTH}级菜单`)
       return
     }
 
-    if (dropToGap && dropDepth > MAX_MENU_DEPTH) {
-      toast.warning('最多支持二级菜单层级')
+    const sourceLevel = getNodeLevel(dragMenu)
+    if (!dropToGap && sourceLevel >= MAX_MENU_DEPTH) {
+      toast.warning('当前节点已是最深层级，无法继续嵌套')
       return
     }
-
-    const snapshot = menuList
 
     try {
-      setMenuList(prev => {
-        const updated = JSON.parse(JSON.stringify(prev)) as SysMenu[]
+      const newParentId = dropToGap ? dropMenu.parentId : dropKey
 
-        const dragNode = updated.find(m => m.id === String(dragKey))
-        if (!dragNode) return prev
-
-        const removeNode = (list: SysMenu[], id: string): boolean => {
-          const idx = list.findIndex(m => m.id === id)
-          if (idx !== -1) {
-            list.splice(idx, 1)
-            return true
-          }
-          for (const item of list) {
-            if (item.children && removeNode(item.children, id)) return true
-          }
-          return false
-        }
-        removeNode(updated, String(dragKey))
-
-        if (dropToGap) {
-          const newParentId = dropNodeParent?.id ?? '0'
-          const insertInto = (list: SysMenu[], targetParentId: string): boolean => {
-            if (targetParentId === '0') {
-              const targetIdx = list.findIndex(m => m.id === String(dropKey))
-              if (targetIdx !== -1) {
-                const finalIdx = dropPosition < 0 ? targetIdx : Math.min(dropPosition, list.length)
-                list.splice(finalIdx, 0, dragNode)
-                return true
-              }
-            }
-            for (const item of list) {
-              if (item.id === targetParentId) {
-                if (!item.children) item.children = []
-                const targetIdx = item.children.findIndex(m => m.id === String(dropKey))
-                if (targetIdx !== -1) {
-                  const finalIdx = dropPosition < 0 ? targetIdx : Math.min(dropPosition, item.children.length)
-                  item.children.splice(finalIdx, 0, dragNode)
-                  return true
-                }
-              }
-              if (item.children && insertInto(item.children, targetParentId)) return true
-            }
-            return false
-          }
-          insertInto(updated, newParentId)
-          dragNode.parentId = newParentId
-        } else {
-          const insertAsChild = (list: SysMenu[]): boolean => {
-            for (const item of list) {
-              if (item.id === String(dropKey)) {
-                if (!item.children) item.children = []
-                item.children.push(dragNode)
-                dragNode.parentId = item.id
-                return true
-              }
-              if (item.children && insertAsChild(item.children)) return true
-            }
-            return false
-          }
-          insertAsChild(updated)
-        }
-
-        return updated
-      })
-
-      const newParentId = dropToGap ? (dropNodeParent?.id ?? '0') : String(dropKey)
-
-      const batchData: SysMenuBatchUpdate[] = [{
-        id: String(dragKey),
+      await batchUpdateMenu([{
+        id: dragKey,
         parentId: newParentId,
-        orderNum: Math.max(0, dropPosition)
-      }]
+        orderNum: dropPosition
+      }])
 
-      await batchUpdateMenu(batchData)
       toast.success('排序更新成功')
+      fetchMenuList()
     } catch (error) {
       console.error('排序更新失败：', error)
-      toast.error('排序更新失败，已恢复')
-      setMenuList(snapshot)
+      toast.error('排序更新失败')
     }
-  }, [menuList, flatMenuList])
+  }, [flatMenuList, fetchMenuList])
 
   /**
    * antd Tree 是否允许放置
