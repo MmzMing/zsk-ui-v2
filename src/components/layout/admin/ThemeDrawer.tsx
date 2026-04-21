@@ -141,6 +141,7 @@ function ThemeSettingsContent({ onClose }: { onClose?: () => void }) {
     multiTab,
     showBreadcrumb,
     sidebarAccordion,
+    allowTextSelection,
     colorWeak,
     clickEffect,
     menuWidth,
@@ -379,6 +380,7 @@ function ThemeSettingsContent({ onClose }: { onClose?: () => void }) {
                 { key: 'multiTab', value: multiTab, label: t('layoutSettings.multiTab') },
                 { key: 'showBreadcrumb', value: showBreadcrumb, label: t('layoutSettings.breadcrumb') },
                 { key: 'sidebarAccordion', value: sidebarAccordion, label: t('layoutSettings.sidebarAccordion') },
+                { key: 'allowTextSelection', value: allowTextSelection, label: t('layoutSettings.allowTextSelection') },
                 { key: 'enableBorder', value: enableBorder, label: t('layoutSettings.enableBorder') },
                 { key: 'enableShadow', value: enableShadow, label: t('layoutSettings.enableShadow') }
               ].map((item) => (

@@ -38,7 +38,8 @@
     "breadcrumb": "面包屑导航",
     "sidebarAccordion": "侧边栏手风琴",
     "enableBorder": "启用边框",
-    "enableShadow": "启用阴影"
+    "enableShadow": "启用阴影",
+    "allowTextSelection": "允许选取文本"
   },
   "animationSettings": {
     "title": "动效设置",

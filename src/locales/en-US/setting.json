@@ -38,7 +38,8 @@
     "breadcrumb": "Breadcrumb",
     "sidebarAccordion": "Sidebar Accordion",
     "enableBorder": "Enable Border",
-    "enableShadow": "Enable Shadow"
+    "enableShadow": "Enable Shadow",
+    "allowTextSelection": "Allow Text Selection"
   },
   "animationSettings": {
     "title": "Animation Settings",
