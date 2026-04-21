@@ -1,5 +1,6 @@
 {
   "card": {
+    "roleSuperAdmin": "Super Admin",
     "roleAdmin": "Admin",
     "roleUser": "User",
     "roleGuest": "Guest",
