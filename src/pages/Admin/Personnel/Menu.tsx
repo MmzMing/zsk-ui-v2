@@ -204,7 +204,7 @@ interface IconSelectProps {
   onChange: (icon: string) => void
 }
 
-function IconSelect({ value, onChange }: IconSelectProps) {
+const IconSelect = React.memo(function IconSelect({ value, onChange }: IconSelectProps) {
   const [search, setSearch] = useState('')
   const filtered = useMemo(() => {
     if (!search) return AVAILABLE_ICONS
@@ -262,7 +262,7 @@ function IconSelect({ value, onChange }: IconSelectProps) {
       </PopoverContent>
     </Popover>
   )
-}
+})
 
 /**
  * 菜单编辑弹窗组件
@@ -296,7 +296,16 @@ interface MenuEditModalProps {
   onSuccess: () => void
 }
 
-function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, mode, siblingCount, onSuccess }: MenuEditModalProps) {
+const MenuEditModal = React.memo(function MenuEditModal({ 
+  isOpen, 
+  onOpenChange, 
+  menuData, 
+  parentId, 
+  parentMenu, 
+  mode, 
+  siblingCount, 
+  onSuccess 
+}: MenuEditModalProps) {
   // ===== 状态控制逻辑区域 =====
 
   /**
@@ -377,6 +386,8 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
 
   /** 弹窗打开时根据模式初始化表单数据 */
   useEffect(() => {
+    if (!isOpen) return
+    
     if (mode === 'edit' && menuData) {
       setFormData({
         id: menuData.id,
@@ -398,7 +409,7 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
     } else {
       setFormData(getDefaultFormData())
     }
-  }, [mode, menuData, parentId, parentMenu, siblingCount, isOpen, getDefaultFormData])
+  }, [isOpen, mode, menuData, getDefaultFormData])
 
   // ===== 通用工具函数区域 =====
 
@@ -406,8 +417,6 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
   const handleFieldChange = useCallback(<K extends keyof SysMenuCreateInput>(key: K, value: SysMenuCreateInput[K]) => {
     setFormData(prev => ({ ...prev, [key]: value }))
   }, [])
-
-  // ===== 错误处理函数区域 =====
 
   // ===== 数据处理函数区域 =====
 
@@ -636,7 +645,43 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
       </ModalContent>
     </Modal>
   )
+})
+
+// ===== 6. 树节点渲染组件 =====
+
+interface TreeTitleProps {
+  menuType: MenuType
+  status: MenuStatus
+  title: string
+  icon?: string
 }
+
+const TreeTitle = React.memo(function TreeTitle({ menuType, status, title, icon }: TreeTitleProps) {
+  const isDisabled = status === '1'
+  const TypeIcon = menuType === 'M' ? MenuIcon : menuType === 'C' ? Folder : MousePointerClick
+  const CustomIcon = useMemo(() => icon ? getLucideIcon(icon) : null, [icon])
+  const DisplayIcon = CustomIcon || TypeIcon
+
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-2 py-1 cursor-pointer',
+        isDisabled && 'opacity-50'
+      )}
+    >
+      <DisplayIcon size={16} className="flex-shrink-0 text-default-400" />
+      <span className="truncate text-sm">{title}</span>
+      <Chip
+        size="sm"
+        variant="flat"
+        color={getMenuTypeColor(menuType)}
+        className="ml-auto flex-shrink-0 text-tiny"
+      >
+        {getMenuTypeLabel(menuType)}
+      </Chip>
+    </div>
+  )
+})
 
 // ===== 11. 导出区域 =====
 
@@ -695,6 +740,38 @@ export default function PersonnelMenu() {
   }, [selectedMenuId, flatMenuList])
 
   /**
+   * 预计算节点层级映射，避免拖拽时重复递归计算
+   */
+  const nodeLevelMap = useMemo(() => {
+    const map = new Map<string, number>()
+    
+    const calculateLevel = (menu: SysMenu): number => {
+      if (menu.parentId === '0') return 1
+      if (map.has(menu.id)) return map.get(menu.id)!
+      
+      const parent = flatMenuList.find(m => m.id === menu.parentId)
+      const level = parent ? calculateLevel(parent) + 1 : 1
+      map.set(menu.id, level)
+      return level
+    }
+
+    flatMenuList.forEach(menu => {
+      if (!map.has(menu.id)) {
+        calculateLevel(menu)
+      }
+    })
+
+    return map
+  }, [flatMenuList])
+
+  /**
+   * 获取节点层级（使用预计算的映射）
+   */
+  const getNodeLevel = useCallback((menuId: string): number => {
+    return nodeLevelMap.get(menuId) ?? 1
+  }, [nodeLevelMap])
+
+  /**
    * 右侧表格展示的数据
    * - 选中菜单节点 → 展示其子菜单列表
    * - 未选中节点 → 展示一级菜单列表
@@ -702,6 +779,7 @@ export default function PersonnelMenu() {
    */
   const tableData = useMemo(() => {
     const parentId = selectedMenu?.id ?? '0'
+    
     let data = menuList.filter(m => m.parentId === parentId)
 
     const { menuName, status, menuType } = queryParams
@@ -908,19 +986,13 @@ export default function PersonnelMenu() {
       return
     }
 
-    const getNodeLevel = (menu: SysMenu): number => {
-      if (menu.parentId === '0') return 1
-      const parent = flatMenuList.find(m => m.id === menu.parentId)
-      return parent ? getNodeLevel(parent) + 1 : 1
-    }
-
-    const targetLevel = dropToGap ? getNodeLevel(dropMenu) : getNodeLevel(dropMenu) + 1
+    const targetLevel = dropToGap ? getNodeLevel(dropKey) : getNodeLevel(dropKey) + 1
     if (targetLevel > MAX_MENU_DEPTH) {
       toast.warning(`最多支持${MAX_MENU_DEPTH}级菜单`)
       return
     }
 
-    const sourceLevel = getNodeLevel(dragMenu)
+    const sourceLevel = getNodeLevel(dragKey)
     if (!dropToGap && sourceLevel >= MAX_MENU_DEPTH) {
       toast.warning('当前节点已是最深层级，无法继续嵌套')
       return
@@ -941,7 +1013,7 @@ export default function PersonnelMenu() {
       console.error('排序更新失败：', error)
       toast.error('排序更新失败')
     }
-  }, [flatMenuList, fetchMenuList])
+  }, [flatMenuList, fetchMenuList, getNodeLevel])
 
   /**
    * antd Tree 是否允许放置
@@ -968,59 +1040,23 @@ export default function PersonnelMenu() {
     setQueryParams({})
   }, [])
 
+  /**
+   * antd Tree 自定义节点渲染
+   * 展示每个菜单节点：类型图标 + 菜单名称 + 类型标签
+   */
+  const renderTreeTitle = useCallback((nodeData: DataNode) => {
+    const data = nodeData as unknown as MenuNodeData
+    return (
+      <TreeTitle
+        menuType={data.menuType}
+        status={data.status}
+        title={data.title}
+        icon={data.icon}
+      />
+    )
+  }, [])
+
   // ===== 8. UI渲染逻辑区域 =====
-
-  interface TreeTitleProps {
-  menuType: MenuType
-  status: MenuStatus
-  title: string
-  icon?: string
-}
-
-function TreeTitle({ menuType, status, title, icon }: TreeTitleProps) {
-  const isDisabled = status === '1'
-  const TypeIcon = menuType === 'M' ? MenuIcon : menuType === 'C' ? Folder : MousePointerClick
-  const CustomIcon = useMemo(() => icon ? getLucideIcon(icon) : null, [icon])
-  const DisplayIcon = CustomIcon || TypeIcon
-
-  return (
-    <div
-      className={cn(
-        'flex items-center gap-2 py-1 cursor-pointer',
-        isDisabled && 'opacity-50'
-      )}
-    >
-      <DisplayIcon size={16} className="flex-shrink-0 text-default-400" />
-      <span className="truncate text-sm">{title}</span>
-      <Chip
-        size="sm"
-        variant="flat"
-        color={getMenuTypeColor(menuType)}
-        className="ml-auto flex-shrink-0 text-tiny"
-      >
-        {getMenuTypeLabel(menuType)}
-      </Chip>
-    </div>
-  )
-}
-
-const MemoizedTreeTitle = React.memo(TreeTitle)
-
-/**
- * antd Tree 自定义节点渲染
- * 展示每个菜单节点：类型图标 + 菜单名称 + 类型标签
- */
-const renderTreeTitle = useCallback((nodeData: DataNode) => {
-  const data = nodeData as unknown as MenuNodeData
-  return (
-    <MemoizedTreeTitle
-      menuType={data.menuType}
-      status={data.status}
-      title={data.title}
-      icon={data.icon}
-    />
-  )
-}, [])
 
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-4 p-4 md:p-0 h-full">
@@ -1184,10 +1220,10 @@ const renderTreeTitle = useCallback((nodeData: DataNode) => {
               selectionMode="multiple"
               selectedKeys={selectedKeys}
               onSelectionChange={keys => setSelectedKeys(keys as Set<string>)}
-                classNames={{
-                  wrapper: 'p-0',
-                  thead: '[&>tr]:first:shadow-none',
-                }}
+              classNames={{
+                wrapper: 'p-0',
+                thead: '[&>tr]:first:shadow-none',
+              }}
             >
               <TableHeader>
                 <TableColumn key="menuName">菜单名称</TableColumn>
@@ -1200,12 +1236,12 @@ const renderTreeTitle = useCallback((nodeData: DataNode) => {
                 <TableColumn key="actions">操作</TableColumn>
               </TableHeader>
               <TableBody
-                items={tableData.map(item => ({ ...item, key: item.id }))}
+                items={tableData}
                 emptyContent={
-                    selectedMenuId 
-                      ? <StatusState type="empty" scene="admin" title="暂无子菜单" description="该菜单下暂无子菜单" />
-                      : <StatusState type="empty" scene="admin" />
-                  }
+                  selectedMenuId 
+                    ? <StatusState type="empty" scene="admin" title="暂无子菜单" description="该菜单下暂无子菜单" />
+                    : <StatusState type="empty" scene="admin" />
+                }
               >
                 {(item) => (
                   <TableRow key={item.id}>

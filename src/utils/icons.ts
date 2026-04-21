@@ -105,6 +105,10 @@ export function getLucideIcon(iconName: string): LucideIconComponent | null {
   return iconMap[iconName] ?? null
 }
 
+export function getIconsByName(iconName: string): LucideIconComponent | undefined {
+  return iconMap[iconName] ?? undefined
+}
+
 const INVALID_ICON_VALUES = ['#', '', 'null', 'undefined']
 
 export function renderIcon(iconName?: string, size = 16, className?: string) {

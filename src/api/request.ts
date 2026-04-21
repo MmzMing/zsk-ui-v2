@@ -157,11 +157,11 @@ export async function put<T>(
 // 封装 DELETE 请求
 export async function del<T>(
   url: string,
-  params?: Record<string, unknown>,
+  data?: Record<string, unknown>,
   config?: AxiosRequestConfig
 ): Promise<T> {
   const response = await request.delete<ApiResponse<T>>(url, {
-    params,
+    data,
     ...config,
   })
   return response.data.data!

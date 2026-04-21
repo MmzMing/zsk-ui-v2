@@ -3,7 +3,7 @@
  * 顶部展示核心一级菜单，左侧垂直展示当前一级菜单下的子菜单
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button, ScrollShadow } from '@heroui/react'
@@ -14,6 +14,7 @@ import {
   HiOutlineChevronDown
 } from 'react-icons/hi'
 import { useAppStore } from '@/stores/app'
+import { useMenuStore } from '@/stores/menu'
 import { ADMIN_MENUS, getSortedMenus, type MenuItem } from '@/constants/menu'
 import { cn } from '@/utils'
 
@@ -27,6 +28,18 @@ interface MixedMenuProps {
   extra?: React.ReactNode
   /** 子内容 */
   children?: React.ReactNode
+}
+
+/**
+ * 获取菜单显示标签
+ * 如果 key 是数字ID（动态菜单），直接使用 label；否则尝试国际化翻译
+ */
+function getMenuLabel(key: string, label: string, t: TFunction): string {
+  if (/^\d+$/.test(key)) {
+    return label
+  }
+  const translated = t(`menu.${key}`)
+  return translated && translated !== `menu.${key}` ? translated : label
 }
 
 // 子菜单组件
@@ -43,6 +56,7 @@ function SubMenuItem({
 }) {
   const isActive = activeKey === item.key
   const Icon = item.icon
+  const label = getMenuLabel(item.key, item.label, t)
 
   return (
     <Button
@@ -55,7 +69,7 @@ function SubMenuItem({
       onPress={() => item.path && onSelect(item)}
     >
       {Icon && <Icon className="text-lg flex-shrink-0" />}
-      <span className="text-sm truncate">{t(`menu.${item.key}`, item.label)}</span>
+      <span className="text-sm truncate">{label}</span>
     </Button>
   )
 }
@@ -65,12 +79,23 @@ export default function MixedMenu({ className, logo, extra, children }: MixedMen
   const navigate = useNavigate()
   const location = useLocation()
   const { adminSettings } = useAppStore()
+  const { dynamicMenus, fetchMenus } = useMenuStore()
   const { menuWidth } = adminSettings
+
+  // 组件挂载时获取菜单数据
+  useEffect(() => {
+    fetchMenus()
+  }, [fetchMenus])
+
+  // 获取当前可用的菜单数据（动态菜单 > 默认菜单）
+  const availableMenus = useMemo(() => {
+    return dynamicMenus.length > 0 ? dynamicMenus : ADMIN_MENUS
+  }, [dynamicMenus])
 
   // 当前选中的一级菜单
   const [activeMenuKey, setActiveMenuKey] = useState<string>(() => {
     const path = location.pathname
-    for (const menu of ADMIN_MENUS) {
+    for (const menu of availableMenus) {
       if (menu.children) {
         for (const child of menu.children) {
           if (child.path === path) {
@@ -79,11 +104,11 @@ export default function MixedMenu({ className, logo, extra, children }: MixedMen
         }
       }
     }
-    return ADMIN_MENUS[0]?.key || ''
+    return availableMenus[0]?.key || ''
   })
 
   // 排序后的菜单
-  const sortedMenus = useMemo(() => getSortedMenus(ADMIN_MENUS), [])
+  const sortedMenus = useMemo(() => getSortedMenus(availableMenus), [availableMenus])
 
   // 获取当前一级菜单的子菜单
   const currentMenu = useMemo(() => {
@@ -93,7 +118,7 @@ export default function MixedMenu({ className, logo, extra, children }: MixedMen
   // 获取当前激活的子菜单项
   const activeSubKey = useMemo(() => {
     const path = location.pathname
-    for (const menu of ADMIN_MENUS) {
+    for (const menu of availableMenus) {
       if (menu.children) {
         for (const child of menu.children) {
           if (child.path === path) return child.key
@@ -101,7 +126,7 @@ export default function MixedMenu({ className, logo, extra, children }: MixedMen
       }
     }
     return ''
-  }, [location.pathname])
+  }, [location.pathname, availableMenus])
 
   // 处理菜单选择
   const handleSelect = useCallback((item: MenuItem) => {
@@ -130,7 +155,7 @@ export default function MixedMenu({ className, logo, extra, children }: MixedMen
       {sortedMenus.map((menu) => {
         const isActive = activeMenuKey === menu.key
         const Icon = menu.icon
-        const label = t(`menu.${menu.key}`, menu.label)
+        const label = getMenuLabel(menu.key, menu.label, t)
         
         return (
           <Button

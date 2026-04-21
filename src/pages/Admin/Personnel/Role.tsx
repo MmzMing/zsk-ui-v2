@@ -936,6 +936,19 @@ export default function PersonnelRole() {
                   <Plus size={16} />
                 </Button>
               </Tooltip>
+              {selectedKeys.size > 0 && (
+                <Tooltip content={`批量删除(${selectedKeys.size})`} size="sm">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    color="danger"
+                    onPress={handleBatchDelete}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </Tooltip>
+              )}
               <Tooltip content="刷新" size="sm">
                 <Button
                   isIconOnly
@@ -981,17 +994,6 @@ export default function PersonnelRole() {
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>
-              {selectedKeys.size > 0 && (
-                <Button
-                  size="sm"
-                  color="danger"
-                  variant="flat"
-                  startContent={<Trash2 size={14} />}
-                  onPress={handleBatchDelete}
-                >
-                  批量删除({selectedKeys.size})
-                </Button>
-              )}
             </div>
           </div>
 

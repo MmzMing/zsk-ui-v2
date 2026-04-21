@@ -8,6 +8,7 @@ import { create } from 'zustand'
 import type { UserInfo, TokenInfo, UserRole } from '@/types'
 import type { UserStats } from '@/api/profile'
 import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS } from '@/utils/storage'
+import { useMenuStore } from './menu'
 
 // ===== 2. 类型定义区域 =====
 
@@ -127,10 +128,13 @@ export const useUserStore = create<UserState>()((set, get) => ({
   /**
    * 退出登录
    * 清除 localStorage、cookie 和状态管理中的用户信息
+   * 同时清空菜单缓存
    */
   logout: () => {
     removeStorage(STORAGE_KEYS.USER_INFO)
     removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
+    // 清空菜单缓存
+    useMenuStore.getState().clearMenuCache()
     const newState = {
       userInfo: null,
       tokenInfo: null,

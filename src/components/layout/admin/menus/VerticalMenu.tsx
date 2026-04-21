@@ -15,70 +15,18 @@ import {
   ChevronRight,
   Menu,
   ChevronDown,
-  Circle,
-  Home,
-  Users,
-  FileText,
-  Settings,
-  BarChart3,
-  FolderOpen,
-  Tag,
-  Bell,
-  ShieldCheck,
-  Upload,
-  CheckCircle,
-  Database,
-  ListChecks,
-  Key,
-  Activity,
-  MessageSquare,
-  LayoutTemplate,
-  Video,
-  Edit3,
-  Bot,
-  Monitor,
-  List,
-  RefreshCw,
-  MessageCircle,
-  Cog
+  Circle
 } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
+import { useMenuStore } from '@/stores/menu'
 import {
   ADMIN_MENUS,
   getSortedMenus,
   type MenuItem
 } from '@/constants/menu'
 import { cn } from '@/utils'
-
-// 图标映射表，支持字符串形式的图标名称动态加载
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Home,
-  Users,
-  FileText,
-  Settings,
-  BarChart3,
-  FolderOpen,
-  Tag,
-  Bell,
-  ShieldCheck,
-  Upload,
-  CheckCircle,
-  Database,
-  ListChecks,
-  Key,
-  Activity,
-  MessageSquare,
-  LayoutTemplate,
-  Video,
-  Edit3,
-  Bot,
-  Monitor,
-  List,
-  RefreshCw,
-  MessageCircle,
-  Cog
-}
+import { getIconsByName } from '@/utils/icons'
 
 /**
  * 根据图标名称或组件获取图标组件
@@ -87,9 +35,25 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
  */
 function getIconComponent(icon: MenuItem['icon']): React.ComponentType<{ className?: string }> | undefined {
   if (typeof icon === 'string') {
-    return iconMap[icon] || Circle
+    return getIconsByName(icon) || Circle
   }
   return icon
+}
+
+/**
+ * 获取菜单显示标签
+ * 如果 key 是数字ID（动态菜单），直接使用 label；否则尝试国际化翻译
+ * @param key - 菜单key
+ * @param label - 默认标签
+ * @param t - 翻译函数
+ * @returns 显示标签
+ */
+function getMenuLabel(key: string, label: string, t: (key: string) => string): string {
+  if (/^\d+$/.test(key)) {
+    return label
+  }
+  const translated = t(`menu.${key}`)
+  return translated && translated !== `menu.${key}` ? translated : label
 }
 
 /**
@@ -112,7 +76,7 @@ function SubMenuItem({
 }) {
   const isActive = activeKey === item.key
   const Icon = getIconComponent(item.icon)
-  const label = t(`menu.${item.key}`) || item.label
+  const label = getMenuLabel(item.key, item.label, t)
 
   return (
     <Button
@@ -161,7 +125,7 @@ function MenuItemComponent({
   const hasChildren = item.children && item.children.length > 0
   const isExpanded = expandedKeys.has(item.key)
   const Icon = getIconComponent(item.icon)
-  const label = t(`menu.${item.key}`) || item.label
+  const label = getMenuLabel(item.key, item.label, t)
 
   // 折叠状态下只显示图标和tooltip
   if (collapsed) {
@@ -290,7 +254,13 @@ export default function VerticalMenu({ className, logo, menus }: VerticalMenuPro
     adminSettings
   } = useAppStore()
   const { userInfo } = useUserStore()
+  const { dynamicMenus, fetchMenus } = useMenuStore()
   const { menuWidth, sidebarAccordion } = adminSettings
+
+  // 组件挂载时获取菜单数据
+  useEffect(() => {
+    fetchMenus()
+  }, [fetchMenus])
 
   // 从 userInfo 中获取权限列表
   const permissions = useMemo(() => {
@@ -301,11 +271,12 @@ export default function VerticalMenu({ className, logo, menus }: VerticalMenuPro
   const isAdmin = userInfo?.roles.some(role => role === 'super_admin' || role === 'admin')
 
   // 根据用户权限过滤菜单（管理员角色显示所有菜单）
+  // 优先级：传入的 menus > 动态菜单 > 默认菜单
   const currentMenus = useMemo(() => {
-    const sourceMenus = menus || ADMIN_MENUS
+    const sourceMenus = menus || (dynamicMenus.length > 0 ? dynamicMenus : ADMIN_MENUS)
     if (isAdmin) return sourceMenus
     return filterMenusByPermission(sourceMenus, permissions)
-  }, [menus, permissions, isAdmin])
+  }, [menus, dynamicMenus, permissions, isAdmin])
 
   // 获取当前激活的菜单项key
   const activeKey = useMemo(() => {

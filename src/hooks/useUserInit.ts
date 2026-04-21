@@ -13,6 +13,7 @@
 // ===== 1. 依赖导入区域 =====
 import { useEffect, useState } from 'react'
 import { useUserStore } from '@/stores/user'
+import { useMenuStore } from '@/stores/menu'
 import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
 import { getStorageValue, setStorage, STORAGE_KEYS } from '@/utils/storage'
@@ -75,6 +76,7 @@ export function useUserInit(): UseUserInitReturn {
   const setUserStats = useUserStore(state => state.setUserStats)
   const setPermissions = useUserStore(state => state.setPermissions)
   const setLoading = useUserStore(state => state.setLoading)
+  const refreshMenus = useMenuStore(state => state.refreshMenus)
   const [isInit, setIsInit] = useState(false)
 
   useEffect(() => {
@@ -106,6 +108,9 @@ export function useUserInit(): UseUserInitReturn {
 
           // ===== 用户统计数据初始化 =====
           await initUserStats(now, setUserStats)
+
+          // ===== 菜单数据初始化 =====
+          await refreshMenus()
         }
       } finally {
         // 无论成功与否，都标记初始化完成
@@ -116,7 +121,7 @@ export function useUserInit(): UseUserInitReturn {
 
     // 执行初始化
     initUser()
-  }, [setUserInfo, setUserStats, setLoading])
+  }, [setUserInfo, setUserStats, setPermissions, setLoading, refreshMenus])
 
   return { isInit }
 }

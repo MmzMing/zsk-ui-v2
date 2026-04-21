@@ -71,3 +71,11 @@ export async function batchUpdateMenu(data: SysMenuBatchUpdate[]): Promise<void>
 export async function deleteMenu(ids: string): Promise<void> {
   return del(`/system/menu/${ids}`)
 }
+
+/**
+ * 获取菜单树结构
+ * @returns 菜单树数据
+ */
+export async function getMenuTree(): Promise<SysMenu[]> {
+  return get('/system/menu/tree')
+}

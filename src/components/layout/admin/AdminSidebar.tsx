@@ -14,9 +14,22 @@ import {
 } from 'react-icons/hi'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
+import { useMenuStore } from '@/stores/menu'
 import { ADMIN_MENUS, getSortedMenus, type MenuItem } from '@/constants/menu'
 import { cn } from '@/utils'
 import { SiteLogo } from '@/components/ui/SiteLogo'
+
+/**
+ * 获取菜单显示标签
+ * 如果 key 是数字ID（动态菜单），直接使用 label；否则尝试国际化翻译
+ */
+function getMenuLabel(key: string, label: string, t: TFunction): string {
+  if (/^\d+$/.test(key)) {
+    return label
+  }
+  const translated = t(`menu.${key}`)
+  return translated && translated !== `menu.${key}` ? translated : label
+}
 
 // 子菜单项组件
 function SubMenuItem({ 
@@ -32,6 +45,7 @@ function SubMenuItem({
 }) {
   const isActive = activeKey === item.key
   const Icon = item.icon
+  const label = getMenuLabel(item.key, item.label, t)
 
   return (
     <Button
@@ -44,7 +58,7 @@ function SubMenuItem({
       onPress={() => item.path && onSelect(item)}
     >
       {Icon && <Icon className="text-lg flex-shrink-0" />}
-      <span className="text-sm truncate">{t(`menu.${item.key}`, item.label)}</span>
+      <span className="text-sm truncate">{label}</span>
     </Button>
   )
 }
@@ -71,7 +85,7 @@ function MenuItemComponent({
   const hasChildren = item.children && item.children.length > 0
   const isExpanded = expandedKeys.has(item.key)
   const Icon = item.icon
-  const label = t(`menu.${item.key}`, item.label)
+  const label = getMenuLabel(item.key, item.label, t)
 
   // 折叠状态下只显示图标
   if (collapsed) {
@@ -185,6 +199,12 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     adminSettings
   } = useAppStore()
   const { userInfo } = useUserStore()
+  const { dynamicMenus, fetchMenus } = useMenuStore()
+
+  // 组件挂载时获取菜单数据
+  useEffect(() => {
+    fetchMenus()
+  }, [fetchMenus])
 
   // 从 userInfo 中获取权限列表
   const permissions = useMemo(() => {
@@ -201,10 +221,15 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
   const isAdmin = userInfo?.roles.some(role => role === 'super_admin' || role === 'admin')
 
   // 根据用户权限过滤菜单（管理员角色显示所有菜单）
+  // 优先级：动态菜单 > 默认菜单
+  const sourceMenus = useMemo(() => {
+    return dynamicMenus.length > 0 ? dynamicMenus : ADMIN_MENUS
+  }, [dynamicMenus])
+
   const currentMenus = useMemo(() => {
-    if (isAdmin) return ADMIN_MENUS
-    return filterMenusByPermission(ADMIN_MENUS, permissions)
-  }, [permissions, isAdmin])
+    if (isAdmin) return sourceMenus
+    return filterMenusByPermission(sourceMenus, permissions)
+  }, [sourceMenus, permissions, isAdmin])
 
   // 获取当前激活的菜单项
   const activeKey = useMemo(() => {
