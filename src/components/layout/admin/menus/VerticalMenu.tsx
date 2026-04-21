@@ -289,14 +289,23 @@ export default function VerticalMenu({ className, logo, menus }: VerticalMenuPro
     toggleSidebar,
     adminSettings
   } = useAppStore()
-  const { permissions = [] } = useUserStore()
+  const { userInfo } = useUserStore()
   const { menuWidth, sidebarAccordion } = adminSettings
 
-  // 根据用户权限过滤菜单
+  // 从 userInfo 中获取权限列表
+  const permissions = useMemo(() => {
+    return userInfo?.permissions || []
+  }, [userInfo])
+
+  // 判断是否为管理员角色（super_admin 或 admin）
+  const isAdmin = userInfo?.roles.some(role => role === 'super_admin' || role === 'admin')
+
+  // 根据用户权限过滤菜单（管理员角色显示所有菜单）
   const currentMenus = useMemo(() => {
     const sourceMenus = menus || ADMIN_MENUS
+    if (isAdmin) return sourceMenus
     return filterMenusByPermission(sourceMenus, permissions)
-  }, [menus, permissions])
+  }, [menus, permissions, isAdmin])
 
   // 获取当前激活的菜单项key
   const activeKey = useMemo(() => {
@@ -472,23 +481,24 @@ export default function VerticalMenu({ className, logo, menus }: VerticalMenuPro
 function filterMenusByPermission(menus: MenuItem[], permissions: string[]): MenuItem[] {
   return menus
     .map(menu => {
-      // 检查当前菜单项的权限
-      const hasPermission = !menu.permission || permissions.includes(menu.permission)
-      if (!hasPermission) return null
-
-      // 递归过滤子菜单
+      // 先递归过滤子菜单
       let filteredChildren: MenuItem[] | undefined
       if (menu.children && menu.children.length > 0) {
         filteredChildren = filterMenusByPermission(menu.children, permissions).filter(Boolean) as MenuItem[]
-        // 如果子菜单全部被过滤，则不显示父菜单
-        if (filteredChildren.length === 0) {
-          filteredChildren = undefined
-        }
+      }
+
+      // 检查权限：父菜单有权限，或者有子菜单有权限
+      const hasParentPermission = !menu.permission || permissions.includes(menu.permission)
+      const hasChildPermission = filteredChildren && filteredChildren.length > 0
+
+      // 如果父菜单没有权限且没有子菜单权限，过滤掉
+      if (!hasParentPermission && !hasChildPermission) {
+        return null
       }
 
       return {
         ...menu,
-        children: filteredChildren
+        children: filteredChildren && filteredChildren.length > 0 ? filteredChildren : undefined
       }
     })
     .filter(Boolean) as MenuItem[]

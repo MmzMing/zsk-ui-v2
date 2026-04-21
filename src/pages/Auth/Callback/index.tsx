@@ -57,7 +57,7 @@ export default function CallbackPage() {
           name: res.username,
           avatar: res.avatar,
           email: '', // 第三方登录可能没有邮箱，视后端返回而定
-          role: 'user',
+          roles: ['user'],
           status: 'active',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()

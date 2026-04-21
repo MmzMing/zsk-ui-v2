@@ -3,7 +3,7 @@
  */
 
 // 用户角色类型
-export type UserRole = 'admin' | 'user' | 'guest'
+export type UserRole = 'super_admin' | 'admin' | 'user' | 'guest'
 
 // 用户基础信息
 export interface UserInfo {
@@ -15,8 +15,8 @@ export interface UserInfo {
   email: string
   /** 头像地址 */
   avatar?: string
-  /** 用户角色 */
-  role: UserRole
+  /** 用户角色列表 */
+  roles: string[]
   /** 权限列表 */
   permissions?: string[]
   /** 用户状态 */

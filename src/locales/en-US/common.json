@@ -52,6 +52,13 @@
     "backHome": "Back Home",
     "lost": "404 Page Lost"
   },
+  "noPermission": {
+    "title": "Access Denied",
+    "desc": "You do not have permission to access this page, please contact the administrator",
+    "back": "Go Back",
+    "backHome": "Back Home",
+    "forbidden": "Forbidden"
+  },
   "errors": {
     "noMatchingMenu": "No matching menu found",
     "networkError": "Network error, please try again later",

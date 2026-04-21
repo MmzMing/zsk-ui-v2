@@ -105,8 +105,10 @@ export function getLucideIcon(iconName: string): LucideIconComponent | null {
   return iconMap[iconName] ?? null
 }
 
+const INVALID_ICON_VALUES = ['#', '', 'null', 'undefined']
+
 export function renderIcon(iconName?: string, size = 16, className?: string) {
-  if (!iconName) return null
+  if (!iconName || INVALID_ICON_VALUES.includes(iconName)) return null
   const IconComponent = getLucideIcon(iconName)
   if (!IconComponent) {
     console.warn(`Icon "${iconName}" not found in iconMap`)

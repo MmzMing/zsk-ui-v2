@@ -103,7 +103,7 @@ export function ProfileCard({
           />
           <div>
             <h3 className="text-lg font-bold text-[var(--primary-color)]">{userInfo?.name}</h3>
-            <p className="text-sm text-gray-600">{userInfo?.role === 'admin' ? t('card.roleAdmin') : userInfo?.role === 'user' ? t('card.roleUser') : t('card.roleGuest')}</p>
+            <p className="text-sm text-gray-600">{userInfo?.roles?.includes('admin') ? t('card.roleAdmin') : userInfo?.roles?.includes('user') ? t('card.roleUser') : t('card.roleGuest')}</p>
           </div>
         </CardItem>
 

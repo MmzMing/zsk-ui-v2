@@ -196,6 +196,7 @@ export default function LoginPage() {
               variant="flat"
               labelPlacement="outside"
               type="email"
+              name="email"
               description={t('login.emailPlaceholder')}
               value={formData.email}
               onValueChange={(v) => handleInputChange('email', v)}

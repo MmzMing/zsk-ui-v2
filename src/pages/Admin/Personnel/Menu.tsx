@@ -15,7 +15,7 @@
 // ===== 1. 依赖导入区域 =====
 
 // React 核心
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 
 // HeroUI 组件
 import {
@@ -101,6 +101,7 @@ import {
 // ===== 3. 常量定义区域 =====
 
 // 图标列表从 @/utils/icons 导入
+const MAX_MENU_DEPTH = 2
 
 // ===== 4. 通用工具函数区域 =====
 
@@ -206,11 +207,13 @@ interface IconSelectProps {
 
 function IconSelect({ value, onChange }: IconSelectProps) {
   const [search, setSearch] = useState('')
-  const filtered = AVAILABLE_ICONS.filter(name =>
-    name.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = useMemo(() => {
+    if (!search) return AVAILABLE_ICONS
+    const lowerSearch = search.toLowerCase()
+    return AVAILABLE_ICONS.filter(name => name.toLowerCase().includes(lowerSearch))
+  }, [search])
 
-  const SelectedIcon = value ? getLucideIcon(value) : null
+  const SelectedIcon = useMemo(() => value ? getLucideIcon(value) : null, [value])
 
   return (
     <Popover placement="bottom-start">
@@ -509,6 +512,7 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
                 const value = Array.from(keys)[0] as MenuType
                 handleFieldChange('menuType', value)
               }}
+              aria-label="菜单类型"
             >
               {MENU_TYPE_OPTIONS.map(option => (
                 <SelectItem key={option.value} description={option.description}>
@@ -549,6 +553,7 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
                 const value = Array.from(keys)[0] as MenuStatus
                 handleFieldChange('status', value)
               }}
+              aria-label="菜单状态"
             >
               {MENU_STATUS_OPTIONS.map(option => (
                 <SelectItem key={option.value}>
@@ -564,6 +569,7 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
                 const value = Array.from(keys)[0] as '0' | '1'
                 handleFieldChange('visible', value)
               }}
+              aria-label="是否显示"
             >
               <SelectItem key="0">显示</SelectItem>
               <SelectItem key="1">隐藏</SelectItem>
@@ -576,6 +582,7 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
                 const value = Number(Array.from(keys)[0])
                 handleFieldChange('isFrame', value)
               }}
+              aria-label="是否外链"
             >
               <SelectItem key="0">是</SelectItem>
               <SelectItem key="1">否</SelectItem>
@@ -588,6 +595,7 @@ function MenuEditModal({ isOpen, onOpenChange, menuData, parentId, parentMenu, m
                 const value = Number(Array.from(keys)[0])
                 handleFieldChange('isCache', value)
               }}
+              aria-label="是否缓存"
             >
               <SelectItem key="0">缓存</SelectItem>
               <SelectItem key="1">不缓存</SelectItem>
@@ -678,12 +686,14 @@ export default function PersonnelMenu() {
   /** 将后端菜单数据转换为树节点格式，按 orderNum 排序 */
   const treeData = useMemo(() => convertToTreeData(menuList), [menuList])
 
+  /** 展平的菜单列表，用于快速查找 */
+  const flatMenuList = useMemo(() => flattenMenus(menuList), [menuList])
+
   /** 当前选中的菜单完整数据 */
   const selectedMenu = useMemo(() => {
     if (!selectedMenuId) return null
-    const flatList = flattenMenus(menuList)
-    return flatList.find(m => m.id === selectedMenuId) ?? null
-  }, [selectedMenuId, menuList])
+    return flatMenuList.find(m => m.id === selectedMenuId) ?? null
+  }, [selectedMenuId, flatMenuList])
 
   /**
    * 右侧表格展示的数据
@@ -692,30 +702,25 @@ export default function PersonnelMenu() {
    * 结果按 orderNum 升序排列
    */
   const tableData = useMemo(() => {
-    let data: SysMenu[] = []
+    const parentId = selectedMenu?.id ?? '0'
+    let data = menuList.filter(m => m.parentId === parentId)
 
-    if (selectedMenu) {
-      data = menuList.filter(m => m.parentId === selectedMenu.id)
-    } else if (!selectedMenuId) {
-      data = menuList.filter(m => m.parentId === '0')
+    const { menuName, status, menuType } = queryParams
+    if (menuName) {
+      const lowerName = menuName.toLowerCase()
+      data = data.filter(m => m.menuName.toLowerCase().includes(lowerName))
     }
-
-    if (queryParams.menuName) {
-      data = data.filter(m =>
-        m.menuName.toLowerCase().includes(queryParams.menuName!.toLowerCase())
-      )
+    if (status) {
+      data = data.filter(m => m.status === status)
     }
-    if (queryParams.status) {
-      data = data.filter(m => m.status === queryParams.status)
-    }
-    if (queryParams.menuType) {
-      data = data.filter(m => m.menuType === queryParams.menuType)
+    if (menuType) {
+      data = data.filter(m => m.menuType === menuType)
     }
 
     data.sort((a, b) => a.orderNum - b.orderNum)
 
     return data
-  }, [selectedMenu, selectedMenuId, menuList, queryParams])
+  }, [selectedMenu, menuList, queryParams])
 
   /**
    * 新增菜单时同级菜单的数量
@@ -842,12 +847,11 @@ export default function PersonnelMenu() {
     if (pid === '0') {
       setCreateParentMenu(null)
     } else {
-      const flatList = flattenMenus(menuList)
-      const parent = flatList.find(m => m.id === pid) ?? null
+      const parent = flatMenuList.find(m => m.id === pid) ?? null
       setCreateParentMenu(parent)
     }
     editModal.onOpen()
-  }, [editModal, menuList])
+  }, [editModal, flatMenuList])
 
   /**
    * 打开编辑菜单弹窗
@@ -874,34 +878,6 @@ export default function PersonnelMenu() {
   }, [selectedKeys, handleDeleteMenu])
 
   /**
-   * 在树形数据中按 key 查找节点及其父节点信息
-   * 用于拖拽时判断目标节点的层级和类型
-   */
-  const findNodeInTree = useCallback((nodes: MenuNodeData[], targetKey: React.Key): {
-    node: MenuNodeData | null
-    parent: MenuNodeData | null
-    depth: number
-  } => {
-    const find = (items: MenuNodeData[], parent: MenuNodeData | null, depth: number): {
-      node: MenuNodeData | null
-      parent: MenuNodeData | null
-      depth: number
-    } => {
-      for (const item of items) {
-        if (item.key === targetKey) {
-          return { node: item, parent, depth }
-        }
-        if (item.children) {
-          const result = find(item.children, item, depth + 1)
-          if (result.node) return result
-        }
-      }
-      return { node: null, parent: null, depth: 0 }
-    }
-    return find(nodes, null, 0)
-  }, [])
-
-  /**
    * antd Tree 拖拽放置事件
    * 支持拖拽到二级菜单（目录/菜单类型），按钮类型节点禁止作为放置目标
    * 先乐观更新本地状态，再调用批量更新接口同步到后端
@@ -918,21 +894,23 @@ export default function PersonnelMenu() {
     const dropPosition = info.dropPosition
     const dropToGap = info.dropToGap
 
-    const dropInfo = findNodeInTree(treeData, dropKey)
+    const dropNode = flatMenuList.find(m => m.id === String(dropKey))
+    if (!dropNode) return
 
-    if (!dropInfo.node) return
-
-    if (!dropToGap && dropInfo.node.menuType === 'F') {
+    if (!dropToGap && dropNode.menuType === 'F') {
       toast.warning('按钮类型节点不能作为父节点')
       return
     }
 
-    if (!dropToGap && dropInfo.depth >= 2) {
+    const dropNodeParent = flatMenuList.find(m => m.id === dropNode.parentId)
+    const dropDepth = dropNodeParent ? (flatMenuList.find(m => m.id === dropNodeParent.parentId) ? 2 : 1) : 0
+
+    if (!dropToGap && dropDepth >= MAX_MENU_DEPTH) {
       toast.warning('最多支持二级菜单层级')
       return
     }
 
-    if (dropToGap && dropInfo.depth > 2) {
+    if (dropToGap && dropDepth > MAX_MENU_DEPTH) {
       toast.warning('最多支持二级菜单层级')
       return
     }
@@ -943,11 +921,12 @@ export default function PersonnelMenu() {
       setMenuList(prev => {
         const updated = JSON.parse(JSON.stringify(prev)) as SysMenu[]
 
-        const dragNodes: SysMenu[] = []
+        const dragNode = updated.find(m => m.id === String(dragKey))
+        if (!dragNode) return prev
+
         const removeNode = (list: SysMenu[], id: string): boolean => {
           const idx = list.findIndex(m => m.id === id)
           if (idx !== -1) {
-            dragNodes.push(list[idx])
             list.splice(idx, 1)
             return true
           }
@@ -956,17 +935,11 @@ export default function PersonnelMenu() {
           }
           return false
         }
-
         removeNode(updated, String(dragKey))
 
-        const dragNode = dragNodes[0]
-        if (!dragNode) return prev
-
         if (dropToGap) {
-          const dropParentId = dropInfo.parent?.key
-          const newParentId = dropParentId ? String(dropParentId) : '0'
-
-          const insertInto = (list: SysMenu[], targetParentId: string, insertIndex: number): boolean => {
+          const newParentId = dropNodeParent?.id ?? '0'
+          const insertInto = (list: SysMenu[], targetParentId: string): boolean => {
             if (targetParentId === '0') {
               const targetIdx = list.findIndex(m => m.id === String(dropKey))
               if (targetIdx !== -1) {
@@ -985,12 +958,11 @@ export default function PersonnelMenu() {
                   return true
                 }
               }
-              if (item.children && insertInto(item.children, targetParentId, insertIndex)) return true
+              if (item.children && insertInto(item.children, targetParentId)) return true
             }
             return false
           }
-
-          insertInto(updated, newParentId, dropPosition)
+          insertInto(updated, newParentId)
           dragNode.parentId = newParentId
         } else {
           const insertAsChild = (list: SysMenu[]): boolean => {
@@ -1005,16 +977,13 @@ export default function PersonnelMenu() {
             }
             return false
           }
-
           insertAsChild(updated)
         }
 
         return updated
       })
 
-      const newParentId = dropToGap
-        ? (dropInfo.parent?.key ? String(dropInfo.parent.key) : '0')
-        : String(dropKey)
+      const newParentId = dropToGap ? (dropNodeParent?.id ?? '0') : String(dropKey)
 
       const batchData: SysMenuBatchUpdate[] = [{
         id: String(dragKey),
@@ -1029,7 +998,7 @@ export default function PersonnelMenu() {
       toast.error('排序更新失败，已恢复')
       setMenuList(snapshot)
     }
-  }, [menuList, treeData, findNodeInTree])
+  }, [menuList, flatMenuList])
 
   /**
    * antd Tree 是否允许放置
@@ -1058,40 +1027,57 @@ export default function PersonnelMenu() {
 
   // ===== 8. UI渲染逻辑区域 =====
 
-  /**
-   * antd Tree 自定义节点渲染
-   * 展示每个菜单节点：类型图标 + 菜单名称 + 类型标签
-   */
-  const renderTreeTitle = useCallback((nodeData: DataNode) => {
-    const data = nodeData as unknown as MenuNodeData
-    const menuType = data.menuType
-    const status = data.status
-    const isDisabled = status === '1'
+  interface TreeTitleProps {
+  menuType: MenuType
+  status: MenuStatus
+  title: string
+  icon?: string
+}
 
-    const TypeIcon = menuType === 'M' ? MenuIcon : menuType === 'C' ? Folder : MousePointerClick
-    const CustomIcon = data.icon ? getLucideIcon(data.icon) : null
-    const DisplayIcon = CustomIcon || TypeIcon
+function TreeTitle({ menuType, status, title, icon }: TreeTitleProps) {
+  const isDisabled = status === '1'
+  const TypeIcon = menuType === 'M' ? MenuIcon : menuType === 'C' ? Folder : MousePointerClick
+  const CustomIcon = useMemo(() => icon ? getLucideIcon(icon) : null, [icon])
+  const DisplayIcon = CustomIcon || TypeIcon
 
-    return (
-      <div
-        className={cn(
-          'flex items-center gap-2 py-1 cursor-pointer',
-          isDisabled && 'opacity-50'
-        )}
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-2 py-1 cursor-pointer',
+        isDisabled && 'opacity-50'
+      )}
+    >
+      <DisplayIcon size={16} className="flex-shrink-0 text-default-400" />
+      <span className="truncate text-sm">{title}</span>
+      <Chip
+        size="sm"
+        variant="flat"
+        color={getMenuTypeColor(menuType)}
+        className="ml-auto flex-shrink-0 text-tiny"
       >
-        <DisplayIcon size={16} className="flex-shrink-0 text-default-400" />
-        <span className="truncate text-sm">{data.title}</span>
-        <Chip
-          size="sm"
-          variant="flat"
-          color={getMenuTypeColor(menuType)}
-          className="ml-auto flex-shrink-0 text-tiny"
-        >
-          {getMenuTypeLabel(menuType)}
-        </Chip>
-      </div>
-    )
-  }, [])
+        {getMenuTypeLabel(menuType)}
+      </Chip>
+    </div>
+  )
+}
+
+const MemoizedTreeTitle = React.memo(TreeTitle)
+
+/**
+ * antd Tree 自定义节点渲染
+ * 展示每个菜单节点：类型图标 + 菜单名称 + 类型标签
+ */
+const renderTreeTitle = useCallback((nodeData: DataNode) => {
+  const data = nodeData as unknown as MenuNodeData
+  return (
+    <MemoizedTreeTitle
+      menuType={data.menuType}
+      status={data.status}
+      title={data.title}
+      icon={data.icon}
+    />
+  )
+}, [])
 
   return (
     <div className="flex flex-col md:flex-row gap-4 md:gap-4 p-4 md:p-0 h-full">

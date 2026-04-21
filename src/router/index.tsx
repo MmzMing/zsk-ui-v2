@@ -21,6 +21,7 @@ const ProfilePage = lazy(() => import('@/pages/Profile'))
 const LoginPage = lazy(() => import('@/pages/Auth/Login'))
 const CallbackPage = lazy(() => import('@/pages/Auth/Callback'))
 const NotFoundPage = lazy(() => import('@/pages/NotFound'))
+const NoPermissionPage = lazy(() => import('@/pages/NoPermission'))
 
 // 后台管理页面
 const AdminDashboard = lazy(() => import('@/pages/Admin/Dashboard'))
@@ -285,6 +286,10 @@ export const routes: RouteObject[] = [
       {
         path: '/404',
         element: withSuspense(NotFoundPage),
+      },
+      {
+        path: '/403',
+        element: withSuspense(NoPermissionPage),
       },
       {
         path: '*',

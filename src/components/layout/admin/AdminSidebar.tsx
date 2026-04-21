@@ -13,6 +13,7 @@ import {
   HiOutlineChevronDown
 } from 'react-icons/hi'
 import { useAppStore } from '@/stores/app'
+import { useUserStore } from '@/stores/user'
 import { ADMIN_MENUS, getSortedMenus, type MenuItem } from '@/constants/menu'
 import { cn } from '@/utils'
 import { SiteLogo } from '@/components/ui/SiteLogo'
@@ -183,6 +184,12 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     sidebarCollapsed: collapsed,
     adminSettings
   } = useAppStore()
+  const { userInfo } = useUserStore()
+
+  // 从 userInfo 中获取权限列表
+  const permissions = useMemo(() => {
+    return userInfo?.permissions || []
+  }, [userInfo])
   
   const { menuWidth, sidebarAccordion } = adminSettings
   
@@ -190,11 +197,19 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
   
   const shouldExpand = !collapsed || isHovering
 
+  // 判断是否为管理员角色（super_admin 或 admin）
+  const isAdmin = userInfo?.roles.some(role => role === 'super_admin' || role === 'admin')
+
+  // 根据用户权限过滤菜单（管理员角色显示所有菜单）
+  const currentMenus = useMemo(() => {
+    if (isAdmin) return ADMIN_MENUS
+    return filterMenusByPermission(ADMIN_MENUS, permissions)
+  }, [permissions, isAdmin])
+
   // 获取当前激活的菜单项
   const activeKey = useMemo(() => {
     const path = location.pathname
-    // 遍历菜单查找匹配项
-    for (const menu of ADMIN_MENUS) {
+    for (const menu of currentMenus) {
       if (menu.path === path) return menu.key
       if (menu.children) {
         for (const child of menu.children) {
@@ -203,25 +218,27 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
       }
     }
     return ''
-  }, [location.pathname])
+  }, [location.pathname, currentMenus])
 
   // 展开的菜单项
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => {
-    // 初始化时，展开包含当前激活项的父菜单
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set<string>())
+
+  // 路由变化时自动展开对应父菜单
+  useEffect(() => {
     const path = location.pathname
-    const expanded = new Set<string>()
-    for (const menu of ADMIN_MENUS) {
+    const newExpanded = new Set<string>()
+    for (const menu of currentMenus) {
       if (menu.children) {
         for (const child of menu.children) {
           if (child.path === path) {
-            expanded.add(menu.key)
+            newExpanded.add(menu.key)
             break
           }
         }
       }
     }
-    return expanded
-  })
+    setExpandedKeys(newExpanded)
+  }, [location.pathname, currentMenus])
 
   // 切换展开状态
   const toggleExpand = useCallback((key: string) => {
@@ -230,7 +247,6 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
       if (next.has(key)) {
         next.delete(key)
       } else {
-        // 如果开启了手风琴模式，先清空其他展开项
         if (sidebarAccordion) {
           next.clear()
         }
@@ -245,22 +261,20 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     if (sidebarAccordion) {
       setExpandedKeys(prev => {
         if (prev.size <= 1) return prev
-        // 尝试保留包含当前激活子项的父级菜单
         const next = new Set<string>()
-        for (const menu of ADMIN_MENUS) {
+        for (const menu of currentMenus) {
           if (menu.children?.some(child => child.key === activeKey) && prev.has(menu.key)) {
             next.add(menu.key)
             break
           }
         }
-        // 如果没找到对应的激活父级，则保留原集合中第一个
         if (next.size === 0 && prev.size > 0) {
           next.add(Array.from(prev)[0])
         }
         return next
       })
     }
-  }, [sidebarAccordion, activeKey])
+  }, [sidebarAccordion, activeKey, currentMenus])
 
   // 处理菜单选择
   const handleSelect = useCallback((item: MenuItem) => {
@@ -270,7 +284,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
   }, [navigate])
 
   // 排序后的菜单
-  const sortedMenus = useMemo(() => getSortedMenus(ADMIN_MENUS), [])
+  const sortedMenus = useMemo(() => getSortedMenus(currentMenus), [currentMenus])
 
   // 动画配置
   const sidebarVariants = {
@@ -317,4 +331,36 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
       </ScrollShadow>
     </motion.aside>
   )
+}
+
+/**
+ * 根据用户权限过滤菜单项
+ * @param menus - 原始菜单列表
+ * @param permissions - 用户权限列表
+ * @returns 过滤后的菜单列表
+ */
+function filterMenusByPermission(menus: MenuItem[], permissions: string[]): MenuItem[] {
+  return menus
+    .map(menu => {
+      // 先递归过滤子菜单
+      let filteredChildren: MenuItem[] | undefined
+      if (menu.children && menu.children.length > 0) {
+        filteredChildren = filterMenusByPermission(menu.children, permissions).filter(Boolean) as MenuItem[]
+      }
+
+      // 检查权限：父菜单有权限，或者有子菜单有权限
+      const hasParentPermission = !menu.permission || permissions.includes(menu.permission)
+      const hasChildPermission = filteredChildren && filteredChildren.length > 0
+
+      // 如果父菜单没有权限且没有子菜单权限，过滤掉
+      if (!hasParentPermission && !hasChildPermission) {
+        return null
+      }
+
+      return {
+        ...menu,
+        children: filteredChildren && filteredChildren.length > 0 ? filteredChildren : undefined
+      }
+    })
+    .filter(Boolean) as MenuItem[]
 }

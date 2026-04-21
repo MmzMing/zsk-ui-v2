@@ -73,6 +73,7 @@ const USER_STATS_CACHE_EXPIRY = 1000 * 60 * 30
 export function useUserInit(): UseUserInitReturn {
   const setUserInfo = useUserStore(state => state.setUserInfo)
   const setUserStats = useUserStore(state => state.setUserStats)
+  const setPermissions = useUserStore(state => state.setPermissions)
   const setLoading = useUserStore(state => state.setLoading)
   const [isInit, setIsInit] = useState(false)
 
@@ -101,7 +102,7 @@ export function useUserInit(): UseUserInitReturn {
           const now = Date.now()
 
           // ===== 用户信息初始化 =====
-          await initUserInfo(now, setUserInfo)
+          await initUserInfo(now, setUserInfo, setPermissions)
 
           // ===== 用户统计数据初始化 =====
           await initUserStats(now, setUserStats)
@@ -157,7 +158,8 @@ function handleLoginExpired(
  */
 async function initUserInfo(
   now: number,
-  setUserInfo: (user: UserInfo | null) => void
+  setUserInfo: (user: UserInfo | null) => void,
+  setPermissions: (permissions: string[]) => void
 ): Promise<void> {
   // 尝试从 localStorage 获取缓存的用户信息
   const cachedUserInfo = getStorageValue<CachedUserInfo>(STORAGE_KEYS.USER_INFO)
@@ -170,6 +172,7 @@ async function initUserInfo(
   // 如果缓存存在且未过期，直接使用缓存
   if (cachedUserInfo && now - cachedUserInfo.timestamp < USER_INFO_CACHE_EXPIRY) {
     setUserInfo(cachedUserInfo.user)
+    setPermissions(cachedUserInfo.user.permissions || [])
     return
   }
 
@@ -179,10 +182,10 @@ async function initUserInfo(
     
     // 验证返回数据的有效性
     if (loginUser && loginUser.sysUser) {
-      const { sysUser, permissions } = loginUser
+      const { sysUser, permissions, roles } = loginUser
       
-      // 转换用户类型（00 表示管理员，其他表示普通用户）
-      const role: 'admin' | 'user' = sysUser.userType === '00' ? 'admin' : 'user'
+      // 如果后端返回了 roles 数组且不为空，则直接使用；否则设置为 ['user']
+      const userRoles = roles && roles.length > 0 ? roles : ['user']
       
       // 转换用户状态（0 表示正常，其他表示停用）
       const status: 'active' | 'inactive' | 'banned' = sysUser.status === '0' ? 'active' : 'inactive'
@@ -193,8 +196,8 @@ async function initUserInfo(
         name: sysUser.nickName ?? '',
         email: sysUser.email ?? '',
         avatar: sysUser.avatar,
-        role,
-        permissions,
+        roles: userRoles,
+        permissions: permissions || [],
         status,
         createdAt: sysUser.loginDate ?? '',
         updatedAt: sysUser.loginDate ?? '',
@@ -203,12 +206,14 @@ async function initUserInfo(
 
       // 更新状态和缓存（带过期时间戳）
       setUserInfo(user)
+      setPermissions(user.permissions)
       setStorage(STORAGE_KEYS.USER_INFO, { user, timestamp: now })
     }
   } catch {
     // 接口失败时，如果有未过期的缓存则使用缓存
     if (cachedUserInfo && now - cachedUserInfo.timestamp < USER_INFO_CACHE_EXPIRY) {
       setUserInfo(cachedUserInfo.user)
+      setPermissions(cachedUserInfo.user.permissions || [])
     }
   }
 }

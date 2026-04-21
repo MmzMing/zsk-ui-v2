@@ -52,6 +52,13 @@
     "backHome": "返回首页",
     "lost": "404 页面走丢了"
   },
+  "noPermission": {
+    "title": "访问受限",
+    "desc": "您没有权限访问此页面，请联系管理员",
+    "back": "返回上页",
+    "backHome": "返回首页",
+    "forbidden": "权限被拒绝"
+  },
   "errors": {
     "noMatchingMenu": "未找到匹配的菜单",
     "networkError": "网络错误，请稍后重试",
