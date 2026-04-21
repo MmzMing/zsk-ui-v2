@@ -7,7 +7,9 @@
 import { create } from 'zustand'
 import type { UserInfo, TokenInfo, UserRole } from '@/types'
 import type { UserStats } from '@/api/profile'
+import { logout as logoutApi } from '@/api/auth'
 import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS } from '@/utils/storage'
+import { toast } from '@/utils/toast'
 import { useMenuStore } from './menu'
 
 // ===== 2. 类型定义区域 =====
@@ -127,13 +129,19 @@ export const useUserStore = create<UserState>()((set, get) => ({
 
   /**
    * 退出登录
-   * 清除 localStorage、cookie 和状态管理中的用户信息
+   * 通知后端使 Token 失效，清除 localStorage、cookie 和状态管理中的用户信息
    * 同时清空菜单缓存
    */
-  logout: () => {
+  logout: async () => {
+    try {
+      await logoutApi()
+      toast.success('退出登录成功')
+    } catch (error) {
+      console.error('后端退出登录失败：', error)
+    }
     removeStorage(STORAGE_KEYS.USER_INFO)
+    removeStorage(STORAGE_KEYS.USER_STATS)
     removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
-    // 清空菜单缓存
     useMenuStore.getState().clearMenuCache()
     const newState = {
       userInfo: null,
