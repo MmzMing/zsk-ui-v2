@@ -330,11 +330,6 @@ export default function SystemConfig() {
     }
   }, [handleSearch])
 
-  const handleQueryChange = useCallback(<K extends keyof SysConfigQueryParams>(key: K, value: SysConfigQueryParams[K]) => {
-    setQueryParams(prev => ({ ...prev, [key]: value }))
-    setPage(1)
-  }, [])
-
   const handleResetQuery = useCallback(() => {
     setQueryParams({})
     setSearchKeyword('')

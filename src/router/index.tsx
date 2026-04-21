@@ -53,11 +53,11 @@ const SystemConfig = lazy(() => import('@/pages/Admin/System/Config'))
 const SystemDictionary = lazy(() => import('@/pages/Admin/System/Dictionary'))
 
 // 系统运维页面
-const OpsMonitor = lazy(() => import('@/pages/Admin/Ops/Monitor'))
-const OpsCache = lazy(() => import('@/pages/Admin/Ops/Cache'))
-const OpsLog = lazy(() => import('@/pages/Admin/Ops/Log'))
-const OpsSystem = lazy(() => import('@/pages/Admin/Ops/System'))
-const OpsBehavior = lazy(() => import('@/pages/Admin/Ops/Behavior'))
+const MonitorPage = lazy(() => import('@/pages/Admin/Monitor/Monitor'))
+const CachePage = lazy(() => import('@/pages/Admin/Monitor/Cache'))
+const LogPage = lazy(() => import('@/pages/Admin/Monitor/Log'))
+const SystemPage = lazy(() => import('@/pages/Admin/Monitor/System'))
+const BehaviorPage = lazy(() => import('@/pages/Admin/Monitor/Behavior'))
 
 function PageLoading() {
   return (
@@ -244,27 +244,27 @@ export const routes: RouteObject[] = [
             ],
           },
           {
-            path: 'ops',
+            path: 'monitor',
             children: [
               {
                 path: 'monitor',
-                element: withSuspense(OpsMonitor),
+                element: withSuspense(MonitorPage),
               },
               {
                 path: 'cache',
-                element: withSuspense(OpsCache),
+                element: withSuspense(CachePage),
               },
               {
                 path: 'log',
-                element: withSuspense(OpsLog),
+                element: withSuspense(LogPage),
               },
               {
                 path: 'system',
-                element: withSuspense(OpsSystem),
+                element: withSuspense(SystemPage),
               },
               {
                 path: 'behavior',
-                element: withSuspense(OpsBehavior),
+                element: withSuspense(BehaviorPage),
               },
             ],
           },

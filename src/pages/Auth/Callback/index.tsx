@@ -65,7 +65,7 @@ export default function CallbackPage() {
 
         toast.success('登录成功')
         navigate('/')
-      } catch (error) {
+      } catch (_error) {
         toast.error('登录失败，请重试')
         navigate('/login')
       }

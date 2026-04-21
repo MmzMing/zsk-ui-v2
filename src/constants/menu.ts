@@ -272,56 +272,56 @@ export const ADMIN_MENUS: MenuItem[] = [
     ]
   },
   {
-    key: 'ops',
+    key: 'monitor',
     label: '系统运维',
     icon: Monitor,
     order: 7,
-    permission: 'ops:view',
+    permission: 'monitor:view',
     children: [
       {
-        key: 'ops-monitor',
+        key: 'monitor-monitor',
         label: '服务监控',
-        path: '/admin/ops/monitor',
+        path: '/admin/monitor/monitor',
         icon: Activity,
         order: 1,
-        permission: 'ops:monitor:view',
-        parentKey: 'ops'
+        permission: 'monitor:monitor:view',
+        parentKey: 'monitor'
       },
       {
-        key: 'ops-cache',
+        key: 'monitor-cache',
         label: '缓存列表',
-        path: '/admin/ops/cache',
+        path: '/admin/monitor/cache',
         icon: Database,
         order: 2,
-        permission: 'ops:cache:view',
-        parentKey: 'ops'
+        permission: 'monitor:cache:view',
+        parentKey: 'monitor'
       },
       {
-        key: 'ops-log',
+        key: 'monitor-log',
         label: '任务日志',
-        path: '/admin/ops/log',
+        path: '/admin/monitor/log',
         icon: ListChecks,
         order: 3,
-        permission: 'ops:log:view',
-        parentKey: 'ops'
+        permission: 'monitor:log:view',
+        parentKey: 'monitor'
       },
       {
-        key: 'ops-system',
+        key: 'monitor-system',
         label: '系统监控',
-        path: '/admin/ops/system',
+        path: '/admin/monitor/system',
         icon: Monitor,
         order: 4,
-        permission: 'ops:system:view',
-        parentKey: 'ops'
+        permission: 'monitor:system:view',
+        parentKey: 'monitor'
       },
       {
-        key: 'ops-behavior',
+        key: 'monitor-behavior',
         label: '用户行为',
-        path: '/admin/ops/behavior',
+        path: '/admin/monitor/behavior',
         icon: RefreshCw,
         order: 5,
-        permission: 'ops:behavior:view',
-        parentKey: 'ops'
+        permission: 'monitor:behavior:view',
+        parentKey: 'monitor'
       }
     ]
   }
