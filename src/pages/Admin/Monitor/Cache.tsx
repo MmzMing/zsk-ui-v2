@@ -242,33 +242,21 @@ function WarmupResultModal({ isOpen, onOpenChange, results }: WarmupResultModalP
 interface StatCardProps {
   title: string
   value: string | number
-  icon: React.ReactNode
+  icon?: React.ReactNode
   color?: 'primary' | 'success' | 'warning' | 'danger'
   subtitle?: string
 }
 
-function StatCard({ title, value, icon, color = 'primary', subtitle }: StatCardProps) {
-  const colorClasses = {
-    primary: 'bg-primary-50 text-primary',
-    success: 'bg-success-50 text-success',
-    warning: 'bg-warning-50 text-warning',
-    danger: 'bg-danger-50 text-danger'
-  }
-
+function StatCard({ title, value, subtitle }: StatCardProps) {
   return (
     <Card className="h-full">
       <CardBody className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-xs text-default-400">{title}</p>
-            <p className="text-2xl font-bold text-default-800">{value}</p>
-            {subtitle && (
-              <p className="text-xs text-default-400">{subtitle}</p>
-            )}
-          </div>
-          <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
-            {icon}
-          </div>
+        <div className="space-y-1">
+          <p className="text-xs text-default-400">{title}</p>
+          <p className="text-2xl font-bold text-default-800">{value}</p>
+          {subtitle && (
+            <p className="text-xs text-default-400">{subtitle}</p>
+          )}
         </div>
       </CardBody>
     </Card>
@@ -936,7 +924,14 @@ export default function CachePage() {
                           </TableCell>
                           <TableCell>
                             {item.cacheValue && item.cacheValue.length > 0 ? (
-                              <Tooltip content={item.cacheValue} size="sm">
+                              <Tooltip 
+                                content={
+                                  <div className="max-w-xs whitespace-pre-wrap break-words text-sm">
+                                    {item.cacheValue}
+                                  </div>
+                                } 
+                                size="sm"
+                              >
                                 <span className="text-sm text-default-600 truncate max-w-40 cursor-pointer">
                                   {item.cacheValue.length > 10
                                     ? item.cacheValue.substring(0, 10) + '...'

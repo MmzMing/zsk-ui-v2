@@ -380,6 +380,11 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
                   </Badge>
                 </NavbarItem>
 
+                {/* 主题切换 */}
+                <NavbarItem>
+                  <AnimatedThemeToggle className="w-8 h-8 !min-w-8 rounded-full" />
+                </NavbarItem>
+
                 {/* 设置按钮 */}
                 <NavbarItem>
                   <Button
