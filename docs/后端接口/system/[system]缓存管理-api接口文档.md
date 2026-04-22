@@ -64,7 +64,52 @@
 
 ---
 
-### 2.2 获取缓存值
+### 2.2 获取缓存信息列表
+
+**路径**: `GET /api/system/cache/list`
+
+**功能描述**: 获取缓存详细信息列表，支持按缓存名称筛选和分页
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| cacheName | string | 否 | 缓存名称 |
+| pageNum | long | 否 | 页码，默认1 |
+| pageSize | long | 否 | 每页大小，默认10 |
+
+**成功响应** (200):
+
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "list": [
+      {
+        "cacheKey": "user:1",
+        "cacheName": "user",
+        "cacheValue": "{\"id\":1,\"name\":\"admin\"}",
+        "ttl": 3600,
+        "ttlDesc": "1小时",
+        "dataSize": 100,
+        "dataType": "String",
+        "createTime": 1708502400000
+      }
+    ],
+    "total": 1,
+    "pageNum": 1,
+    "pageSize": 10,
+    "totalPages": 1,
+    "hasNext": false,
+    "hasPrevious": false
+  }
+}
+```
+
+---
+
+### 2.3 获取缓存值
 
 **路径**: `GET /api/system/cache/value/{cacheKey}`
 
@@ -92,7 +137,7 @@
 
 ---
 
-### 2.3 删除缓存键
+### 2.4 删除缓存键
 
 **路径**: `DELETE /api/system/cache/keys/{key}`
 
@@ -116,7 +161,7 @@
 
 ---
 
-### 2.4 清空所有缓存
+### 2.5 清空所有缓存
 
 **路径**: `DELETE /api/system/cache/clearAll`
 
@@ -134,7 +179,7 @@
 
 ---
 
-### 2.5 缓存预热
+### 2.6 缓存预热
 
 **路径**: `POST /api/system/cache/warmup`
 
@@ -179,7 +224,7 @@
 
 ---
 
-### 2.6 刷新缓存键
+### 2.7 刷新缓存键
 
 **路径**: `POST /api/system/cache/keys/refresh`
 
@@ -211,7 +256,7 @@
 
 ---
 
-### 2.7 刷新缓存过期时间
+### 2.8 刷新缓存过期时间
 
 **路径**: `PUT /api/system/cache/refreshTtl`
 
@@ -245,7 +290,7 @@
 
 ---
 
-### 2.8 批量刷新缓存键
+### 2.9 批量刷新缓存键
 
 **路径**: `POST /api/system/cache/keys/batchRefresh`
 
@@ -277,7 +322,7 @@
 
 ---
 
-### 2.9 批量删除缓存键
+### 2.10 批量删除缓存键
 
 **路径**: `POST /api/system/cache/keys/batchDelete`
 
@@ -309,7 +354,7 @@
 
 ---
 
-### 2.10 批量刷新缓存过期时间
+### 2.11 批量刷新缓存过期时间
 
 **路径**: `PUT /api/system/cache/refreshTtlBatch`
 
