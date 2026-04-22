@@ -41,7 +41,7 @@ const DEMO_QUESTIONS: ChatQuestion[] = [
 ]
 
 export default function TestPage() {
-  const [content, setContent] = useState('<p>Hello Tiptap!</p>')
+  const [content, setContent] = useState('<p>Hello wangEditor!</p>')
   // 用 key 控制 ChatBubble 重新挂载以重播动画
   const [chatKey, setChatKey] = useState(0)
 
@@ -61,9 +61,9 @@ export default function TestPage() {
         {/* 富文本编辑器测试区域 */}
         <section className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-bold">富文本编辑器 (Tiptap)</h2>
+            <h2 className="text-xl font-bold">富文本编辑器 (wangEditor)</h2>
             <p className="text-default-500 text-sm">
-              企业级富文本编辑器，支持 Markdown 快捷键、气泡菜单、悬浮菜单、图片上传等。
+              基于 wangEditor 5 的企业级富文本编辑器，开箱即用的工具栏、图片上传、表格、代码块等。
             </p>
           </div>
           
@@ -85,10 +85,10 @@ export default function TestPage() {
             <Card className="p-4">
               <h3 className="font-bold mb-2">组件特性</h3>
               <ul className="list-disc list-inside text-sm text-default-600 space-y-1">
-                <li>集成 Tailwind Typography</li>
-                <li>支持气泡菜单 (选中文本)</li>
-                <li>支持悬浮菜单 (空行)</li>
-                <li>移动端适配</li>
+                <li>基于 wangEditor 5 + React 封装</li>
+                <li>内置工具栏（粗体、标题、列表、表格等）</li>
+                <li>图片上传（≤10M 自动转 base64）</li>
+                <li>支持只读、自定义高度、simple/default 模式</li>
               </ul>
             </Card>
           </div>
