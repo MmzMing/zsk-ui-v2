@@ -4,7 +4,7 @@
 
 import { Button, Card, Divider, Input } from '@heroui/react'
 import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
-import Editor from '@/components/ui/editor'
+import { MarkdownEditor, MarkdownPreview } from '@/components/ui/editor'
 import { useState } from 'react'
 import { toast } from '@/utils/toast'
 import { ChatBubble } from '@/components/ui/ChatBubble'
@@ -41,7 +41,7 @@ const DEMO_QUESTIONS: ChatQuestion[] = [
 ]
 
 export default function TestPage() {
-  const [content, setContent] = useState('<p>Hello wangEditor!</p>')
+  const [content, setContent] = useState('# Hello Milkdown!\n\n这是一个基于 **Milkdown Crepe** 的所见即所得 Markdown 编辑器。\n\n- 支持 GFM 表格、任务列表\n- 支持代码块、引用、图片\n- 右侧使用 `react-markdown` 实时渲染\n\n```ts\nconst hello = (name: string) => `Hello, ${name}!`\n```\n\n| 特性 | 状态 |\n| ---- | ---- |\n| 工具栏 | ✅ |\n| 斜杠菜单 | ✅ |\n| 图片粘贴 | ✅ |\n')
   // 用 key 控制 ChatBubble 重新挂载以重播动画
   const [chatKey, setChatKey] = useState(0)
 
@@ -58,40 +58,46 @@ export default function TestPage() {
 
         <Divider />
 
-        {/* 富文本编辑器测试区域 */}
+        {/* Markdown 编辑器测试区域 */}
         <section className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-bold">富文本编辑器 (wangEditor)</h2>
+            <h2 className="text-xl font-bold">Markdown 编辑器 (Milkdown)</h2>
             <p className="text-default-500 text-sm">
-              基于 wangEditor 5 的企业级富文本编辑器，开箱即用的工具栏、图片上传、表格、代码块等。
+              基于 Milkdown Crepe 的所见即所得 Markdown 编辑器，右侧使用 react-markdown + remark-gfm 实时渲染。
             </p>
           </div>
-          
-          <div className="w-full max-w-4xl mx-auto">
-            <Editor 
-              value={content} 
-              onChange={setContent} 
-              placeholder="开始输入..." 
-            />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <h3 className="font-bold text-sm text-default-700">编辑器</h3>
+              <MarkdownEditor
+                value={content}
+                onChange={setContent}
+                placeholder="开始输入 Markdown..."
+                height={500}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <h3 className="font-bold text-sm text-primary">实时内容预览 (react-markdown)</h3>
+              <div
+                className="p-4 bg-content1 rounded-md border border-default-200 overflow-auto"
+                style={{ height: 500 }}
+              >
+                <MarkdownPreview value={content} />
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-            <Card className="p-4 border-primary/20 bg-primary/5">
-              <h3 className="font-bold mb-2 text-primary">实时内容预览</h3>
-              <div className="prose prose-sm max-w-none p-2 bg-content1 rounded-md border border-default-200 min-h-[100px]">
-                {content}
-              </div>
-            </Card>
-            <Card className="p-4">
-              <h3 className="font-bold mb-2">组件特性</h3>
-              <ul className="list-disc list-inside text-sm text-default-600 space-y-1">
-                <li>基于 wangEditor 5 + React 封装</li>
-                <li>内置工具栏（粗体、标题、列表、表格等）</li>
-                <li>图片上传（≤10M 自动转 base64）</li>
-                <li>支持只读、自定义高度、simple/default 模式</li>
-              </ul>
-            </Card>
-          </div>
+          <Card className="p-4">
+            <h3 className="font-bold mb-2">组件特性</h3>
+            <ul className="list-disc list-inside text-sm text-default-600 space-y-1">
+              <li>编辑器：Milkdown Crepe（基于 ProseMirror + remark）所见即所得</li>
+              <li>预览：react-markdown + remark-gfm，支持表格、任务列表、删除线</li>
+              <li>支持 value / onChange 受控接口、placeholder、readOnly、自定义高度</li>
+              <li>样式继承 Tailwind Typography (prose)，自动适配 dark 主题</li>
+            </ul>
+          </Card>
         </section>
 
         <Divider />
