@@ -35,7 +35,7 @@ npm run build
 - **UI 框架**: React ^19.2.0
 - **构建工具**: Vite ^7.x
 - **类型系统**: TypeScript ~5.9.3
-- **组件库**: HeroUI ^3.0.0 (默认)
+- **组件库**: HeroUI ^2.8.8 (默认)
 - **CSS**: Tailwind CSS ^4.x
 - **路由**: React Router DOM ^7.x
 - **状态管理**: Zustand

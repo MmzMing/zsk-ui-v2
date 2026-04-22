@@ -27,8 +27,8 @@ export function setStorage<T>(
 ): void {
   if (type === 'cookie') {
     const serialized = typeof value === 'string' ? value : JSON.stringify(value)
+    // 不主动设置 expires，过期时间由后端通过 Set-Cookie 头管理
     Cookies.set(key, serialized, {
-      expires: 7, // 默认 7 天
       path: '/',
       sameSite: 'lax',
       ...options

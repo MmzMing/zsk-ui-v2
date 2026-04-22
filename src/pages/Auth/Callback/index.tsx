@@ -48,9 +48,9 @@ export default function CallbackPage() {
           state
         })
 
-        // 保存 Token 和用户信息（token 设置为 7 天过期）
-        setStorage(STORAGE_KEYS.TOKEN, res.accessToken, 'cookie', { expires: 7 })
-        setStorage(STORAGE_KEYS.USER_INFO, res, 'cookie', { expires: 7 })
+        // 保存 Token 和用户信息（过期时间由后端 Set-Cookie 控制）
+        setStorage(STORAGE_KEYS.TOKEN, res.accessToken, 'cookie')
+        setStorage(STORAGE_KEYS.USER_INFO, res, 'cookie')
         
         setUserInfo({
           id: res.userId.toString(),
