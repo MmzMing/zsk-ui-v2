@@ -10,7 +10,7 @@ import { useState, useRef } from 'react'
 import { Button, Input, Divider } from '@heroui/react'
 import { InteractiveHoverButton } from '@/components/ui/magicui/InteractiveHoverButton'
 import { useTranslation } from 'react-i18next'
-import { Github } from 'lucide-react'
+import { Github, ArrowLeft } from 'lucide-react'
 import { FaQq, FaWeixin } from 'react-icons/fa'
 import { Turnstile } from '@marsidev/react-turnstile'
 import { PolicyModal, type PolicyModalRef } from '@/components/auth'
@@ -18,10 +18,12 @@ import { getThirdPartyUrl, sendMagicLink } from '@/api/auth'
 import { toast } from '@/utils/toast'
 import { validateEmail } from '@/utils/validate'
 import { AuthLayout } from '../AuthLayout'
+import { useNavigate } from 'react-router-dom'
 
 export default function LoginPage() {
   // ===== 3. 状态控制逻辑区域 =====
   const { t } = useTranslation('auth')
+  const navigate = useNavigate()
   
   const policyRef = useRef<PolicyModalRef>(null)
   
@@ -138,6 +140,16 @@ export default function LoginPage() {
       passwordLength={0}
     >
       <div className="space-y-8">
+        {/* 移动端：知识库小破站 Logo */}
+        <div className="flex justify-center lg:hidden">
+          <button
+            className="text-lg font-semibold text-primary hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/')}
+          >
+            {t('common.appName')}
+          </button>
+        </div>
+
         {/* 页面标题区域 */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">{t('login.header')}</h1>

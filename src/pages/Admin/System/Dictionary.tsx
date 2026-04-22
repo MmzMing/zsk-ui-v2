@@ -42,7 +42,6 @@ import {
   Trash2,
   Plus,
   Pencil,
-  Eye,
   Search,
   RefreshCw,
   BookOpen
@@ -757,6 +756,10 @@ export default function SystemDictionary() {
                   selectionMode="multiple"
                   selectedKeys={selectedTypeKeys}
                   onSelectionChange={keys => setSelectedTypeKeys(keys as Set<string>)}
+                  onRowAction={(key) => {
+                    const item = dictTypeList.find(t => t.id === String(key))
+                    if (item) handleTypeSelect(item)
+                  }}
                   classNames={{
                     wrapper: 'p-0',
                     thead: '[&>tr]:first:shadow-none',
@@ -773,7 +776,14 @@ export default function SystemDictionary() {
                     emptyContent={<StatusState type="empty" scene="admin" />}
                   >
                     {(item) => (
-                      <TableRow key={item.id}>
+                      <TableRow
+                        key={item.id}
+                        className={`cursor-pointer transition-colors ${
+                          selectedDictType?.id === item.id
+                            ? 'bg-primary/10'
+                            : 'hover:bg-default-100'
+                        }`}
+                      >
                         <TableCell>
                           <span className="font-medium text-sm">{item.dictName}</span>
                         </TableCell>
@@ -791,16 +801,6 @@ export default function SystemDictionary() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Tooltip content="查看明细" size="sm">
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                onPress={() => handleTypeSelect(item)}
-                              >
-                                <Eye size={14} />
-                              </Button>
-                            </Tooltip>
                             <Tooltip content="编辑" size="sm">
                               <Button
                                 isIconOnly
