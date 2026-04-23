@@ -147,15 +147,7 @@ function handleLoginExpired(
   // 清空状态管理中的用户信息
   setUserInfo(null)
   setUserStats(null)
-
-  // 检查当前页面是否已经是登录页面，避免无限跳转循环
-  const currentPath = window.location.pathname
-  if (currentPath !== '/login') {
-    toast.error('登录已过期，请重新登录')
-    setTimeout(() => {
-      window.location.href = '/login'
-    }, 2000)
-  }
+  toast.error('登录已过期，请重新登录')
 }
 
 /**
