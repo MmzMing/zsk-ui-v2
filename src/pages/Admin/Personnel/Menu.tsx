@@ -55,8 +55,7 @@ import {
   FolderTree,
   Folder,
   MousePointerClick,
-  Menu as MenuIcon,
-  ArrowLeft
+  Menu as MenuIcon
 } from 'lucide-react'
 
 // antd 组件
@@ -1069,8 +1068,65 @@ export default function PersonnelMenu() {
       {/* 右侧内容区 */}
       <Card className="flex-1 min-w-0">
         <CardBody className="p-0 flex flex-col overflow-hidden">
-          {/* 查询工具栏 */}
-          <div className="p-3 py-3 space-y-3">
+          {/* 标题栏 */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+            <div className="flex items-center gap-2">
+              <MenuIcon size={18} className="text-primary" />
+              <span className="font-semibold text-sm">菜单详情</span>
+              {selectedMenu ? (
+                <>
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="secondary"
+                    onClose={() => setSelectedMenuId(null)}
+                  >
+                    {selectedMenu.menuName}
+                  </Chip>
+                  <Chip size="sm" variant="flat" color="primary">
+                    共 {tableData.length} 项
+                  </Chip>
+                </>
+              ) : (
+                <Chip size="sm" variant="flat" color="primary">
+                  一级菜单 · {tableData.length} 项
+                </Chip>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <Tooltip content={selectedMenuId ? '新增子菜单' : '新增菜单'} size="sm">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={() => handleCreateMenu(selectedMenuId ?? '0')}
+                >
+                  <Plus size={16} className="text-default-400" />
+                </Button>
+              </Tooltip>
+              {selectedKeys.size > 0 && (
+                <Tooltip content={`批量删除(${selectedKeys.size})`} size="sm">
+                  <ConfirmPopover
+                    title="批量删除"
+                    description={`确认删除选中的 ${selectedKeys.size} 个菜单？`}
+                    confirmText="删除"
+                    onConfirm={handleBatchDelete}
+                  >
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                    >
+                      <Trash2 size={16} className="text-danger" />
+                    </Button>
+                  </ConfirmPopover>
+                </Tooltip>
+              )}
+            </div>
+          </div>
+
+          {/* 筛选工具栏 */}
+          <div className="px-4 py-3 border-b border-divider">
             <div className="flex items-center gap-2 flex-wrap">
               <Input
                 size="sm"
@@ -1115,48 +1171,7 @@ export default function PersonnelMenu() {
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>
-              <div className="hidden sm:flex-1" />
-              <Button
-                size="sm"
-                color="primary"
-                startContent={<Plus size={14} />}
-                onPress={() => handleCreateMenu(selectedMenuId ?? '0')}
-              >
-                {selectedMenuId ? '新增子菜单' : '新增菜单'}
-              </Button>
-              {selectedKeys.size > 0 && (
-                <ConfirmPopover
-                  title="批量删除"
-                  description={`确认删除选中的 ${selectedKeys.size} 个菜单？`}
-                  confirmText="删除"
-                  onConfirm={handleBatchDelete}
-                >
-                  <Button
-                    size="sm"
-                    color="danger"
-                    variant="flat"
-                    startContent={<Trash2 size={14} />}
-                  >
-                    批量删除({selectedKeys.size})
-                  </Button>
-                </ConfirmPopover>
-              )}
             </div>
-            {selectedMenu && (
-              <div className="flex items-center gap-2 text-xs text-default-400">
-                <Button
-                  size="sm"
-                  variant="flat"
-                  startContent={<ArrowLeft size={14} />}
-                  onPress={() => setSelectedMenuId(null)}
-                >
-                  返回一级菜单
-                </Button>
-                <span>当前查看：</span>
-                <Chip size="sm" variant="flat" color="primary">{selectedMenu.menuName}</Chip>
-                <span>下的子菜单</span>
-              </div>
-            )}
           </div>
 
           {/* 菜单详情列表 */}
