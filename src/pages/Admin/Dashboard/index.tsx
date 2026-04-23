@@ -24,18 +24,19 @@ export default function Dashboard() {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="w-full lg:w-[70%] space-y-4">
+        <div className="w-full space-y-4">
           <WelcomeCard />
           <StatisticsCards />
-        </div>
-        <div className="w-full lg:w-[30%]">
-          <AnnouncementCard />
         </div>
       </div>
 
       <Suspense fallback={<GanttFallback />}>
         <GanttCard />
       </Suspense>
+
+      <div className="w-full lg:w-[50%]">
+        <AnnouncementCard />
+      </div>
     </div>
   )
 }

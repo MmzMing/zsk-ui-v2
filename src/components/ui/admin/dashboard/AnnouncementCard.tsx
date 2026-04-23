@@ -59,7 +59,7 @@ export default function AnnouncementCard() {
   )
 
   return (
-    <Card className="admin-card max-h-[210px]">
+    <Card className="admin-card">
       <CardBody className="p-0 h-full flex flex-col">
         <div className="px-5 py-4 flex items-center gap-2 border-b border-default-100 shrink-0">
           <Bell size={18} className="text-default-400" />
