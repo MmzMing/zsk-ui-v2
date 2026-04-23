@@ -16,8 +16,6 @@ import {
   Upload,
   CheckCircle,
   Database,
-  ListChecks,
-  Activity,
   MessageSquare,
   Video,
   Edit3,
@@ -279,39 +277,12 @@ export const ADMIN_MENUS: MenuItem[] = [
     permission: 'monitor:view',
     children: [
       {
-        key: 'monitor-monitor',
-        label: '服务监控',
-        path: '/admin/monitor/monitor',
-        icon: Activity,
-        order: 1,
-        permission: 'monitor:monitor:view',
-        parentKey: 'monitor'
-      },
-      {
         key: 'monitor-cache',
         label: '缓存列表',
         path: '/admin/monitor/cache',
         icon: Database,
-        order: 2,
+        order: 1,
         permission: 'monitor:cache:view',
-        parentKey: 'monitor'
-      },
-      {
-        key: 'monitor-log',
-        label: '任务日志',
-        path: '/admin/monitor/log',
-        icon: ListChecks,
-        order: 3,
-        permission: 'monitor:log:view',
-        parentKey: 'monitor'
-      },
-      {
-        key: 'monitor-system',
-        label: '系统监控',
-        path: '/admin/monitor/system',
-        icon: Monitor,
-        order: 4,
-        permission: 'monitor:system:view',
         parentKey: 'monitor'
       },
       {
@@ -319,7 +290,7 @@ export const ADMIN_MENUS: MenuItem[] = [
         label: '用户行为',
         path: '/admin/monitor/behavior',
         icon: RefreshCw,
-        order: 5,
+        order: 2,
         permission: 'monitor:behavior:view',
         parentKey: 'monitor'
       }
