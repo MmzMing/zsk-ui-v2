@@ -20,6 +20,7 @@ export interface SysTaskRaw {
   parent?: number
   open?: boolean
   details?: string
+  color?: string
 }
 
 /** 前端使用的任务（start_date 已转为 Date） */
@@ -33,6 +34,7 @@ export interface SysTask {
   parent?: number
   open?: boolean
   details?: string
+  color?: string
 }
 
 /** 任务依赖关系 */
@@ -58,6 +60,7 @@ export interface SysTaskCreateInput {
   type: TaskType
   parent?: number
   details?: string
+  color?: string
 }
 
 /** 更新任务请求体 */
@@ -70,6 +73,7 @@ export interface SysTaskUpdateInput {
   type?: TaskType
   parent?: number
   details?: string
+  color?: string
 }
 
 /** 创建任务依赖请求体 */

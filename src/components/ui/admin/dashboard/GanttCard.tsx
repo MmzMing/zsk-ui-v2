@@ -1,7 +1,8 @@
-import { Card, CardBody, CardHeader, Spinner } from '@heroui/react'
+import { Card, CardBody, CardHeader, Spinner, Button } from '@heroui/react'
 import Gantt, { ReactGanttRef, Task, Link, GanttConfig } from '@dhtmlx/trial-react-gantt'
 import '@dhtmlx/trial-react-gantt/dist/react-gantt.css'
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { getTaskList } from '@/api/admin/task'
 import { createTask, updateTask, deleteTask } from '@/api/admin/task'
 import { createTaskLink, deleteTaskLink } from '@/api/admin/task/link'
@@ -9,6 +10,24 @@ import { useTheme } from '@/hooks/useTheme'
 import { useAppStore } from '@/stores/app'
 import type { SysTaskRaw, SysTaskLink, TaskType, LinkType } from '@/types/task.types'
 import { addToast } from '@heroui/react'
+
+const TASK_COLORS: Record<string, string> = {
+  project: '#7B68EE',
+  task: '#3DB9D3',
+  milestone: '#FFA500',
+}
+
+const COLOR_OPTIONS = [
+  { key: '#3DB9D3', label: '青色' },
+  { key: '#7B68EE', label: '紫色' },
+  { key: '#FFA500', label: '橙色' },
+  { key: '#4CAF50', label: '绿色' },
+  { key: '#F44336', label: '红色' },
+  { key: '#2196F3', label: '蓝色' },
+  { key: '#FF9800', label: '琥珀色' },
+  { key: '#9C27B0', label: '深紫色' },
+  { key: '#607D8B', label: '蓝灰色' },
+]
 
 function rawToTask(raw: SysTaskRaw): Task {
   return {
@@ -21,6 +40,7 @@ function rawToTask(raw: SysTaskRaw): Task {
     parent: raw.parent ?? 0,
     open: raw.open ?? true,
     details: raw.details,
+    color: raw.color || TASK_COLORS[raw.type] || '#3DB9D3',
   }
 }
 
@@ -66,6 +86,7 @@ export default function GanttCard() {
   useEffect(() => {
     const gantt = ganttRef.current?.instance
     if (!gantt) return
+    gantt.locale.labels.section_color = '颜色'
     gantt.templates.quick_info_title = (_start: Date, _end: Date, task: Task) => {
       return task.text
     }
@@ -88,6 +109,23 @@ export default function GanttCard() {
     show_quick_info: true,
     quick_info_detached: true,
     quickinfo_buttons: ['icon_edit', 'icon_delete'],
+    lightbox: {
+      sections: [
+        { name: 'description', height: 38, map_to: 'text', type: 'textarea', focus: true },
+        { name: 'time', type: 'duration', map_to: 'auto' },
+        { name: 'color', height: 22, map_to: 'color', type: 'select', options: COLOR_OPTIONS, default_value: '#3DB9D3' },
+      ],
+      project_sections: [
+        { name: 'description', height: 38, map_to: 'text', type: 'textarea', focus: true },
+        { name: 'time', type: 'duration', map_to: 'auto' },
+        { name: 'color', height: 22, map_to: 'color', type: 'select', options: COLOR_OPTIONS, default_value: '#7B68EE' },
+      ],
+      milestone_sections: [
+        { name: 'description', height: 38, map_to: 'text', type: 'textarea', focus: true },
+        { name: 'time', type: 'duration', map_to: 'auto', single_date: true },
+        { name: 'color', height: 22, map_to: 'color', type: 'select', options: COLOR_OPTIONS, default_value: '#FFA500' },
+      ],
+    },
   }
 
   const formatDate = (value: Date | string): string => {
@@ -120,6 +158,7 @@ export default function GanttCard() {
             type: ((data.type as string) || 'task') as TaskType,
             parent: data.parent as number | undefined,
             details: data.details as string | undefined,
+            color: data.color as string | undefined,
           })
           return { id: res.id }
         }
@@ -133,6 +172,7 @@ export default function GanttCard() {
             type: data.type as TaskType | undefined,
             parent: data.parent as number | undefined,
             details: data.details as string | undefined,
+            color: data.color as string | undefined,
           })
         }
         if (action === 'delete') {
@@ -161,8 +201,18 @@ export default function GanttCard() {
 
   return (
     <Card className="admin-card h-full">
-      <CardHeader className="px-5 py-4 border-b border-divider">
+      <CardHeader className="px-5 py-4 border-b border-divider flex items-center justify-between">
         <h3 className="text-lg font-semibold">任务管理</h3>
+        <Button
+          variant="light"
+          size="sm"
+          onClick={fetchData}
+          disabled={loading}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          刷新
+        </Button>
       </CardHeader>
       <CardBody className="p-0 overflow-hidden" style={{ height: 460 }}>
         {loading ? (
