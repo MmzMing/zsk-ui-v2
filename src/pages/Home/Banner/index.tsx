@@ -277,7 +277,7 @@ const Boat = () => {
         animate={controls}
       >
         <img 
-          src="/test/海盗船.svg" 
+          src="https://i.stardots.io/784774835/StarDots-2026042403453245646.svg" 
           alt="Pirate Ship"
           className="w-full h-full object-contain drop-shadow-2xl"
           style={{ 
