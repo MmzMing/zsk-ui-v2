@@ -62,10 +62,8 @@ npx tsc --noEmit     # 仅做类型检查（无产出，提交前推荐）
 - Vite 已集成 `vite-plugin-auto-i18n`（如启用），新增页面文案应避免硬编码英文/中文混排。
 
 ### 富文本编辑器（当前实现）
-- 已使用 `wangEditor` (`@wangeditor/editor` + `@wangeditor/editor-for-react`)，封装在 `src/components/ui/editor/Editor.tsx`，对外保持 `value / onChange / placeholder / readOnly / height / mode` API。
-- 主题样式以 `.zsk-wang-editor` 为作用域写在 `src/styles/global.css`，覆盖 wangEditor 全部 `--w-e-*` 变量到 HeroUI token；新增/修改富文本样式必须保持该作用域，避免污染。
-- 历史的 Tiptap 实现已被替换；项目规范文档（AGENTS.md / .trae 规则）中提及的 "必须使用 Tiptap" 已过时，以本节为准。
-
+- 使用`Markdown`格式，使用封装好的`MarkdownEditor`组件。渲染使用`MarkdownPreview`组件。
+- 参考 test 页面。
 ## 项目级强制规范（摘自 AGENTS.md / .trae/rules，与本仓库实际生效一致）
 
 - **语言**：注释、`console` 日志一律中文；不在源码中使用 emoji。

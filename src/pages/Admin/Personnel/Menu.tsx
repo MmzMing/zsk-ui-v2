@@ -43,7 +43,6 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  Switch
 } from '@heroui/react'
 
 // 图标（Lucide React）
@@ -56,7 +55,8 @@ import {
   FolderTree,
   Folder,
   MousePointerClick,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  ArrowLeft
 } from 'lucide-react'
 
 // antd 组件
@@ -70,6 +70,7 @@ import { AVAILABLE_ICONS, getLucideIcon, renderIcon } from '@/utils/icons'
 
 // 通用状态组件
 import { StatusState } from '@/components/ui/StatusState'
+import ConfirmPopover from '@/components/ui/ConfirmPopover'
 
 // API 接口
 import {
@@ -113,17 +114,6 @@ const MAX_MENU_DEPTH = 2
 function getMenuTypeLabel(type: MenuType): string {
   const option = MENU_TYPE_OPTIONS.find(o => o.value === type)
   return option?.label ?? type
-}
-
-/**
- * 获取菜单状态的显示标签
- *
- * @param status - 菜单状态枚举值
- * @returns 对应的中文标签，未匹配时返回原始值
- */
-function getMenuStatusLabel(status: MenuStatus): string {
-  const option = MENU_STATUS_OPTIONS.find(o => o.value === status)
-  return option?.label ?? status
 }
 
 /**
@@ -711,8 +701,6 @@ export default function PersonnelMenu() {
   const [queryParams, setQueryParams] = useState<SysMenuQueryParams>({})
   /** antd Tree 展开的节点 key 列表 */
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([])
-  /** antd Tree 勾选的节点 key 列表（checkStrictly 模式，父子不关联） */
-  const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([])
 
   /** 编辑弹窗控制 */
   const editModal = useDisclosure()
@@ -739,28 +727,28 @@ export default function PersonnelMenu() {
     return flatMenuList.find(m => m.id === selectedMenuId) ?? null
   }, [selectedMenuId, flatMenuList])
 
-  /**
-   * 预计算节点层级映射，避免拖拽时重复递归计算
-   */
   const nodeLevelMap = useMemo(() => {
     const map = new Map<string, number>()
-    
-    const calculateLevel = (menu: SysMenu): number => {
-      if (menu.parentId === '0') return 1
-      if (map.has(menu.id)) return map.get(menu.id)!
-      
-      const parent = flatMenuList.find(m => m.id === menu.parentId)
-      const level = parent ? calculateLevel(parent) + 1 : 1
-      map.set(menu.id, level)
+    const parentIndex = new Map<string, string>()
+    for (const menu of flatMenuList) {
+      parentIndex.set(menu.id, menu.parentId)
+    }
+
+    const getLevel = (id: string): number => {
+      if (map.has(id)) return map.get(id)!
+      const pid = parentIndex.get(id)
+      if (!pid || pid === '0') {
+        map.set(id, 1)
+        return 1
+      }
+      const level = getLevel(pid) + 1
+      map.set(id, level)
       return level
     }
 
-    flatMenuList.forEach(menu => {
-      if (!map.has(menu.id)) {
-        calculateLevel(menu)
-      }
-    })
-
+    for (const menu of flatMenuList) {
+      getLevel(menu.id)
+    }
     return map
   }, [flatMenuList])
 
@@ -838,28 +826,10 @@ export default function PersonnelMenu() {
       toast.success('删除成功')
       fetchMenuList()
       setSelectedKeys(new Set())
-      setCheckedKeys([])
     } catch (error) {
       const message = error instanceof Error ? error.message : '删除失败'
       toast.error(message)
       console.error('删除菜单失败：', error)
-    }
-  }, [fetchMenuList])
-
-  /**
-   * 切换菜单状态
-   * @param id - 菜单ID
-   * @param status - 目标状态
-   */
-  const handleToggleMenuStatus = useCallback(async (id: string, status: MenuStatus) => {
-    try {
-      await updateMenu({ id, status })
-      toast.success('状态切换成功')
-      fetchMenuList()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '状态切换失败'
-      toast.error(message)
-      console.error('切换菜单状态失败：', error)
     }
   }, [fetchMenuList])
 
@@ -888,27 +858,6 @@ export default function PersonnelMenu() {
   const handleExpand: TreeProps['onExpand'] = useCallback((expandedKeysValue: React.Key[]) => {
     setExpandedKeys(expandedKeysValue)
   }, [])
-
-  /**
-   * antd Tree 节点勾选事件
-   * checkStrictly 模式下父子节点不关联，勾选状态独立
-   */
-  const handleCheck: TreeProps['onCheck'] = useCallback((checkedKeysValue: React.Key[] | { checked: React.Key[]; halfChecked: React.Key[] }) => {
-    const keys = Array.isArray(checkedKeysValue) ? checkedKeysValue : checkedKeysValue.checked
-    setCheckedKeys(keys)
-  }, [])
-
-  /**
-   * 批量删除树中勾选的菜单节点
-   * checkStrictly 模式下仅删除实际勾选的节点，不自动关联子节点
-   */
-  const handleTreeBatchDelete = useCallback(() => {
-    if (checkedKeys.length === 0) {
-      toast.warning('请勾选要删除的菜单')
-      return
-    }
-    handleDeleteMenu(checkedKeys.map(key => String(key)))
-  }, [checkedKeys, handleDeleteMenu])
 
   /**
    * 打开新增菜单弹窗
@@ -1069,19 +1018,6 @@ export default function PersonnelMenu() {
               <span className="font-semibold text-sm">菜单结构</span>
             </div>
             <div className="flex items-center gap-1">
-              {checkedKeys.length > 0 && (
-                <Tooltip content={`批量删除(${checkedKeys.length})`} size="sm">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    color="danger"
-                    onPress={handleTreeBatchDelete}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </Tooltip>
-              )}
               <Tooltip content="新增一级菜单" size="sm">
                 <Button
                   isIconOnly
@@ -1116,16 +1052,12 @@ export default function PersonnelMenu() {
                 expandedKeys={expandedKeys}
                 onSelect={handleTreeSelect}
                 onExpand={handleExpand}
-                checkable
-                checkedKeys={checkedKeys}
-                checkStrictly
-                onCheck={handleCheck}
                 draggable
                 blockNode
                 allowDrop={allowDrop}
                 onDrop={handleDrop}
                 titleRender={renderTreeTitle}
-                className="p-2 bg-default-900"
+                className="p-2"
               />
             ) : (
               <StatusState type="empty" scene="admin" />
@@ -1193,20 +1125,34 @@ export default function PersonnelMenu() {
                 {selectedMenuId ? '新增子菜单' : '新增菜单'}
               </Button>
               {selectedKeys.size > 0 && (
-                <Button
-                  size="sm"
-                  color="danger"
-                  variant="flat"
-                  startContent={<Trash2 size={14} />}
-                  onPress={handleBatchDelete}
+                <ConfirmPopover
+                  title="批量删除"
+                  description={`确认删除选中的 ${selectedKeys.size} 个菜单？`}
+                  confirmText="删除"
+                  onConfirm={handleBatchDelete}
                 >
-                  批量删除({selectedKeys.size})
-                </Button>
+                  <Button
+                    size="sm"
+                    color="danger"
+                    variant="flat"
+                    startContent={<Trash2 size={14} />}
+                  >
+                    批量删除({selectedKeys.size})
+                  </Button>
+                </ConfirmPopover>
               )}
             </div>
             {selectedMenu && (
-              <div className="flex items-center gap-1 text-xs text-default-400">
-                <span>当前选中：</span>
+              <div className="flex items-center gap-2 text-xs text-default-400">
+                <Button
+                  size="sm"
+                  variant="flat"
+                  startContent={<ArrowLeft size={14} />}
+                  onPress={() => setSelectedMenuId(null)}
+                >
+                  返回一级菜单
+                </Button>
+                <span>当前查看：</span>
                 <Chip size="sm" variant="flat" color="primary">{selectedMenu.menuName}</Chip>
                 <span>下的子菜单</span>
               </div>
@@ -1268,13 +1214,14 @@ export default function PersonnelMenu() {
                       <span className="text-sm">{item.orderNum}</span>
                     </TableCell>
                     <TableCell>
-                      <Switch
+                      <Chip
                         size="sm"
-                        color="primary"
-                        isSelected={String(item.status) === '0'}
-                        onValueChange={(isSelected) => handleToggleMenuStatus(item.id, isSelected ? '0' : '1')}
-                        aria-label={getMenuStatusLabel(item.status as MenuStatus)}
-                      />
+                        variant="flat"
+                        color={String(item.status) === '0' ? 'success' : 'default'}
+                        className="cursor-pointer"
+                      >
+                        {String(item.status) === '0' ? '正常' : '停用'}
+                      </Chip>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -1298,17 +1245,21 @@ export default function PersonnelMenu() {
                             <Plus size={14} className="text-default-400" />
                           </Button>
                         </Tooltip>
-                        <Tooltip content="删除" size="sm">
+                        <ConfirmPopover
+                          title="确认删除"
+                          description={`将删除菜单「${item.menuName}」及其子菜单`}
+                          confirmText="删除"
+                          onConfirm={() => handleDeleteMenu([item.id])}
+                        >
                           <Button
                             isIconOnly
                             size="sm"
                             variant="light"
                             color="danger"
-                            onPress={() => handleDeleteMenu([item.id])}
                           >
                             <Trash2 size={14} />
                           </Button>
-                        </Tooltip>
+                        </ConfirmPopover>
                       </div>
                     </TableCell>
                   </TableRow>

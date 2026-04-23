@@ -3,6 +3,7 @@
  * 垂直时间轴展示最近公告
  */
 
+import { useMemo } from 'react'
 import { Bell } from 'lucide-react'
 import { Card, CardBody } from '@heroui/react'
 import { mockAnnouncements } from '@/api/admin/dashboard/mock'
@@ -34,6 +35,15 @@ function getRelativeTime(dateStr: string): string {
 }
 
 export default function AnnouncementCard() {
+  const items = useMemo(
+    () =>
+      mockAnnouncements.map((item) => ({
+        ...item,
+        relativeTime: getRelativeTime(item.createdAt),
+      })),
+    [],
+  )
+
   return (
     <Card className="admin-card max-h-[210px]">
       <CardBody className="p-0 h-full flex flex-col">
@@ -43,8 +53,8 @@ export default function AnnouncementCard() {
         </div>
         <div className="px-5 py-4 flex-1 overflow-y-auto">
           <div className="relative">
-            {mockAnnouncements.map((item, index) => {
-              const isLast = index === mockAnnouncements.length - 1
+            {items.map((item, index) => {
+              const isLast = index === items.length - 1
               return (
                 <div key={item.id} className="relative flex gap-3 pb-5 last:pb-0">
                   {!isLast && (
@@ -60,9 +70,7 @@ export default function AnnouncementCard() {
                     <p className="text-tiny text-default-500 line-clamp-2 mt-0.5">
                       {item.content}
                     </p>
-                    <p className="text-tiny text-default-400 mt-1">
-                      {getRelativeTime(item.createdAt)}
-                    </p>
+                    <p className="text-tiny text-default-400 mt-1">{item.relativeTime}</p>
                   </div>
                 </div>
               )
