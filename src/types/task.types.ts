@@ -1,36 +1,36 @@
 /**
  * 任务管理相关类型定义
- * 对应 dhtmlx-gantt 的 Task / Link 接口
+ * 对应 @dhtmlx/trial-react-gantt 的 Task / Link 接口
  */
 
-/** 任务类型 */
-export type TaskType = 'task' | 'summary' | 'milestone'
+/** 任务类型：task-普通任务 / project-汇总任务 / milestone-里程碑 */
+export type TaskType = 'task' | 'project' | 'milestone'
 
-/** 依赖类型 */
-export type LinkType = 'e2s' | 's2s' | 'e2e' | 's2e'
+/** 依赖类型（dhtmlx 原生）：0-终到始 / 1-始到始 / 2-终到终 / 3-始到终 */
+export type LinkType = '0' | '1' | '2' | '3'
 
-/** 任务 */
+/** 后端返回的任务原始数据（start_date 为字符串） */
 export interface SysTaskRaw {
   id: number
   text: string
-  start: Date
+  startDate: string
   duration: number
   progress: number
   type: TaskType
-  parent: number
+  parent?: number
   open?: boolean
   details?: string
 }
 
-/** 任务 */
+/** 前端使用的任务（start_date 已转为 Date） */
 export interface SysTask {
   id: number
   text: string
-  start: Date
+  startDate: Date
   duration: number
   progress: number
   type: TaskType
-  parent: number
+  parent?: number
   open?: boolean
   details?: string
 }
@@ -52,7 +52,7 @@ export interface TaskListResponse {
 /** 创建任务请求体 */
 export interface SysTaskCreateInput {
   text: string
-  start: string
+  startDate: string
   duration: number
   progress?: number
   type: TaskType
@@ -64,7 +64,7 @@ export interface SysTaskCreateInput {
 export interface SysTaskUpdateInput {
   id: number
   text?: string
-  start?: string
+  startDate?: string
   duration?: number
   progress?: number
   type?: TaskType

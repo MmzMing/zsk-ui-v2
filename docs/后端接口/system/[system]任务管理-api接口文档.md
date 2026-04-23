@@ -14,7 +14,7 @@
 
 ### 2.1 获取任务列表（含依赖关系）
 
-**路径**: `GET /task/list`
+**路径**: `GET /api/system/task/list`
 
 **功能描述**: 返回所有任务及其依赖关系，用于 Gantt 图渲染
 
@@ -37,7 +37,7 @@
       {
         "id": 1,
         "text": "任务名称",
-        "start": "2026-04-20T00:00:00",
+        "startDate": "2026-04-30",
         "duration": 5,
         "progress": 50,
         "type": "task",
@@ -51,7 +51,7 @@
         "id": 1,
         "source": 1,
         "target": 2,
-        "type": "e2s"
+        "type": "0"
       }
     ]
   }
@@ -65,24 +65,24 @@
 | data.tasks | Array | 任务列表（扁平结构，通过 parent 表示层级） |
 | data.tasks[].id | Long | 任务唯一ID |
 | data.tasks[].text | String | 任务名称 |
-| data.tasks[].start | String | 开始时间，ISO 8601 格式 |
+| data.tasks[].startDate | String | 开始时间，格式：yyyy-MM-dd |
 | data.tasks[].duration | Integer | 持续天数 |
 | data.tasks[].progress | Integer | 完成进度 0-100 |
-| data.tasks[].type | String | 任务类型：task / summary / milestone |
-| data.tasks[].parent | Long | 父任务ID，顶级为 0 |
+| data.tasks[].type | String | 任务类型：task / project / milestone |
+| data.tasks[].parent | Long | 父任务ID，顶级为 0，可选 |
 | data.tasks[].open | Boolean | 是否默认展开 |
 | data.tasks[].details | String | 任务描述/备注 |
 | data.links | Array | 任务依赖关系列表 |
 | data.links[].id | Long | 依赖关系唯一ID |
 | data.links[].source | Long | 源任务ID（前驱任务） |
 | data.links[].target | Long | 目标任务ID（后继任务） |
-| data.links[].type | String | 依赖类型：e2s / s2s / e2e / s2e |
+| data.links[].type | String | 依赖类型：0-完成开始 / 1-开始开始 / 2-完成完成 / 3-开始完成 |
 
 ---
 
 ### 2.2 获取单个任务详情
 
-**路径**: `GET /task/{id}`
+**路径**: `GET /api/system/task/{id}`
 
 **功能描述**: 根据任务ID获取单个任务的详细信息
 
@@ -107,7 +107,7 @@
   "data": {
     "id": 1,
     "text": "任务名称",
-    "start": "2026-04-20T00:00:00",
+    "startDate": "2026-04-30",
     "duration": 5,
     "progress": 50,
     "type": "task",
@@ -132,7 +132,7 @@
 
 ### 2.3 创建任务
 
-**路径**: `POST /task`
+**路径**: `POST /api/system/task`
 
 **功能描述**: 创建新任务
 
@@ -148,7 +148,7 @@
 ```json
 {
   "text": "任务名称",
-  "start": "2026-04-20T00:00:00",
+  "startDate": "2026-04-30",
   "duration": 5,
   "progress": 0,
   "type": "task",
@@ -162,11 +162,11 @@
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
 | text | String | 是 | 任务名称 |
-| start | String | 是 | 开始时间，ISO 8601 格式（2026-04-20T00:00:00） |
+| startDate | String | 是 | 开始时间，格式：yyyy-MM-dd（如：2026-04-30） |
 | duration | Integer | 是 | 持续天数，不能为负数 |
 | progress | Integer | 否 | 完成进度 0-100，默认 0 |
-| type | String | 是 | 任务类型：task-普通任务 / summary-汇总任务 / milestone-里程碑 |
-| parent | Long | 否 | 父任务ID，默认 0（顶级任务） |
+| type | String | 是 | 任务类型：task-普通任务 / project-项目 / milestone-里程碑 |
+| parent | Long | 否 | 父任务ID，可选（顶级任务不传或传0） |
 | details | String | 否 | 任务描述/备注 |
 
 **成功响应** (200):
@@ -178,7 +178,7 @@
   "data": {
     "id": 1,
     "text": "任务名称",
-    "start": "2026-04-20T00:00:00",
+    "startDate": "2026-04-30",
     "duration": 5,
     "progress": 0,
     "type": "task",
@@ -203,7 +203,7 @@
 
 ### 2.4 更新任务
 
-**路径**: `PUT /task`
+**路径**: `PUT /api/system/task`
 
 **功能描述**: 更新任务信息（支持全量更新和部分更新）
 
@@ -220,7 +220,7 @@
 {
   "id": 1,
   "text": "更新后的任务名称",
-  "start": "2026-04-20T00:00:00",
+  "startDate": "2026-04-30",
   "duration": 10,
   "progress": 75,
   "type": "task",
@@ -235,11 +235,11 @@
 |--------|------|------|------|
 | id | Long | 是 | 任务ID |
 | text | String | 否 | 任务名称 |
-| start | String | 否 | 开始时间，ISO 8601 格式（2026-04-20T00:00:00） |
+| startDate | String | 否 | 开始时间，格式：yyyy-MM-dd（如：2026-04-30） |
 | duration | Integer | 否 | 持续天数，不能为负数 |
 | progress | Integer | 否 | 完成进度 0-100 |
-| type | String | 否 | 任务类型：task-普通任务 / summary-汇总任务 / milestone-里程碑 |
-| parent | Long | 否 | 父任务ID（拖拽改变层级时传） |
+| type | String | 否 | 任务类型：task-普通任务 / project-项目 / milestone-里程碑 |
+| parent | Long | 否 | 父任务ID（拖拽改变层级时传），可选 |
 | details | String | 否 | 任务描述/备注 |
 
 **成功响应** (200):
@@ -266,7 +266,7 @@
 
 ### 2.5 删除任务
 
-**路径**: `DELETE /task/{ids}`
+**路径**: `DELETE /api/system/task/{ids}`
 
 **功能描述**: 批量删除任务（含子任务及相关依赖关系）
 
@@ -280,7 +280,7 @@
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| ids | List<Long> | 是 | 任务ID列表，格式: `/task/1,2,3` |
+| ids | List<Long> | 是 | 任务ID列表，格式: `/api/system/task/1,2,3` |
 
 **成功响应** (200):
 
