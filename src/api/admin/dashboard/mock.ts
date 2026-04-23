@@ -1,10 +1,43 @@
 /**
  * 仪表盘 Mock 数据
- * 用于公告和 Gantt 任务（后端接口未开发）
+ * 公告数据（后端接口未开发）
  */
 
 import type { Announcement } from '@/types/dashboard.types'
-import dayjs from 'dayjs'
+
+export const mockGanttTasks = [
+  { id: 1, text: '项目规划', start_date: '2026-04-01', duration: 10, progress: 0.95, type: 'project', open: true },
+  { id: 2, text: '需求分析', start_date: '2026-04-01', duration: 3, progress: 1, type: 'task', parent: 1 },
+  { id: 3, text: '技术方案', start_date: '2026-04-04', duration: 4, progress: 1, type: 'task', parent: 1 },
+  { id: 4, text: '需求评审通过', start_date: '2026-04-10', duration: 0, progress: 0, type: 'milestone', parent: 1 },
+
+  { id: 5, text: '系统开发', start_date: '2026-04-11', duration: 18, progress: 0.6, type: 'project', open: true },
+  { id: 6, text: '前端开发', start_date: '2026-04-11', duration: 10, progress: 0.7, type: 'task', parent: 5 },
+  { id: 7, text: '后端开发', start_date: '2026-04-11', duration: 12, progress: 0.5, type: 'task', parent: 5 },
+  { id: 8, text: 'API 联调', start_date: '2026-04-25', duration: 4, progress: 0.3, type: 'task', parent: 5 },
+
+  { id: 9, text: '测试阶段', start_date: '2026-04-30', duration: 8, progress: 0.15, type: 'project', open: true },
+  { id: 10, text: '单元测试', start_date: '2026-04-30', duration: 3, progress: 0.3, type: 'task', parent: 9 },
+  { id: 11, text: '集成测试', start_date: '2026-05-05', duration: 4, progress: 0.1, type: 'task', parent: 9 },
+  { id: 12, text: 'UAT 测试', start_date: '2026-05-09', duration: 3, progress: 0, type: 'task', parent: 9 },
+
+  { id: 13, text: '上线部署', start_date: '2026-05-13', duration: 2, progress: 0, type: 'task' },
+  { id: 14, text: '正式发布', start_date: '2026-05-15', duration: 0, progress: 0, type: 'milestone' },
+]
+
+export const mockGanttLinks = [
+  { id: 1, source: 2, target: 3, type: '0' },
+  { id: 2, source: 3, target: 4, type: '0' },
+  { id: 3, source: 4, target: 6, type: '0' },
+  { id: 4, source: 4, target: 7, type: '0' },
+  { id: 5, source: 6, target: 8, type: '0' },
+  { id: 6, source: 7, target: 8, type: '0' },
+  { id: 7, source: 8, target: 10, type: '0' },
+  { id: 8, source: 10, target: 11, type: '0' },
+  { id: 9, source: 11, target: 12, type: '0' },
+  { id: 10, source: 12, target: 13, type: '0' },
+  { id: 11, source: 13, target: 14, type: '0' },
+]
 
 export const mockAnnouncements: Announcement[] = [
   {
@@ -42,73 +75,4 @@ export const mockAnnouncements: Announcement[] = [
     type: 'info',
     createdAt: '2026-04-19T11:00:00Z',
   },
-]
-
-/** Gantt 任务数据 */
-export const mockGanttTasks = [
-  {
-    id: 1,
-    open: true,
-    start: new Date(2026, 3, 20),
-    duration: 15,
-    text: '知识库 v2.1 开发',
-    progress: 45,
-    type: 'summary' as const,
-  },
-  {
-    id: 2,
-    parent: 1,
-    start: new Date(2026, 3, 20),
-    duration: 5,
-    text: '仪表盘模块开发',
-    progress: 80,
-    type: 'task' as const,
-  },
-  {
-    id: 3,
-    parent: 1,
-    start: new Date(2026, 3, 25),
-    duration: 4,
-    text: '知识图谱功能',
-    progress: 20,
-    type: 'task' as const,
-  },
-  {
-    id: 4,
-    parent: 1,
-    start: new Date(2026, 3, 29),
-    duration: 3,
-    text: 'API 接口优化',
-    progress: 0,
-    type: 'task' as const,
-  },
-  {
-    id: 5,
-    parent: 1,
-    start: new Date(2026, 4, 2),
-    duration: 3,
-    text: '系统测试与部署',
-    progress: 0,
-    type: 'task' as const,
-  },
-  {
-    id: 6,
-    start: new Date(2026, 4, 5),
-    duration: 0,
-    text: 'v2.1 正式发布',
-    progress: 0,
-    type: 'milestone' as const,
-  },
-]
-
-export const mockGanttLinks = [
-  { id: 1, source: 2, target: 3, type: 'e2s' as const },
-  { id: 2, source: 3, target: 4, type: 'e2s' as const },
-  { id: 3, source: 4, target: 5, type: 'e2s' as const },
-  { id: 4, source: 5, target: 6, type: 'e2s' as const },
-]
-
-export const mockGanttScales = [
-  { unit: 'month' as const, step: 1, format: (date: Date) => dayjs(date).format('YYYY年M月') },
-  { unit: 'day' as const, step: 1, format: (date: Date) => dayjs(date).format('D') },
 ]

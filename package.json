@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.1",
+    "@dhtmlx/trial-react-gantt": "^9.1.3",
     "@heroui/react": "^2.8.8",
     "@marsidev/react-turnstile": "^1.4.2",
     "@milkdown/crepe": "^7.20.0",
@@ -19,7 +20,6 @@
     "@react-spring/web": "^10.0.3",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
-    "@svar-ui/react-gantt": "^2.6.1",
     "@tailwindcss/typography": "^0.5.19",
     "@vidstack/react": "^1.12.13",
     "@wangeditor/editor": "^5.1.23",
