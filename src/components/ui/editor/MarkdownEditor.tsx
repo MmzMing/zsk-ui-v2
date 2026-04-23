@@ -8,14 +8,13 @@
  */
 
 import '@milkdown/crepe/theme/common/style.css'
+import lightThemeUrl from '@milkdown/crepe/theme/frame.css?url'
+import darkThemeUrl from '@milkdown/crepe/theme/frame-dark.css?url'
 
 import { useEffect, useRef } from 'react'
 import { Crepe } from '@milkdown/crepe'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
 import { useAppStore, type ThemeMode } from '@/stores/app'
-
-const lightTheme = import.meta.resolve('@milkdown/crepe/theme/frame.css')
-const darkTheme = import.meta.resolve('@milkdown/crepe/theme/frame-dark.css')
 
 function getActualTheme(mode: ThemeMode): 'light' | 'dark' {
   if (mode === 'system') {
@@ -30,6 +29,7 @@ function useMilkdownTheme() {
   useEffect(() => {
     const id = 'milkdown-crepe-theme'
     let link = document.getElementById(id) as HTMLLinkElement | null
+    
     if (!link) {
       link = document.createElement('link')
       link.id = id
@@ -37,12 +37,16 @@ function useMilkdownTheme() {
       document.head.appendChild(link)
     }
 
-    const actual = getActualTheme(themeMode)
-    link.href = actual === 'dark' ? darkTheme : lightTheme
+    const updateTheme = () => {
+      const actual = getActualTheme(themeMode)
+      link.href = actual === 'dark' ? darkThemeUrl : lightThemeUrl
+    }
+
+    updateTheme()
 
     const onSystemChange = () => {
       if (themeMode === 'system') {
-        link!.href = getActualTheme('system') === 'dark' ? darkTheme : lightTheme
+        updateTheme()
       }
     }
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
