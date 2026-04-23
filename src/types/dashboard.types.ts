@@ -10,12 +10,3 @@ export interface DashboardItem {
   delta: string
   description: string
 }
-
-/** 系统公告 */
-export interface Announcement {
-  id: string
-  title: string
-  content: string
-  type: 'info' | 'warning' | 'success' | 'error'
-  createdAt: string
-}

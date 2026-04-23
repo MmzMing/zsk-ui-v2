@@ -1,21 +1,16 @@
-/**
- * 系统公告卡片
- * 垂直时间轴展示最近公告
- */
-
-import { useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Bell } from 'lucide-react'
 import { Card, CardBody } from '@heroui/react'
-import { mockAnnouncements } from '@/api/admin/dashboard/mock'
+import { getConsoleNotices } from '@/api/admin/notice'
+import type { SysNotice } from '@/types/notice.types'
 
 const typeColorMap: Record<string, string> = {
-  info: 'bg-primary',
-  warning: 'bg-warning',
-  success: 'bg-success',
-  error: 'bg-danger',
+  '1': 'bg-primary',
+  '2': 'bg-warning',
 }
 
-function getRelativeTime(dateStr: string): string {
+function getRelativeTime(dateStr?: string): string {
+  if (!dateStr) return ''
   const now = Date.now()
   const target = new Date(dateStr).getTime()
   const diff = now - target
@@ -35,13 +30,32 @@ function getRelativeTime(dateStr: string): string {
 }
 
 export default function AnnouncementCard() {
+  const [notices, setNotices] = useState<SysNotice[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchNotices() {
+      try {
+        const data = await getConsoleNotices()
+        setNotices(data)
+      } catch (error) {
+        console.error('获取公告失败：', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchNotices()
+  }, [])
+
   const items = useMemo(
     () =>
-      mockAnnouncements.map((item) => ({
+      notices.map((item) => ({
         ...item,
-        relativeTime: getRelativeTime(item.createdAt),
+        title: item.noticeTitle,
+        type: item.noticeType,
+        relativeTime: getRelativeTime(item.createTime),
       })),
-    [],
+    [notices]
   )
 
   return (
@@ -52,30 +66,40 @@ export default function AnnouncementCard() {
           <h3 className="text-lg font-semibold">系统公告</h3>
         </div>
         <div className="px-5 py-4 flex-1 overflow-y-auto">
-          <div className="relative">
-            {items.map((item, index) => {
-              const isLast = index === items.length - 1
-              return (
-                <div key={item.id} className="relative flex gap-3 pb-5 last:pb-0">
-                  {!isLast && (
-                    <div className="absolute left-[5px] top-3 bottom-0 w-px bg-default-200" />
-                  )}
-                  <div
-                    className={`relative z-10 mt-1 w-[11px] h-[11px] rounded-full shrink-0 ${typeColorMap[item.type]}`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-small font-semibold text-default-900 truncate">
-                      {item.title}
-                    </p>
-                    <p className="text-tiny text-default-500 line-clamp-2 mt-0.5">
-                      {item.content}
-                    </p>
-                    <p className="text-tiny text-default-400 mt-1">{item.relativeTime}</p>
+          {loading ? (
+            <div className="flex items-center justify-center h-full text-default-400">
+              <span>加载中...</span>
+            </div>
+          ) : notices.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-default-400">
+              <span>暂无公告</span>
+            </div>
+          ) : (
+            <div className="relative">
+              {items.map((item, index) => {
+                const isLast = index === items.length - 1
+                return (
+                  <div key={item.id} className="relative flex gap-3 pb-5 last:pb-0">
+                    {!isLast && (
+                      <div className="absolute left-[5px] top-3 bottom-0 w-px bg-default-200" />
+                    )}
+                    <div
+                      className={`relative z-10 mt-1 w-[11px] h-[11px] rounded-full shrink-0 ${typeColorMap[item.type] || 'bg-default-400'}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-small font-semibold text-default-900 truncate">
+                        {item.title}
+                      </p>
+                      <p className="text-tiny text-default-500 line-clamp-2 mt-0.5">
+                        {item.content}
+                      </p>
+                      <p className="text-tiny text-default-400 mt-1">{item.relativeTime}</p>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </CardBody>
     </Card>

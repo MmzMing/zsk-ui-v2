@@ -30,3 +30,8 @@ export async function updateNotice(data: SysNoticeUpdateInput): Promise<void> {
 export async function deleteNotice(ids: string): Promise<void> {
   return del(`/system/notice/${ids}`)
 }
+
+/** 获取控制台最新公告 */
+export async function getConsoleNotices(): Promise<SysNotice[]> {
+  return get('/system/notice/console')
+}
