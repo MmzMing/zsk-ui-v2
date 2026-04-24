@@ -128,15 +128,15 @@ export function generateHeatmapData(): HeatmapDay[] {
 
 export const SPONSOR_ITEMS: SponsorItem[] = [
   {
-    name: 'StarDots',
-    url: 'https://stardots.io',
+    name: '广告招租',
+    url: 'https://github.com/MmzMing',
   },
   {
-    name: '智数科云',
-    url: 'https://zsk.cloud',
+    name: '广告招租',
+    url: 'https://www.baidu.com',
   },
   {
-    name: 'JetBrains',
+    name: '广告招租',
     url: 'https://jetbrains.com',
   },
 ]
@@ -144,8 +144,8 @@ export const SPONSOR_ITEMS: SponsorItem[] = [
 // ===== 社交链接 =====
 
 export const SOCIAL_LINKS: SocialLink[] = [
-  { icon: 'Github', url: 'https://github.com/mmming', source: 'lucide' },
-  { icon: 'SiBilibili', url: 'https://space.bilibili.com', source: 'react-icons' },
+  { icon: 'Github', url: 'https://github.com/MmzMing', source: 'lucide' },
+  { icon: 'SiBilibili', url: 'https://space.bilibili.com/15446538', source: 'react-icons' },
   { icon: 'Mail', url: 'mailto:contact@zsk.cloud', source: 'lucide' },
 ]
 

@@ -1,8 +1,8 @@
 {
   "bio": {
-    "name": "StarDots",
-    "tagline": "全栈开发者 / 技术博主",
-    "description": "热爱技术分享的全栈开发者，专注于 Java 后端开发和 React 前端技术。在这里分享技术心得、项目实战和编程经验，希望能够帮助更多人成长。",
+    "name": "MmMing",
+    "tagline": "后端开发 / 技术博主",
+    "description": "热爱技术分享的后端开发者，专注于 Java 后端开发和 React 前端技术，以及在AI时代如何薅羊毛等。在这里分享技术心得、项目实战和编程经验，希望能够帮助更多人成长。",
     "liveNow": "直播中",
     "liveOff": "未开播",
     "sponsors": "赞助商：",
