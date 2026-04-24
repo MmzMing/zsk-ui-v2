@@ -145,7 +145,7 @@ export const SPONSOR_ITEMS: SponsorItem[] = [
 
 export const SOCIAL_LINKS: SocialLink[] = [
   { icon: 'Github', url: 'https://github.com/mmming', source: 'lucide' },
-  { icon: 'SiBilibili', url: 'https://space.bilibili.com/784774835', source: 'react-icons' },
+  { icon: 'SiBilibili', url: 'https://space.bilibili.com/388', source: 'react-icons' },
   { icon: 'Mail', url: 'mailto:contact@zsk.cloud', source: 'lucide' },
 ]
 
@@ -181,7 +181,7 @@ export const ABOUT_CHAT_QUESTIONS: ChatQuestion[] = [
 // ===== B站直播间配置 =====
 
 /** B站直播间房间号 */
-export const BILIBILI_ROOM_ID = '784774835'
+export const BILIBILI_ROOM_ID = '388'
 
 /** B站直播间 URL */
 export const BILIBILI_LIVE_URL = `https://live.bilibili.com/${BILIBILI_ROOM_ID}`

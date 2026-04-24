@@ -7,6 +7,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { Tooltip } from '@heroui/react'
 import {
   Coffee, Database, Code2, Server, Box, Wind, GitBranch, GitMerge,
   Terminal, Globe, Paintbrush, Hexagon, Zap, Layers, Cloud, Shield,
@@ -71,22 +72,23 @@ export function TechStackMarquee() {
               : null
 
             return (
-              <div
-                key={`${item.name}-${index}`}
-                className="flex items-center justify-center shrink-0 transition-all duration-300 hover:scale-110"
-                style={{ minWidth: 60 }}
-              >
-                {IconComp ? (
-                  <IconComp size={36} style={{ color: item.color }} />
-                ) : (
-                  <div
-                    className="w-9 h-9 rounded-md flex items-center justify-center text-xs font-bold"
-                    style={{ background: `${item.color}20`, color: item.color }}
-                  >
-                    {item.name.slice(0, 2)}
-                  </div>
-                )}
-              </div>
+              <Tooltip key={`${item.name}-${index}`} content={item.name}>
+                <div
+                  className="flex items-center justify-center shrink-0 transition-all duration-300 hover:scale-110 cursor-pointer"
+                  style={{ minWidth: 60 }}
+                >
+                  {IconComp ? (
+                    <IconComp size={36} style={{ color: item.color }} />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-md flex items-center justify-center text-xs font-bold"
+                      style={{ background: `${item.color}20`, color: item.color }}
+                    >
+                      {item.name.slice(0, 2)}
+                    </div>
+                  )}
+                </div>
+              </Tooltip>
             )
           })}
         </motion.div>
