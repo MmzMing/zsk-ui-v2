@@ -1,0 +1,23 @@
+{
+  "bio": {
+    "name": "StarDots",
+    "tagline": "Full Stack Developer / Tech Blogger",
+    "description": "A passionate full-stack developer who loves sharing technology. Focused on Java backend development and React frontend technology. Sharing technical insights, project practices, and programming experience here, hoping to help more people grow.",
+    "liveNow": "Live",
+    "liveOff": "Offline",
+    "sponsors": "Sponsors:",
+    "becomeSponsor": "Become Sponsor"
+  },
+  "techStack": {
+    "title": "Tech Stack"
+  },
+  "heatmap": {
+    "title": "Activity Heatmap",
+    "subtitle": "{{count}} contributions in the past year"
+  },
+  "chat": {
+    "title": "Chat",
+    "subtitle": "Learn more about my story",
+    "replay": "Replay"
+  }
+}
