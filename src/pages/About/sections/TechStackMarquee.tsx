@@ -45,9 +45,9 @@ export function TechStackMarquee() {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* 左侧渐变遮罩 */}
-        <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[var(--color-content)] to-transparent z-10" />
+        <div className="absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-[var(--color-background)] via-[var(--color-background)]/90 via-[var(--color-background)]/60 via-[var(--color-background)]/30 to-transparent z-10" />
         {/* 右侧渐变遮罩 */}
-        <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-[var(--color-content)] to-transparent z-10" />
+        <div className="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-[var(--color-background)] via-[var(--color-background)]/90 via-[var(--color-background)]/60 via-[var(--color-background)]/30 to-transparent z-10" />
 
         {/* 滚动容器 */}
         <motion.div

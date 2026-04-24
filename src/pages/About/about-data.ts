@@ -145,7 +145,7 @@ export const SPONSOR_ITEMS: SponsorItem[] = [
 
 export const SOCIAL_LINKS: SocialLink[] = [
   { icon: 'Github', url: 'https://github.com/mmming', source: 'lucide' },
-  { icon: 'SiBilibili', url: 'https://space.bilibili.com/388', source: 'react-icons' },
+  { icon: 'SiBilibili', url: 'https://space.bilibili.com', source: 'react-icons' },
   { icon: 'Mail', url: 'mailto:contact@zsk.cloud', source: 'lucide' },
 ]
 

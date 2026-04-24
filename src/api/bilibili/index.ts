@@ -25,12 +25,13 @@ interface BilibiliApiResponse {
   data: {
     live_status: number // 0=未开播, 1=正在直播, 2=轮播
     title: string
-    cover: string
+    keyframe: string
     room_id: number
+    short_id?: number
   } | null
 }
 
-const BILIBILI_API_URL = 'https://api.bilibili.com/xlive/web-room/v1/index/getInfoByRoom'
+const BILIBILI_API_URL = '/api/bilibili/room/v1/Room/get_info'
 
 /**
  * 查询 B站直播间状态
@@ -54,7 +55,7 @@ export async function fetchBilibiliLiveStatus(roomId: string): Promise<BilibiliL
     return {
       isLive: data.live_status === 1,
       title: data.title || '',
-      cover: data.cover || '',
+      cover: data.keyframe || '',
       url: `https://live.bilibili.com/${roomId}`,
     }
   } catch {

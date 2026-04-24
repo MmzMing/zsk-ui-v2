@@ -15,4 +15,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/api/bilibili': {
+        target: 'https://api.live.bilibili.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/bilibili/, ''),
+      },
+    },
+  },
 })

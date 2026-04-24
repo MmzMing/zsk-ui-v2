@@ -5,7 +5,7 @@
  */
 
 import { useTranslation } from 'react-i18next'
-import { Github, Mail, ExternalLink } from 'lucide-react'
+import { Github, Mail, ExternalLink, Monitor } from 'lucide-react'
 import { SiBilibili } from 'react-icons/si'
 import { PixelatedCanvas } from '@/components/ui/aceternity/pixelated-canvas'
 import { BlurFade } from '@/components/ui/magicui/BlurFade'
@@ -32,51 +32,43 @@ export function AvatarSection() {
       {/* 第一层 — 大头像 + 直播状态 + 社交链接 */}
       <BlurFade direction="down" delay={0} duration={0.6} className="flex flex-col items-center gap-6">
         <div className="relative">
-          <PixelatedCanvas
-            src={AVATAR_URL}
-            width={280}
-            height={280}
-            cellSize={5}
-            dotScale={0.85}
-            shape="circle"
-            interactive={true}
-            distortionMode="swirl"
-            distortionStrength={4}
-            distortionRadius={80}
-            fadeOnLeave={true}
-            maxFps={60}
-            className="rounded-full"
-          />
+          <div
+            className="relative rounded-full border-4 p-1 transition-colors duration-300"
+            style={{
+              borderColor: liveStatus.isLive ? '#FF6B9D' : 'hsl(var(--color-default-300))',
+            }}
+          >
+            <PixelatedCanvas
+              src={AVATAR_URL}
+              width={280}
+              height={280}
+              cellSize={5}
+              dotScale={0.85}
+              shape="circle"
+              interactive={true}
+              distortionMode="swirl"
+              distortionStrength={4}
+              distortionRadius={80}
+              fadeOnLeave={true}
+              maxFps={60}
+              className="rounded-full"
+            />
+          </div>
 
-          {/* 直播状态指示器 */}
           <a
             href={liveStatus.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 hover:scale-105"
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-6 py-2 rounded-full text-base font-bold transition-all duration-300 hover:scale-105"
             style={{
               background: liveStatus.isLive
-                ? 'rgba(34, 197, 94, 0.15)'
-                : 'rgba(212, 212, 212, 0.15)',
-              border: liveStatus.isLive
-                ? '1px solid hsl(var(--color-success))'
-                : '1px solid hsl(var(--color-default-300))',
-              color: liveStatus.isLive
-                ? 'hsl(var(--color-success))'
-                : 'hsl(var(--color-default-500))',
+                ? 'linear-gradient(135deg, #FF6B9D 0%, #FF4757 100%)'
+                : 'rgba(156, 163, 175, 0.8)',
+              color: liveStatus.isLive ? 'white' : 'hsl(var(--color-default-700))',
+              boxShadow: liveStatus.isLive ? '0 4px 12px rgba(255, 107, 157, 0.4)' : 'none',
             }}
           >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{
-                background: liveStatus.isLive
-                  ? 'hsl(var(--color-success))'
-                  : 'hsl(var(--color-default-400))',
-                animation: liveStatus.isLive
-                  ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                  : 'none',
-              }}
-            />
+            <Monitor size={20} className={liveStatus.isLive ? 'fill-white' : ''} />
             {liveStatus.isLive ? t('bio.liveNow') : t('bio.liveOff')}
           </a>
         </div>
