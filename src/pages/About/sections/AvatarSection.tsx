@@ -51,6 +51,7 @@ export function AvatarSection() {
               distortionRadius={80}
               fadeOnLeave={true}
               maxFps={60}
+              dropoutStrength={0.05}
               className="rounded-full"
             />
           </div>

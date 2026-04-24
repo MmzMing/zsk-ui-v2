@@ -7,12 +7,14 @@
 
 import { useTranslation } from 'react-i18next'
 import { BlurFade } from '@/components/ui/magicui/BlurFade'
+import { useUIStore } from '@/stores/ui'
 
 /** GitHub Contribution Snake SVG URL */
 const SNAKE_SVG_URL = 'https://raw.githubusercontent.com/MmzMing/MmzMing/output/github-contribution-grid-snake-dark.svg'
 
 export function GrowthHeatmap() {
   const { t } = useTranslation('about')
+  const { showLoading, hideLoading } = useUIStore()
 
   return (
     <section className="py-12 px-4">
@@ -30,6 +32,9 @@ export function GrowthHeatmap() {
               alt="GitHub Contribution Snake"
               className="w-full h-auto rounded-lg"
               loading="lazy"
+              onLoadStart={() => showLoading('正在加载贡献热力图...')}
+              onLoad={() => hideLoading()}
+              onError={() => hideLoading()}
             />
           </div>
         </div>
