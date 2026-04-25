@@ -3,7 +3,7 @@
  * 包含面包屑、搜索、通知、用户菜单等
  */
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -18,9 +18,13 @@ import {
   DropdownItem,
   DropdownSection,
   Avatar,
-  Badge,
   Divider,
-  Kbd
+  Kbd,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  Chip,
 } from '@heroui/react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -32,7 +36,7 @@ import {
   HiOutlineHome,
   HiOutlineChevronRight
 } from 'react-icons/hi'
-import { Search, Menu } from 'lucide-react'
+import { Search, Menu, Bell, Calendar, User } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
@@ -43,6 +47,9 @@ import { cn } from '@/utils'
 import { SiteLogo } from '@/components/ui/SiteLogo'
 import { AnimatedThemeToggle } from '@/components/ui/magicui/AnimatedThemeToggle'
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher'
+import { getConsoleNotices, getNoticeById } from '@/api/admin/notice'
+import type { SysNotice } from '@/types/notice.types'
+import { formatDateTime } from '@/utils/format'
 
 // 面包屑项类型
 interface BreadcrumbItem {
@@ -68,13 +75,117 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
   const [searchValue, setSearchValue] = useState('')
   const [themeDrawerOpen, setThemeDrawerOpen] = useState(false)
   const [logoHovered, setLogoHovered] = useState(false)
-  
+
+  // 通知公告状态
+  const [notices, setNotices] = useState<SysNotice[]>([])
+  const [noticeLoading, setNoticeLoading] = useState(false)
+  const [noticeOpen, setNoticeOpen] = useState(false)
+  const [selectedNotice, setSelectedNotice] = useState<SysNotice | null>(null)
+  const [noticeDetailOpen, setNoticeDetailOpen] = useState(false)
+
+  // 已读公告缓存（localStorage）
+  const [readNoticeIds, setReadNoticeIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('admin_read_notices')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) {
+          return new Set(parsed as string[])
+        }
+      }
+    } catch {
+      // 解析失败时返回空集合
+    }
+    return new Set<string>()
+  })
+
+  // 未读公告数量
+  const unreadCount = useMemo(() => {
+    return notices.filter(n => !readNoticeIds.has(n.id)).length
+  }, [notices, readNoticeIds])
+
   const isDark = actualTheme === 'dark'
 
   // 处理搜索
   const handleSearch = useCallback((value: string) => {
     console.info('搜索：', value)
     // TODO: 实现搜索功能
+  }, [])
+
+  // 获取通知公告列表
+  const fetchNotices = useCallback(async () => {
+    setNoticeLoading(true)
+    try {
+      const data = await getConsoleNotices()
+      setNotices(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error('获取公告列表失败：', error)
+    } finally {
+      setNoticeLoading(false)
+    }
+  }, [])
+
+  // 下拉打开时加载公告
+  useEffect(() => {
+    if (noticeOpen) {
+      fetchNotices()
+    }
+  }, [noticeOpen, fetchNotices])
+
+  // 标记公告为已读并持久化到 localStorage
+  const markNoticeAsRead = useCallback((id: string) => {
+    setReadNoticeIds(prev => {
+      if (prev.has(id)) return prev
+      const next = new Set(prev)
+      next.add(id)
+      try {
+        localStorage.setItem('admin_read_notices', JSON.stringify(Array.from(next)))
+      } catch {
+        // localStorage 写入失败时静默处理
+      }
+      return next
+    })
+  }, [])
+
+  // 查看公告详情
+  const handleViewNotice = useCallback(async (notice: SysNotice) => {
+    // 标记为已读
+    markNoticeAsRead(notice.id)
+
+    if (!notice.content || notice.content.length < 10) {
+      // 内容为空或较短时尝试获取详情
+      try {
+        const detail = await getNoticeById(notice.id)
+        setSelectedNotice(detail)
+      } catch (error) {
+        console.error('获取公告详情失败：', error)
+        setSelectedNotice(notice)
+      }
+    } else {
+      setSelectedNotice(notice)
+    }
+    setNoticeDetailOpen(true)
+  }, [markNoticeAsRead])
+
+  // 获取相对时间
+  const getRelativeTime = useCallback((dateStr?: string): string => {
+    if (!dateStr) return ''
+    const now = Date.now()
+    const target = new Date(dateStr).getTime()
+    const diff = now - target
+
+    const minutes = Math.floor(diff / 60000)
+    if (minutes < 1) return '刚刚'
+    if (minutes < 60) return `${minutes}分钟前`
+
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}小时前`
+
+    const days = Math.floor(hours / 24)
+    if (days === 1) return '昨天'
+    if (days < 30) return `${days}天前`
+
+    return new Date(dateStr).toLocaleDateString('zh-CN')
   }, [])
 
   // 处理登出
@@ -188,6 +299,12 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
       </DropdownItem>
     </DropdownMenu>
   )
+
+  // 通知类型映射
+  const noticeTypeMap: Record<string, { label: string; color: 'primary' | 'warning' | 'default' }> = {
+    '1': { label: '通知', color: 'primary' },
+    '2': { label: '公告', color: 'warning' },
+  }
 
   return (
     <>
@@ -373,11 +490,104 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
 
                 {/* 通知 */}
                 <NavbarItem>
-                  <Badge content="3" size="sm" color="danger">
-                    <Button variant="light" isIconOnly className="text-default-500">
-                      <HiOutlineBell className="text-lg" />
-                    </Button>
-                  </Badge>
+                  <Dropdown
+                    placement="bottom-end"
+                    isOpen={noticeOpen}
+                    onOpenChange={setNoticeOpen}
+                  >
+                    <DropdownTrigger>
+                      <Button variant="light" isIconOnly className="text-default-500 relative">
+                        <HiOutlineBell className="text-lg" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-danger rounded-full px-1">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="系统公告"
+                      variant="flat"
+                      className="w-80 max-h-[400px] overflow-y-auto"
+                      closeOnSelect={false}
+                    >
+                      <DropdownSection title="系统公告" showDivider>
+                        {noticeLoading ? (
+                          <DropdownItem key="loading" isReadOnly textValue="加载中">
+                            <div className="flex items-center justify-center py-4 text-default-400">
+                              <span className="text-sm">加载中...</span>
+                            </div>
+                          </DropdownItem>
+                        ) : notices.length === 0 ? (
+                          <DropdownItem key="empty" isReadOnly textValue="暂无公告">
+                            <div className="flex flex-col items-center justify-center py-6 text-default-400">
+                              <Bell size={24} className="mb-2 opacity-50" />
+                              <span className="text-sm">暂无公告</span>
+                            </div>
+                          </DropdownItem>
+                        ) : (
+                          notices.map((notice) => {
+                            const isRead = readNoticeIds.has(notice.id)
+                            return (
+                              <DropdownItem
+                                key={notice.id}
+                                textValue={notice.noticeTitle}
+                                onPress={() => handleViewNotice(notice)}
+                                className={cn('py-2', !isRead && 'bg-primary/5')}
+                              >
+                                <div className="flex items-start gap-2 w-full">
+                                  <div className={cn(
+                                    'w-2 h-2 rounded-full mt-1.5 shrink-0',
+                                    isRead
+                                      ? 'bg-default-300'
+                                      : notice.noticeType === '1' ? 'bg-primary' : 'bg-warning'
+                                  )} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className={cn(
+                                        'text-sm truncate',
+                                        isRead ? 'text-default-500 font-normal' : 'text-default-900 font-semibold'
+                                      )}>
+                                        {notice.noticeTitle}
+                                      </span>
+                                      <Chip
+                                        size="sm"
+                                        variant="flat"
+                                        color={noticeTypeMap[notice.noticeType]?.color ?? 'default'}
+                                        className="h-4 text-[10px]"
+                                      >
+                                        {noticeTypeMap[notice.noticeType]?.label ?? '未知'}
+                                      </Chip>
+                                      {!isRead && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-danger shrink-0" />
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-default-500 line-clamp-1 mt-0.5">
+                                      {notice.content}
+                                    </p>
+                                    <p className="text-[10px] text-default-400 mt-0.5">
+                                      {getRelativeTime(notice.createTime)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </DropdownItem>
+                            )
+                          })
+                        )}
+                      </DropdownSection>
+                      <DropdownItem
+                        key="more"
+                        textValue="查看更多"
+                        onPress={() => {
+                          setNoticeOpen(false)
+                          navigate('/admin/monitor/notice')
+                        }}
+                        className="text-center text-primary text-sm"
+                      >
+                        查看更多
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
                 </NavbarItem>
 
                 {/* 主题切换 */}
@@ -439,6 +649,45 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
         isOpen={themeDrawerOpen}
         onClose={() => setThemeDrawerOpen(false)}
       />
+
+      {/* 公告详情弹窗 */}
+      <Modal isOpen={noticeDetailOpen} onOpenChange={setNoticeDetailOpen} size="lg" scrollBehavior="inside">
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-semibold">{selectedNotice?.noticeTitle}</span>
+              {selectedNotice && (
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  color={noticeTypeMap[selectedNotice.noticeType]?.color ?? 'default'}
+                >
+                  {noticeTypeMap[selectedNotice.noticeType]?.label ?? '未知'}
+                </Chip>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-xs text-default-400 font-normal">
+              {selectedNotice?.createTime && (
+                <span className="flex items-center gap-1">
+                  <Calendar size={12} />
+                  {formatDateTime(selectedNotice.createTime)}
+                </span>
+              )}
+              {selectedNotice?.createBy && (
+                <span className="flex items-center gap-1">
+                  <User size={12} />
+                  {selectedNotice.createBy}
+                </span>
+              )}
+            </div>
+          </ModalHeader>
+          <ModalBody>
+            <div className="text-sm text-default-700 leading-relaxed whitespace-pre-wrap">
+              {selectedNotice?.content || '暂无内容'}
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </>
   )
 }

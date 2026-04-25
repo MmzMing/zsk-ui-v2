@@ -96,6 +96,14 @@ const DEFAULT_COMPRESSION: ImageCompressionOptions = {
   initialQuality: 0.8,
 }
 
+/** 解析分数字符串为数值（如 '4/3' → 1.333...） */
+function parseAspectRatio(value: string): number | undefined {
+  if (value === 'free') return undefined
+  const [num, den] = value.split('/').map(Number)
+  if (!den || den === 0) return undefined
+  return num / den
+}
+
 /** 以百分比为单位的居中裁剪 */
 function centerAspectCrop(
   mediaWidth: number,
@@ -175,14 +183,29 @@ export default function ImageCropModal({
   const [crop, setCrop] = useState<Crop>()
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [confirmLoading, setConfirmLoading] = useState(false)
-  const [selectedAspect, setSelectedAspect] = useState<string>(aspect ? `${aspect}` : 'free')
+  // 将传入的数值 aspect 映射为选项中的字符串格式（如 16/9 → '16/9'）
+  const getAspectOptionValue = useCallback((numAspect?: number): string => {
+    if (!numAspect) return 'free'
+    const found = ASPECT_RATIO_OPTIONS.find((opt) => {
+      if (opt.value === 'free') return false
+      return Math.abs(parseAspectRatio(opt.value)! - numAspect) < 0.001
+    })
+    return found ? found.value : 'free'
+  }, [])
+
+  const [selectedAspect, setSelectedAspect] = useState<string>(getAspectOptionValue(aspect))
   const [imageRotation, setImageRotation] = useState(0)
   const [isFlippedH, setIsFlippedH] = useState(false)
   const [isFlippedV, setIsFlippedV] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
 
-  // file 变化时读取为 dataURL
+  // aspect prop 变化时同步内部状态
+  useEffect(() => {
+    setSelectedAspect(getAspectOptionValue(aspect))
+  }, [aspect, getAspectOptionValue])
+
+  // file 变化时读取为 dataURL 并重置相关状态
   useEffect(() => {
     if (!file) {
       setImgSrc('')
@@ -193,16 +216,18 @@ export default function ImageCropModal({
       setIsFlippedV(false)
       return
     }
+    // 每次选择新文件时，根据 aspect prop 重新设置裁剪比例
+    setSelectedAspect(getAspectOptionValue(aspect))
     const reader = new FileReader()
     reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''))
     reader.readAsDataURL(file)
-  }, [file])
+  }, [file, aspect, getAspectOptionValue])
 
   // 图片加载完成时，若有 aspect 则自动居中裁剪
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const { width, height } = e.currentTarget
-      const currentAspect = selectedAspect === 'free' ? undefined : parseFloat(selectedAspect)
+      const currentAspect = parseAspectRatio(selectedAspect)
       if (currentAspect) {
         setCrop(centerAspectCrop(width, height, currentAspect))
       }
@@ -223,9 +248,9 @@ export default function ImageCropModal({
     setSelectedAspect(value)
     
     // 如果选择了固定比例，自动居中裁剪
-    if (value !== 'free' && imgRef.current) {
+    const currentAspect = parseAspectRatio(value)
+    if (currentAspect && imgRef.current) {
       const { width, height } = imgRef.current
-      const currentAspect = parseFloat(value)
       setCrop(centerAspectCrop(width, height, currentAspect))
     } else {
       setCrop(undefined)
@@ -275,14 +300,16 @@ export default function ImageCropModal({
     // 重置裁剪区域
     if (imgRef.current && selectedAspect !== 'free') {
       const { width, height } = imgRef.current
-      const currentAspect = parseFloat(selectedAspect)
-      setCrop(centerAspectCrop(width, height, currentAspect))
+      const currentAspect = parseAspectRatio(selectedAspect)
+      if (currentAspect) {
+        setCrop(centerAspectCrop(width, height, currentAspect))
+      }
     } else {
       setCrop(undefined)
     }
   }, [selectedAspect])
 
-  const currentAspectValue = selectedAspect === 'free' ? undefined : parseFloat(selectedAspect)
+  const currentAspectValue = parseAspectRatio(selectedAspect)
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" backdrop="blur" isDismissable={!confirmLoading}>
@@ -329,6 +356,7 @@ export default function ImageCropModal({
                   selectedKeys={[selectedAspect]}
                   onSelectionChange={handleAspectChange}
                   className="w-36"
+                  aria-label="选择裁剪比例"
                 >
                   {ASPECT_RATIO_OPTIONS.map((option) => (
                     <SelectItem key={option.value} textValue={option.label}>
@@ -349,7 +377,7 @@ export default function ImageCropModal({
                     >
                       <RotateCcw size={16} />
                     </Button>
-                    <span>旋转90°</span>
+                      <span>旋转90°</span>
                   </TooltipWrapper>
                   <TooltipWrapper>
                     <Button

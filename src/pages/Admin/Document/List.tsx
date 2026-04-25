@@ -487,7 +487,7 @@ function DocEditModal({ isOpen, onOpenChange, docData, onSuccess }: DocEditModal
             {/* 封面图片区域 */}
             <div className="flex flex-col items-center gap-3">
               <div
-                className="relative w-full max-w-md h-48 rounded-lg overflow-hidden border-2 border-dashed border-default-300 hover:border-primary transition-colors cursor-pointer group"
+                className="relative w-full max-w-md aspect-[4/3] rounded-lg overflow-hidden border-2 border-dashed border-default-300 hover:border-primary transition-colors cursor-pointer group"
               >
                 {coverPreviewUrl ? (
                   <>
@@ -706,7 +706,7 @@ function DocEditModal({ isOpen, onOpenChange, docData, onSuccess }: DocEditModal
         isOpen={cropModal.isOpen}
         onClose={cropModal.onClose}
         file={cropFile}
-        aspect={16 / 9}
+        aspect={4 / 3}
         compressionOptions={{
           maxSizeMB: 3,
           maxWidthOrHeight: 1920,
