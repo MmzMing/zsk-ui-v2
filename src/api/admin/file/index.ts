@@ -123,7 +123,7 @@ export async function deleteDocFile(ids: string): Promise<boolean> {
  */
 export async function uploadDocFile(file: File): Promise<DocFile> {
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', file, file.name)
 
   const response = await request.post<ApiResponse<DocFile & { url?: string }>>('/document/docFiles/upload', formData, {
     headers: {
@@ -132,10 +132,6 @@ export async function uploadDocFile(file: File): Promise<DocFile> {
   })
   
   const data = response.data.data!
-  
-  console.log('上传响应:', response)
-  console.log('响应数据:', response.data)
-  console.log('文件数据:', data)
   
   // 后端返回的字段是 url，我们需要映射到 fileUrl
   if (data && data.url && !data.fileUrl) {

@@ -125,12 +125,10 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
     }
   }, [])
 
-  // 下拉打开时加载公告
+  // 组件挂载时加载公告
   useEffect(() => {
-    if (noticeOpen) {
-      fetchNotices()
-    }
-  }, [noticeOpen, fetchNotices])
+    fetchNotices()
+  }, [fetchNotices])
 
   // 标记公告为已读并持久化到 localStorage
   const markNoticeAsRead = useCallback((id: string) => {
@@ -496,10 +494,10 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
                     onOpenChange={setNoticeOpen}
                   >
                     <DropdownTrigger>
-                      <Button variant="light" isIconOnly className="text-default-500 relative">
+                      <Button variant="light" isIconOnly className="text-default-500 relative overflow-visible">
                         <HiOutlineBell className="text-lg" />
                         {unreadCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-danger rounded-full px-1">
+                          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-danger rounded-full px-1 border-2 border-content1">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         )}

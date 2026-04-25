@@ -205,7 +205,7 @@ export default function ImageCropModal({
     setSelectedAspect(getAspectOptionValue(aspect))
   }, [aspect, getAspectOptionValue])
 
-  // file 变化时读取为 dataURL 并重置相关状态
+  // file 变化时读取为 dataURL
   useEffect(() => {
     if (!file) {
       setImgSrc('')
@@ -216,12 +216,10 @@ export default function ImageCropModal({
       setIsFlippedV(false)
       return
     }
-    // 每次选择新文件时，根据 aspect prop 重新设置裁剪比例
-    setSelectedAspect(getAspectOptionValue(aspect))
     const reader = new FileReader()
     reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''))
     reader.readAsDataURL(file)
-  }, [file, aspect, getAspectOptionValue])
+  }, [file])
 
   // 图片加载完成时，若有 aspect 则自动居中裁剪
   const onImageLoad = useCallback(
@@ -270,8 +268,10 @@ export default function ImageCropModal({
 
       if (!blob) throw new Error('裁剪导出失败')
 
-      // 2. 构造 File 对象
-      const croppedFile = new File([blob], file?.name || 'cropped.png', { type: outputType })
+      // 2. 构造 File 对象（清理文件名中的查询参数）
+      const rawName = file?.name || 'cropped.png'
+      const cleanName = rawName.split('?')[0]
+      const croppedFile = new File([blob], cleanName, { type: outputType })
 
       // 3. 如有压缩配置则压缩
       const finalOptions = compressionOptions
