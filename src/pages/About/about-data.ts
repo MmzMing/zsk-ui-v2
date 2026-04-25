@@ -94,7 +94,7 @@ export function generateHeatmapData(): HeatmapDay[] {
     '分享了技术心得',
   ]
 
-  let currentDate = new Date(startDate)
+  const currentDate = new Date(startDate)
   while (currentDate <= now) {
     const dayOfWeek = currentDate.getDay()
     // 周末活动较少

@@ -21,7 +21,7 @@ import {
   ModalFooter,
   Button,
 } from '@heroui/react'
-import { Crop as CropIcon, ZoomIn, RotateCw } from 'lucide-react'
+import { Crop as CropIcon, ZoomIn } from 'lucide-react'
 import { cn } from '@/utils'
 
 /** 裁剪组件配置 */
@@ -237,7 +237,7 @@ export default function ImageCropModal({
             <div className="flex flex-col gap-4">
               <ReactCrop
                 crop={crop}
-                onChange={(pixelCrop, percentCrop) => setCrop(percentCrop)}
+                onChange={(_pixelCrop, percentCrop) => setCrop(percentCrop)}
                 onComplete={(pixelCrop) => setCompletedCrop(pixelCrop)}
                 aspect={aspect}
                 minWidth={minWidth}
