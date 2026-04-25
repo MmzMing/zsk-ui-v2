@@ -5,45 +5,46 @@
 import { Button, Card, Divider, Input } from '@heroui/react'
 import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
 import { MarkdownEditor, MarkdownPreview } from '@/components/ui/editor'
-import { useState } from 'react'
+import { ImageCropModal, compressImage } from '@/components/ui/image-crop'
+import { useState, useRef } from 'react'
 import { toast } from '@/utils/toast'
-import { ChatBubble } from '@/components/ui/ChatBubble'
-import type { ChatItem, ChatQuestion } from '@/components/ui/ChatBubble'
-
-// 演示用聊天数据（网站问答风格）
-const DEMO_CHAT_ITEMS: ChatItem[] = [
-  { id: '1', type: 'message', role: 'user', content: '什么是智数科云平台？' },
-  { id: '2', type: 'message', role: 'bot', content: '智数科云是一个企业级智能数据服务平台，提供数据采集、分析和可视化解决方案。' },
-  { id: '3', type: 'message', role: 'user', content: '如何开始使用？' },
-  { id: '4', type: 'message', role: 'bot', content: '您可以注册账号后免费试用基础功能，我们提供详细的入门指南和在线教程帮助您快速上手。' },
-  { id: '5', type: 'message', role: 'user', content: '平台是否易于使用？' },
-  { id: '6', type: 'message', role: 'bot', content: '是的，我们的界面设计注重用户体验，无论是技术人员还是业务人员都能轻松操作。' },
-  { id: '7', type: 'divider', content: '更多常见问题' },
-]
-
-// 底部可点击问题列表
-const DEMO_QUESTIONS: ChatQuestion[] = [
-  {
-    id: 'q1',
-    label: '平台支持哪些数据源接入？',
-    reply: '支持主流数据库（MySQL、PostgreSQL、MongoDB等）、云存储服务（阿里云、腾讯云、AWS）以及API接口的数据接入。',
-  },
-  {
-    id: 'q2',
-    label: '如何保障数据安全？',
-    reply: '我们采用企业级加密传输和存储方案，支持私有化部署，并通过了等保三级认证，确保您的数据安全无忧。',
-  },
-  {
-    id: 'q3',
-    label: '有技术支持服务吗？',
-    reply: '提供7x24小时在线技术支持，企业客户可享受专属客户经理和定制化培训服务。',
-  },
-]
+import { cn } from '@/utils'
 
 export default function TestPage() {
   const [content, setContent] = useState('# Hello Milkdown!\n\n这是一个基于 **Milkdown Crepe** 的所见即所得 Markdown 编辑器。\n\n- 支持 GFM 表格、任务列表\n- 支持代码块、引用、图片\n- 右侧使用 `react-markdown` 实时渲染\n\n```ts\nconst hello = (name: string) => `Hello, ${name}!`\n```\n\n| 特性 | 状态 |\n| ---- | ---- |\n| 工具栏 | ✅ |\n| 斜杠菜单 | ✅ |\n| 图片粘贴 | ✅ |\n')
-  // 用 key 控制 ChatBubble 重新挂载以重播动画
-  const [chatKey, setChatKey] = useState(0)
+
+  const [cropModalOpen, setCropModalOpen] = useState(false)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const [croppedPreview, setCroppedPreview] = useState<string>('')
+  const [cropAspect, setCropAspect] = useState<number | undefined>(undefined)
+  const [cropCircular, setCropCircular] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setCropFile(f)
+    setCropModalOpen(true)
+    e.target.value = ''
+  }
+
+  const handleCropComplete = async (resultFile: File) => {
+    const url = URL.createObjectURL(resultFile)
+    setCroppedPreview(url)
+    toast.success(`裁剪完成！文件大小: ${(resultFile.size / 1024).toFixed(1)} KB`)
+  }
+
+  const handleCompressOnly = async () => {
+    if (!cropFile) return
+    try {
+      const compressed = await compressImage(cropFile, { maxSizeMB: 1, maxWidthOrHeight: 1024 })
+      const url = URL.createObjectURL(compressed)
+      setCroppedPreview(url)
+      toast.success(`仅压缩完成！${(cropFile.size / 1024).toFixed(1)} KB → ${(compressed.size / 1024).toFixed(1)} KB`)
+    } catch {
+      toast.error('压缩失败')
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -55,6 +56,62 @@ export default function TestPage() {
 
         <Divider />
 
+        {/* 图片裁剪与压缩测试区域 */}
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl font-bold">图片裁剪与压缩</h2>
+            <p className="text-default-500 text-sm">
+              基于 react-image-crop + browser-image-compression，支持弹窗裁剪、固定宽高比、圆形裁剪、上传前压缩。
+            </p>
+          </div>
+
+          <Card className="p-4 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button color="primary" onPress={() => fileInputRef.current?.click()}>
+                选择图片
+              </Button>
+              <Button variant="flat" color="primary" onPress={() => { setCropAspect(undefined); setCropCircular(false) }}>
+                自由裁剪
+              </Button>
+              <Button variant="flat" color="secondary" onPress={() => { setCropAspect(1); setCropCircular(false) }}>
+                1:1 正方形
+              </Button>
+              <Button variant="flat" color="success" onPress={() => { setCropAspect(1); setCropCircular(true) }}>
+                圆形裁剪
+              </Button>
+              <Button variant="flat" color="warning" onPress={() => { setCropAspect(16 / 9); setCropCircular(false) }}>
+                16:9 横屏
+              </Button>
+              <Button variant="bordered" isDisabled={!cropFile} onPress={handleCompressOnly}>
+                仅压缩（不裁剪）
+              </Button>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+
+            {croppedPreview && (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-bold text-default-700">裁剪/压缩结果：</p>
+                <div className="flex items-start gap-4">
+                  <img
+                    src={croppedPreview}
+                    alt="裁剪结果"
+                    className={cn(
+                      'max-w-[200px] max-h-[200px] object-contain rounded-lg border border-default-200',
+                      cropCircular && 'rounded-full',
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+          </Card>
+        </section>
 
         <Divider />
 
@@ -291,36 +348,6 @@ export default function TestPage() {
           </div>
         </section>
 
-        <Divider />
-
-        {/* 气泡聊天组件测试区域 */}
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-xl font-bold">气泡聊天组件</h2>
-              <p className="text-default-500 text-sm">
-                微信/QQ 风格左右布局，气泡弹出动效，打字机效果，聊天记录依次弹出，滑动加速
-              </p>
-            </div>
-            <Button
-              variant="bordered"
-              size="sm"
-              onClick={() => setChatKey(k => k + 1)}
-            >
-              重播动画
-            </Button>
-          </div>
-
-          {/* 聊天区域：无边框无背景，直接铺在页面上 */}
-          <div className="w-full max-w-4xl mx-auto">
-            <ChatBubble
-              key={chatKey}
-              items={DEMO_CHAT_ITEMS}
-              questions={DEMO_QUESTIONS}
-              typingSpeed={38}
-            />
-          </div>
-        </section>
         <Card className="p-6">
           <h3 className="font-bold mb-4">后续测试项</h3>
           <ul className="list-disc list-inside space-y-2 text-default-600">
@@ -331,6 +358,20 @@ export default function TestPage() {
           </ul>
         </Card>
       </div>
+
+      {/* 图片裁剪弹窗 */}
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        onClose={() => setCropModalOpen(false)}
+        file={cropFile}
+        aspect={cropAspect}
+        circularCrop={cropCircular}
+        compressionOptions={{ maxSizeMB: 1, maxWidthOrHeight: 1024 }}
+        onCropComplete={handleCropComplete}
+        title="裁剪图片"
+        confirmText="确认裁剪"
+        cancelText="取消"
+      />
     </div>
   )
 }
