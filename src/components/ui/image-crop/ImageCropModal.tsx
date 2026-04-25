@@ -1,7 +1,7 @@
 /**
  * 图片裁剪与压缩通用组件
  * 基于 react-image-crop + browser-image-compression
- * 支持弹窗式裁剪、固定宽高比、圆形裁剪、上传前压缩
+ * 支持弹窗式裁剪、自定义宽高比、圆形裁剪、上传前压缩
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react'
@@ -20,9 +20,27 @@ import {
   ModalBody,
   ModalFooter,
   Button,
+  Select,
+  SelectItem,
 } from '@heroui/react'
-import { Crop as CropIcon, ZoomIn } from 'lucide-react'
+import { 
+  Crop as CropIcon, 
+  ZoomIn, 
+  RotateCcw,
+  FlipHorizontal,
+  FlipVertical 
+} from 'lucide-react'
 import { cn } from '@/utils'
+
+/** 裁剪比例选项 */
+export const ASPECT_RATIO_OPTIONS = [
+  { label: '自由', value: 'free' },
+  { label: '1:1 正方形', value: '1/1' },
+  { label: '3:4', value: '3/4' },
+  { label: '4:3', value: '4/3' },
+  { label: '16:9', value: '16/9' },
+  { label: '9:16', value: '9/16' },
+]
 
 /** 裁剪组件配置 */
 interface ImageCropModalProps {
@@ -146,17 +164,21 @@ export default function ImageCropModal({
   circularCrop = false,
   minWidth = 50,
   minHeight = 50,
-  ruleOfThirds = false,
+  ruleOfThirds = true,
   compressionOptions,
   onCropComplete,
-  title = '裁剪图片',
-  confirmText = '确认裁剪',
+  title = '裁剪封面图片',
+  confirmText = '确认并上传',
   cancelText = '取消',
 }: ImageCropModalProps) {
   const [imgSrc, setImgSrc] = useState<string>('')
   const [crop, setCrop] = useState<Crop>()
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [confirmLoading, setConfirmLoading] = useState(false)
+  const [selectedAspect, setSelectedAspect] = useState<string>(aspect ? `${aspect}` : 'free')
+  const [imageRotation, setImageRotation] = useState(0)
+  const [isFlippedH, setIsFlippedH] = useState(false)
+  const [isFlippedV, setIsFlippedV] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -166,6 +188,9 @@ export default function ImageCropModal({
       setImgSrc('')
       setCrop(undefined)
       setCompletedCrop(undefined)
+      setImageRotation(0)
+      setIsFlippedH(false)
+      setIsFlippedV(false)
       return
     }
     const reader = new FileReader()
@@ -177,11 +202,12 @@ export default function ImageCropModal({
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const { width, height } = e.currentTarget
-      if (aspect) {
-        setCrop(centerAspectCrop(width, height, aspect))
+      const currentAspect = selectedAspect === 'free' ? undefined : parseFloat(selectedAspect)
+      if (currentAspect) {
+        setCrop(centerAspectCrop(width, height, currentAspect))
       }
     },
-    [aspect],
+    [selectedAspect],
   )
 
   // 裁剪区域变化时同步渲染预览 canvas
@@ -189,6 +215,22 @@ export default function ImageCropModal({
     if (!completedCrop?.width || !completedCrop?.height || !imgRef.current || !previewCanvasRef.current) return
     canvasPreview(imgRef.current, previewCanvasRef.current, completedCrop)
   }, [completedCrop])
+
+  // 切换裁剪比例
+  const handleAspectChange = useCallback((keys: 'all' | Set<React.Key>) => {
+    if (keys === 'all') return
+    const value = Array.from(keys)[0] as string
+    setSelectedAspect(value)
+    
+    // 如果选择了固定比例，自动居中裁剪
+    if (value !== 'free' && imgRef.current) {
+      const { width, height } = imgRef.current
+      const currentAspect = parseFloat(value)
+      setCrop(centerAspectCrop(width, height, currentAspect))
+    } else {
+      setCrop(undefined)
+    }
+  }, [])
 
   // 确认裁剪：canvas → blob → 压缩 → 回调
   const handleConfirm = useCallback(async () => {
@@ -225,6 +267,23 @@ export default function ImageCropModal({
     }
   }, [completedCrop, compressionOptions, file, onCropComplete, onClose])
 
+  // 重置操作
+  const handleReset = useCallback(() => {
+    setImageRotation(0)
+    setIsFlippedH(false)
+    setIsFlippedV(false)
+    // 重置裁剪区域
+    if (imgRef.current && selectedAspect !== 'free') {
+      const { width, height } = imgRef.current
+      const currentAspect = parseFloat(selectedAspect)
+      setCrop(centerAspectCrop(width, height, currentAspect))
+    } else {
+      setCrop(undefined)
+    }
+  }, [selectedAspect])
+
+  const currentAspectValue = selectedAspect === 'free' ? undefined : parseFloat(selectedAspect)
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" backdrop="blur" isDismissable={!confirmLoading}>
       <ModalContent>
@@ -235,35 +294,112 @@ export default function ImageCropModal({
         <ModalBody>
           {imgSrc && (
             <div className="flex flex-col gap-4">
-              <ReactCrop
-                crop={crop}
-                onChange={(_pixelCrop, percentCrop) => setCrop(percentCrop)}
-                onComplete={(pixelCrop) => setCompletedCrop(pixelCrop)}
-                aspect={aspect}
-                minWidth={minWidth}
-                minHeight={minHeight}
-                circularCrop={circularCrop}
-                ruleOfThirds={ruleOfThirds}
-                className={cn('max-h-[60vh] overflow-hidden', circularCrop && 'react-crop--circular')}
-              >
-                <img
-                  ref={imgRef}
-                  alt="裁剪预览"
-                  src={imgSrc}
-                  onLoad={onImageLoad}
-                  className="max-h-[60vh] object-contain"
-                />
-              </ReactCrop>
+              {/* 裁剪区域 */}
+              <div className="relative">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_pixelCrop, percentCrop) => setCrop(percentCrop)}
+                  onComplete={(pixelCrop) => setCompletedCrop(pixelCrop)}
+                  aspect={currentAspectValue}
+                  minWidth={minWidth}
+                  minHeight={minHeight}
+                  circularCrop={circularCrop}
+                  ruleOfThirds={ruleOfThirds}
+                  className={cn('max-h-[50vh] overflow-hidden', circularCrop && 'react-crop--circular')}
+                >
+                  <img
+                    ref={imgRef}
+                    alt="裁剪预览"
+                    src={imgSrc}
+                    onLoad={onImageLoad}
+                    className="max-h-[50vh] object-contain"
+                    style={{
+                      transform: `rotate(${imageRotation}deg) scaleX(${isFlippedH ? -1 : 1}) scaleY(${isFlippedV ? -1 : 1})`,
+                    }}
+                  />
+                </ReactCrop>
+              </div>
+
+              {/* 工具栏 */}
+              <div className="flex items-center justify-between">
+                {/* 左侧：比例选择 */}
+                <Select
+                  size="sm"
+                  placeholder="选择裁剪比例"
+                  selectedKeys={[selectedAspect]}
+                  onSelectionChange={handleAspectChange}
+                  className="w-36"
+                >
+                  {ASPECT_RATIO_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} textValue={option.label}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+
+                {/* 中间：操作工具 */}
+                <div className="flex items-center gap-1">
+                  <TooltipWrapper>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => setImageRotation((prev) => (prev + 90) % 360)}
+                      aria-label="旋转90度"
+                    >
+                      <RotateCcw size={16} />
+                    </Button>
+                    <span>旋转90°</span>
+                  </TooltipWrapper>
+                  <TooltipWrapper>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => setIsFlippedH((prev) => !prev)}
+                      aria-label="水平翻转"
+                    >
+                      <FlipHorizontal size={16} />
+                    </Button>
+                    <span>水平翻转</span>
+                  </TooltipWrapper>
+                  <TooltipWrapper>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => setIsFlippedV((prev) => !prev)}
+                      aria-label="垂直翻转"
+                    >
+                      <FlipVertical size={16} />
+                    </Button>
+                    <span>垂直翻转</span>
+                  </TooltipWrapper>
+                  <TooltipWrapper>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={handleReset}
+                      aria-label="重置"
+                    >
+                      <RotateCcw size={16} />
+                    </Button>
+                    <span>重置</span>
+                  </TooltipWrapper>
+                </div>
+
+                {/* 右侧：裁剪区域信息 */}
+                {completedCrop && (
+                  <div className="flex items-center gap-2 text-tiny text-default-500">
+                    <ZoomIn size={14} />
+                    裁剪区域: {Math.round(completedCrop.width)} x {Math.round(completedCrop.height)} px
+                  </div>
+                )}
+              </div>
 
               {/* 预览 canvas（隐藏，仅用于导出） */}
               <canvas ref={previewCanvasRef} className="hidden" />
-
-              {completedCrop && (
-                <div className="flex items-center gap-2 text-tiny text-default-500">
-                  <ZoomIn size={14} />
-                  裁剪区域: {Math.round(completedCrop.width)} x {Math.round(completedCrop.height)} px
-                </div>
-              )}
             </div>
           )}
         </ModalBody>
@@ -282,6 +418,17 @@ export default function ImageCropModal({
         </ModalFooter>
       </ModalContent>
     </Modal>
+  )
+}
+
+/**
+ * 工具提示包装组件
+ */
+function TooltipWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative group">
+      {children}
+    </div>
   )
 }
 
