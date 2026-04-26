@@ -137,6 +137,55 @@ export interface DocNoteBatchCategoryParams {
   category: string
 }
 
+/** 笔记正文详情（document_note_dtl） */
+export interface DocNoteDtl {
+  id: string
+  tenantId: string
+  noteId: string
+  content: string
+  version: string
+  createName: string
+  createTime: string
+  updateName: string
+  updateTime: string
+  deleted: number
+}
+
+/** 笔记元信息提交体（创建/更新聚合接口） */
+export interface DocNoteAggregateMeta {
+  id?: string
+  userId?: string
+  noteName: string
+  noteTags?: string
+  description?: string
+  coverFileId?: string
+  broadCode: string
+  narrowCode?: string
+  noteGrade?: number
+  noteMode?: number
+  suitableUsers?: string
+  status?: DocNoteStatus
+  auditStatus?: DocAuditStatus
+  publishTime?: string
+  isPinned?: number
+  isRecommended?: number
+  seoTitle?: string
+  seoDescription?: string
+  seoKeywords?: string
+}
+
+/** 创建/更新聚合（元信息 + 正文） */
+export interface DocNoteAggregateInput {
+  docNote: DocNoteAggregateMeta
+  content: string
+}
+
+/** 聚合查询返回（元信息 + 正文） */
+export interface DocNoteFull extends DocNote {
+  /** 笔记正文（Markdown） */
+  content: string
+}
+
 /** 状态选项 */
 export interface DocNoteStatusOption {
   value: DocNoteStatus

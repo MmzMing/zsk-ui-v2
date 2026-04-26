@@ -11,25 +11,66 @@ import '@milkdown/crepe/theme/common/style.css'
 import lightThemeUrl from '@milkdown/crepe/theme/frame.css?url'
 import darkThemeUrl from '@milkdown/crepe/theme/frame-dark.css?url'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Crepe } from '@milkdown/crepe'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
-import { useAppStore, type ThemeMode } from '@/stores/app'
 
-function getActualTheme(mode: ThemeMode): 'light' | 'dark' {
-  if (mode === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+/**
+ * 读取当前 <html> 上的实际主题。
+ * 由 `useTheme()` 写入 `class="dark"` / `data-theme="..."`，
+ * 与前台/后台主题独立设置保持一致。
+ */
+function readActualTheme(): 'light' | 'dark' {
+  if (typeof document === 'undefined') return 'light'
+  const root = document.documentElement
+  if (root.classList.contains('dark')) return 'dark'
+  const attr = root.getAttribute('data-theme')
+  if (attr === 'dark') return 'dark'
+  if (attr === 'light') return 'light'
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark'
   }
-  return mode
+  return 'light'
 }
 
+/**
+ * 监听 <html> 的 class / data-theme 变化，返回当前主题。
+ * 这样编辑器主题跟随全局 useTheme()，自动适配前台/后台独立主题。
+ */
+function useActualTheme(): 'light' | 'dark' {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => readActualTheme())
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const root = document.documentElement
+    const sync = () => setTheme(readActualTheme())
+
+    const observer = new MutationObserver(sync)
+    observer.observe(root, { attributes: true, attributeFilter: ['class', 'data-theme'] })
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    mq.addEventListener('change', sync)
+
+    return () => {
+      observer.disconnect()
+      mq.removeEventListener('change', sync)
+    }
+  }, [])
+
+  return theme
+}
+
+/**
+ * 根据当前主题切换 Milkdown Crepe 的样式表。
+ */
 function useMilkdownTheme() {
-  const themeMode = useAppStore((s) => s.themeMode)
+  const actual = useActualTheme()
 
   useEffect(() => {
     const id = 'milkdown-crepe-theme'
     let link = document.getElementById(id) as HTMLLinkElement | null
-    
+
     if (!link) {
       link = document.createElement('link')
       link.id = id
@@ -37,25 +78,8 @@ function useMilkdownTheme() {
       document.head.appendChild(link)
     }
 
-    const updateTheme = () => {
-      const actual = getActualTheme(themeMode)
-      link.href = actual === 'dark' ? darkThemeUrl : lightThemeUrl
-    }
-
-    updateTheme()
-
-    const onSystemChange = () => {
-      if (themeMode === 'system') {
-        updateTheme()
-      }
-    }
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    mq.addEventListener('change', onSystemChange)
-
-    return () => {
-      mq.removeEventListener('change', onSystemChange)
-    }
-  }, [themeMode])
+    link.href = actual === 'dark' ? darkThemeUrl : lightThemeUrl
+  }, [actual])
 }
 
 export interface MarkdownEditorProps {

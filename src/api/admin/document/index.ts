@@ -4,7 +4,7 @@
  * 支持文档CRUD、状态切换、置顶/推荐切换
  */
 
-import { get, post, put, del } from '../../request'
+import { get, post, put, del, request } from '../../request'
 import type {
   DocNote,
   DocNoteQueryParams,
@@ -12,8 +12,12 @@ import type {
   DocNoteCreateInput,
   DocNoteUpdateInput,
   DocNoteBatchStatusParams,
-  DocNoteBatchCategoryParams
+  DocNoteBatchCategoryParams,
+  DocNoteAggregateInput,
+  DocNoteFull,
+  DocNoteDtl
 } from '@/types/document.types'
+import type { ApiResponse } from '@/types/api.types'
 
 /**
  * 查询文档列表（不分页）
@@ -108,4 +112,91 @@ export async function toggleDocNotePinned(id: string): Promise<void> {
  */
 export async function toggleDocNoteRecommended(id: string): Promise<void> {
   return put(`/document/docNote/${id}/recommended`)
+}
+
+// ===== 笔记聚合管理（元信息 + 正文） =====
+
+/**
+ * 创建笔记（元信息 + 正文）
+ *
+ * @param data - 聚合数据：docNote + content
+ */
+export async function createDocNoteAggregate(data: DocNoteAggregateInput): Promise<boolean> {
+  return post('/document/docNoteDtlAggregate/full', data as unknown as Record<string, unknown>)
+}
+
+/**
+ * 全量更新笔记（元信息 + 正文）
+ *
+ * @param id - 笔记 ID
+ * @param data - 聚合数据：docNote(含 id) + content
+ */
+export async function updateDocNoteAggregate(id: string, data: DocNoteAggregateInput): Promise<boolean> {
+  return put(`/document/docNoteDtlAggregate/${id}/full`, data as unknown as Record<string, unknown>)
+}
+
+/**
+ * 获取笔记全量信息（元信息 + 正文）
+ *
+ * @param id - 笔记 ID
+ */
+export async function getDocNoteAggregate(id: string): Promise<DocNoteFull> {
+  return get(`/document/docNoteDtlAggregate/${id}/full`)
+}
+
+/**
+ * 级联删除笔记（元信息 + 正文）
+ *
+ * @param id - 笔记 ID
+ */
+export async function deleteDocNoteAggregate(id: string): Promise<boolean> {
+  return del(`/document/docNoteDtlAggregate/${id}/full`)
+}
+
+// ===== 笔记正文（document_note_dtl） =====
+
+/**
+ * 根据笔记 ID 获取正文内容
+ *
+ * @param noteId - 笔记 ID
+ */
+export async function getDocNoteDtl(noteId: string): Promise<DocNoteDtl> {
+  return get(`/document/docNoteDtl/${noteId}`)
+}
+
+/**
+ * 新增或更新笔记正文（幂等）
+ *
+ * @param noteId - 笔记 ID
+ * @param content - Markdown 正文内容
+ */
+export async function saveDocNoteDtl(noteId: string, content: string): Promise<boolean> {
+  return post('/document/docNoteDtl', { noteId, content })
+}
+
+/**
+ * 批量删除笔记正文
+ *
+ * @param noteIds - 笔记 ID 列表（逗号分隔）
+ */
+export async function deleteDocNoteDtl(noteIds: string): Promise<boolean> {
+  return del(`/document/docNoteDtl/${noteIds}`)
+}
+
+/**
+ * 上传 MD 文件并保存为笔记正文
+ *
+ * @param noteId - 关联笔记 ID
+ * @param file - .md / .markdown 文件
+ */
+export async function uploadDocNoteDtlFile(noteId: string, file: File): Promise<boolean> {
+  const formData = new FormData()
+  formData.append('noteId', noteId)
+  formData.append('file', file)
+  const response = await request.post<ApiResponse<boolean>>(
+    '/document/docNoteDtl/upload',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  )
+  return response.data.data!
 }

@@ -48,6 +48,8 @@ const DocumentEdit = lazy(() => import('@/pages/Admin/Document/Edit'))
 const DocumentList = lazy(() => import('@/pages/Admin/Document/List'))
 const DocumentUpload = lazy(() => import('@/pages/Admin/Document/Upload'))
 const DocumentAudit = lazy(() => import('@/pages/Admin/Document/Audit'))
+const DocumentCreateEdit = lazy(() => import('@/pages/Admin/Document/CreateEdit'))
+const DocumentEditor = lazy(() => import('@/pages/Admin/Document/Editor'))
 
 // 系统管理页面
 const SystemConfig = lazy(() => import('@/pages/Admin/System/Config'))
@@ -231,6 +233,18 @@ export const routes: RouteObject[] = [
               {
                 path: 'audit',
                 element: withSuspense(DocumentAudit),
+              },
+              {
+                path: 'create-edit',
+                element: withSuspense(DocumentCreateEdit),
+              },
+              {
+                path: 'editor',
+                element: withSuspense(DocumentEditor),
+              },
+              {
+                path: 'editor/:id',
+                element: withSuspense(DocumentEditor),
               },
             ],
           },
