@@ -26,12 +26,13 @@ import {
   ModalBody,
   ModalContent,
   ModalHeader,
+  ModalFooter,
   Spinner,
   useDisclosure,
 } from '@heroui/react'
 
 // 图标
-import { FilePlus2, FilePen, Pencil, Upload } from 'lucide-react'
+import { AlertTriangle, FilePlus2, FilePen, Pencil, Upload } from 'lucide-react'
 
 // 工具
 import { toast } from '@/utils/toast'
@@ -96,6 +97,8 @@ export default function DocumentCreateEdit() {
   const [isParsing, setIsParsing] = useState(false)
   /** 隐藏的文件输入 */
   const fileInputRef = useRef<HTMLInputElement>(null)
+  /** 文件过大警告弹窗 */
+  const [showSizeWarning, setShowSizeWarning] = useState(false)
 
   /** 编辑已有文档 → 跳转列表页 */
   const handleGoList = useCallback(() => {
@@ -125,9 +128,15 @@ export default function DocumentCreateEdit() {
       e.target.value = ''
       if (!file) return
 
-      const errorMsg = validateMarkdownFile(file)
-      if (errorMsg) {
-        toast.error(errorMsg)
+      const lower = file.name.toLowerCase()
+      const ok = ALLOWED_MD_EXTENSIONS.some((ext) => lower.endsWith(ext))
+      if (!ok) {
+        toast.error('文件格式不支持：仅支持 .md 和 .markdown 格式的文件')
+        return
+      }
+
+      if (file.size > MAX_MD_SIZE) {
+        setShowSizeWarning(true)
         return
       }
 
@@ -241,14 +250,6 @@ export default function DocumentCreateEdit() {
               </Card>
             </div>
 
-            {/* 解析中遮罩 */}
-            {isParsing && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-50 rounded-large">
-                <Spinner size="lg" color="primary" />
-                <span className="text-sm text-default-600">正在解析文件...</span>
-              </div>
-            )}
-
             <input
               ref={fileInputRef}
               type="file"
@@ -257,6 +258,34 @@ export default function DocumentCreateEdit() {
               onChange={handleFileSelect}
             />
           </ModalBody>
+        </ModalContent>
+
+        {/* 解析中遮罩（覆盖整个弹窗） */}
+        {isParsing && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-50 rounded-large">
+            <Spinner size="lg" color="primary" />
+            <span className="text-sm text-default-600">正在解析文件...</span>
+          </div>
+        )}
+      </Modal>
+
+      {/* 文件过大警告弹窗 */}
+      <Modal isOpen={showSizeWarning} onOpenChange={setShowSizeWarning}>
+        <ModalContent>
+          <ModalHeader className="flex items-center gap-3">
+            <AlertTriangle className="text-warning" size={20} />
+            <span>文件过大</span>
+          </ModalHeader>
+          <ModalBody className="text-sm">
+            <p className="text-default-600">
+              您选择的文件超过了允许的最大大小（2MB）。请选择较小的 Markdown 文件或拆分文件后重新导入。
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onPress={() => setShowSizeWarning(false)}>
+              我知道了
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </div>

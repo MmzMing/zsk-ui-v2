@@ -433,6 +433,7 @@ export default function MonitorNotice() {
               />
               <Select
                 size="sm"
+                aria-label="按状态筛选"
                 placeholder="状态"
                 className="w-24"
                 selectedKeys={queryParams.status ? [queryParams.status] : []}

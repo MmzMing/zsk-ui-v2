@@ -14,6 +14,7 @@ import darkThemeUrl from '@milkdown/crepe/theme/frame-dark.css?url'
 import { useEffect, useRef, useState } from 'react'
 import { Crepe } from '@milkdown/crepe'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
+import { replaceAll } from '@milkdown/kit/utils'
 
 /**
  * 读取当前 <html> 上的实际主题。
@@ -108,8 +109,12 @@ function CrepeEditor({
 }: Pick<MarkdownEditorProps, 'value' | 'onChange' | 'placeholder' | 'readOnly'>) {
   // 保存 Crepe 实例引用，便于受控同步与事件监听
   const crepeRef = useRef<Crepe | null>(null)
+  // 保存底层 Editor 实例引用，用于调用 action
+  const editorRef = useRef<Awaited<ReturnType<Crepe['create']>> | null>(null)
   // 最近一次由编辑器内部触发的内容快照，避免外部回写造成循环
   const lastEmittedRef = useRef<string>(value)
+  // 待设置的内容（用于编辑器初始化前的内容暂存）
+  const pendingContentRef = useRef<string | null>(null)
 
   useEditor((root) => {
     const crepe = new Crepe({
@@ -129,9 +134,32 @@ function CrepeEditor({
       })
     })
 
+    crepe.create().then((editor) => {
+      editorRef.current = editor
+      // 如果有 pending 的内容，立即同步
+      if (pendingContentRef.current) {
+        editor.action(replaceAll(pendingContentRef.current, true))
+        lastEmittedRef.current = pendingContentRef.current
+        pendingContentRef.current = null
+      }
+    })
+
     crepeRef.current = crepe
     return crepe
   })
+
+  // 受控同步：当外部 value 变化时，同步到编辑器
+  useEffect(() => {
+    // 编辑器已初始化，直接同步
+    if (editorRef.current) {
+      if (value === lastEmittedRef.current) return
+      editorRef.current.action(replaceAll(value, true))
+      lastEmittedRef.current = value
+    } else {
+      // 编辑器未初始化，暂存内容
+      pendingContentRef.current = value
+    }
+  }, [value])
 
   // 只读切换
   useEffect(() => {

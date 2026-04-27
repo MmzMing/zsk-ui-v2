@@ -16,7 +16,7 @@
  */
 
 // React
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 // HeroUI
@@ -93,6 +93,8 @@ export default function DocumentEditor() {
   /** 桌面端实时预览显示/隐藏 */
   const [showPreview, setShowPreview] = useState(true)
 
+
+
   /** 元信息提交弹窗 */
   const metaModal = useDisclosure()
 
@@ -134,6 +136,8 @@ export default function DocumentEditor() {
       cancelled = true
     }
   }, [isEdit, id])
+
+
 
   // ===== 事件 =====
 
@@ -269,7 +273,7 @@ export default function DocumentEditor() {
                 }`}
               >
                 <h3 className="text-sm font-semibold text-default-700">编辑区</h3>
-                <div className="flex-1 min-h-0">
+                <div className="flex-1 min-h-0 overflow-auto">
                   <MarkdownEditor
                     value={content}
                     onChange={setContent}
