@@ -52,7 +52,7 @@ npx tsc --noEmit     # 仅做类型检查（无产出，提交前推荐）
 
 ### API 层
 - `src/utils/request.ts`（axios 封装）+ `src/api/<模块>/index.ts`：按模块分目录（auth / profile / admin/{user,role,menu,config,dict,cache,syslog} 等）。
-- 调用约定：`request.get<ApiResponse<T>>(...)` → 检查 `success` → 抛 `Error` → 上层 `try/catch` 后用 `toast` 反馈，参考 AGENTS.md §八。
+- 调用约定：`request.get<ApiResponse<T>>(...)` → 检查 `success` → 抛 `Error` → 上层 `try/catch` 后用 `toast` 反馈。
 
 ### 路径别名
 - Vite + tsconfig 都以 `@` 指向 `src/`。**禁止 `../../` 相对路径**，统一 `@/utils`、`@/components`、`@/stores` 等。
@@ -64,7 +64,188 @@ npx tsc --noEmit     # 仅做类型检查（无产出，提交前推荐）
 ### 富文本编辑器（当前实现）
 - 使用`Markdown`格式，使用封装好的`MarkdownEditor`组件。渲染使用`MarkdownPreview`组件。
 - 参考 test 页面。
-## 项目级强制规范（摘自 AGENTS.md / .trae/rules，与本仓库实际生效一致）
+
+## 技术栈
+
+- **UI 框架**: React ^19.2.0
+- **构建工具**: Vite ^7.x
+- **类型系统**: TypeScript ~5.9.3
+- **组件库**: HeroUI ^2.8.8 (默认)
+- **CSS**: Tailwind CSS ^4.x
+- **路由**: React Router DOM ^7.x
+- **状态管理**: Zustand
+
+## 代码规范（强制）
+
+### 语言规范
+- ✅ **必须使用中文注释**
+- ✅ **必须使用中文报错日志**
+- ✅ **必须使用 ES6+ 语法**
+- ❌ **禁止在代码中使用 emoji**
+
+### 路径规范
+- ✅ **必须使用路径别名**（如 `@/`）
+- ❌ 禁止使用相对路径 `../../`
+
+### 文件区域顺序
+
+按以下顺序组织代码：
+1. 依赖导入区域
+2. TODO待处理导入区域
+3. 状态控制逻辑区域
+4. 通用工具函数区域
+5. 注释代码函数区
+6. 错误处理函数区域
+7. 数据处理函数区域
+8. UI渲染逻辑区域
+9. 页面初始化与事件绑定
+10. TODO任务管理区域
+11. 导出区域
+
+### 导入顺序
+
+```typescript
+// 1. React 核心
+import { useState, useEffect, useCallback } from 'react'
+
+// 2. HeroUI 组件
+import { Button, Input, Modal } from '@heroui/react'
+
+// 3. 图标 (Lucide > React Icons)
+import { Home, Settings } from 'lucide-react'
+
+// 4. 视频/富文本
+import { Player, Video } from '@vidstack/react'
+
+// 5. 动画
+import { motion } from 'framer-motion'
+
+// 6. 工具函数
+import { formatDate } from '@/utils/format'
+import { request } from '@/utils/request'
+
+// 7. 状态管理
+import { useUserStore } from '@/stores/user'
+
+// 8. 类型定义
+import type { UserInfo } from '@/types/user'
+
+// 9. 组件
+import UserCard from '@/components/UserCard'
+```
+
+## 命名规范
+
+### 变量命名 (camelCase)
+- 普通变量：`userName`, `totalCount`
+- 布尔值：`isActive`, `hasPermission`（is/has/can 前缀）
+- 数组：`users`, `items`, `dataList`（复数形式）
+- 常量：`MAX_RETRY`, `API_BASE_URL`（全大写+下划线）
+
+### 函数命名 (动词前缀 + 名词)
+- get：获取数据，如 `getUserInfo`
+- handle：处理事件，如 `handleSubmit`
+- show/hide：显示/隐藏，如 `showModal`
+- validate：校验，如 `validateEmail`
+- on：事件处理，如 `onChange`
+
+### 组件/文件命名 (PascalCase)
+- 组件文件：`UserProfile.tsx`, `ArticleCard.tsx`
+- 工具文件：`format.ts`, `validate.ts`（camelCase）
+- 类型文件：`user.types.ts`, `api.types.ts`
+- 钩子文件：`useAuth.ts`, `useDebounce.ts`
+
+## 类型安全
+
+- ✅ **必须定义明确类型**，禁止使用 `any`
+- ✅ **使用泛型**处理通用逻辑
+- ✅ **利用类型推断**简化代码
+
+## 组件规范
+
+### HeroUI 使用
+优先使用 HeroUI 组件构建界面。
+
+### Props 定义
+必须有显式 interface 与 JSDoc 注释。
+
+### 条件渲染
+使用清晰的条件渲染，避免嵌套三元运算符。
+
+## 状态管理 (Zustand)
+
+### 全局加载状态
+使用 `useUIStore` 控制全局加载遮罩。
+
+### 不可变性
+状态更新使用展开运算符或 `map/filter`，禁止就地修改状态数组。
+
+## API 规范
+
+### 请求规范
+使用封装好的 `request` 工具函数，检查 `success` 字段，失败时抛出 `Error`。
+
+### 错误处理
+使用 `try/catch` 捕获错误，通过 `toast` 反馈用户，并记录日志。
+
+## 特殊组件规范
+
+### 图标
+优先使用 `lucide-react`，其次 `react-icons`。
+
+### 视频播放器
+必须使用 `@vidstack/react`。
+
+### 富文本编辑器
+- 简历编辑：必须使用 Tiptap
+- 文档编辑：可选 Quill
+
+## 移动端适配
+
+- 使用 Tailwind CSS 响应式类
+- 移动端优先原则
+- 触摸区域最小 44px
+
+## 动画规范
+
+| 库 | 用途 |
+|------|------|
+| Framer Motion | 页面转场、复杂动画 |
+| HeroUI 内置动画 | 组件内置动画 |
+| Tailwind CSS | 简单过渡效果 |
+
+## ESLint 规则
+
+```javascript
+{
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "warn"
+  }
+}
+```
+
+## 注释规范
+
+**解释为什么，而不是做什么**：
+
+```typescript
+// ✅ 正确：说明原因
+// 使用指数退避避免 API 过载
+const delay = Math.min(1000 * Math.pow(2, retryCount), 30000)
+
+// ❌ 错误：说明做什么
+const delay = 1000
+```
+
+## 代码复用
+
+- ✅ **必须合并重复逻辑**
+- ✅ **优先使用封装好的工具函数**
+
+## 项目级强制规范
 
 - **语言**：注释、`console` 日志一律中文；不在源码中使用 emoji。
 - **导入顺序**：React → HeroUI → 图标(Lucide 优先, 其次 react-icons) → 媒体/编辑器 → 动画 → `@/utils` → `@/stores` → `@/types` → 业务组件。
@@ -84,7 +265,6 @@ npx tsc --noEmit     # 仅做类型检查（无产出，提交前推荐）
 
 ## 详细规范文档
 
-- `AGENTS.md` ——更详尽的代理协作规范
 - `.trae/rules/project_rules.md` ——Trae IDE 规则钩子
 - `docs/rule/frontend-code-standard.md` ——前端代码规范
 - `docs/前端框架构建/` ——主题系统、国际化、页头页脚、全局设置等专题说明
