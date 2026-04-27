@@ -159,7 +159,7 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
   const renderContent = () => (
     <ScrollShadow className="flex-1 overflow-y-auto">
       <main
-        className="p-4 md:p-6"
+        className="p-4 md:p-6 h-full"
         style={{ padding: contentPadding }}
       >
         <AnimatePresence mode="wait" initial={false}>

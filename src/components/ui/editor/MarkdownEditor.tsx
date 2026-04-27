@@ -157,7 +157,7 @@ export function MarkdownEditor({
   return (
     <div
       className={
-        'zsk-milkdown-editor border border-default-200 rounded-md overflow-hidden bg-content1 ' +
+        'zsk-milkdown-editor border border-default-200 rounded-md bg-content1 ' +
         (className ?? '')
       }
       style={{ height: typeof height === 'number' ? `${height}px` : height }}
