@@ -168,10 +168,7 @@ export default function DocumentCreateEdit() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 编辑已有文档 */}
           <Card
-            isPressable
-            isHoverable
-            onPress={handleGoList}
-            className="bg-content1 border border-default-200 hover:border-primary transition-colors"
+            className="bg-content1 border border-default-200"
           >
             <CardBody className="flex flex-col items-center text-center gap-4 py-10">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -189,10 +186,7 @@ export default function DocumentCreateEdit() {
 
           {/* 创建新文档 */}
           <Card
-            isPressable
-            isHoverable
-            onPress={handleOpenCreate}
-            className="bg-content1 border border-default-200 hover:border-primary transition-colors"
+            className="bg-content1 border border-default-200"
           >
             <CardBody className="flex flex-col items-center text-center gap-4 py-10">
               <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center text-success">

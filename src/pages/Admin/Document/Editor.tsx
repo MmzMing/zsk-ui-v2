@@ -31,7 +31,7 @@ import {
 } from '@heroui/react'
 
 // 图标
-import { ArrowLeft, FileText, Save } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, FileText, Save } from 'lucide-react'
 
 // 工具
 import { toast } from '@/utils/toast'
@@ -90,6 +90,8 @@ export default function DocumentEditor() {
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('edit')
   /** 提交中（聚合接口调用） */
   const [isSubmitting, setIsSubmitting] = useState(false)
+  /** 桌面端实时预览显示/隐藏 */
+  const [showPreview, setShowPreview] = useState(true)
 
   /** 元信息提交弹窗 */
   const metaModal = useDisclosure()
@@ -221,6 +223,17 @@ export default function DocumentEditor() {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <Tooltip content={showPreview ? '隐藏预览' : '显示预览'} size="sm">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={() => setShowPreview((v) => !v)}
+                  className="hidden md:flex"
+                >
+                  {showPreview ? <Eye size={16} /> : <EyeOff size={16} />}
+                </Button>
+              </Tooltip>
               <Button
                 size="sm"
                 color="primary"
@@ -248,9 +261,13 @@ export default function DocumentEditor() {
 
           {/* 编辑/预览主体 */}
           <div className="flex-1 overflow-hidden p-3">
-            {/* 桌面端：左右分栏 */}
-            <div className="hidden md:grid grid-cols-2 gap-4 h-full">
-              <div className="flex flex-col gap-2 min-h-0">
+            {/* 桌面端：左右分栏（flex 实现平滑切换动效） */}
+            <div className="hidden md:flex gap-4 h-full overflow-hidden">
+              <div
+                className={`flex flex-col gap-2 min-h-0 transition-all duration-300 ease-in-out ${
+                  showPreview ? 'w-1/2' : 'w-full'
+                }`}
+              >
                 <h3 className="text-sm font-semibold text-default-700">编辑区</h3>
                 <div className="flex-1 min-h-0">
                   <MarkdownEditor
@@ -261,8 +278,12 @@ export default function DocumentEditor() {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-2 min-h-0">
-                <h3 className="text-sm font-semibold text-primary">实时预览</h3>
+              <div
+                className={`flex flex-col gap-2 min-h-0 transition-all duration-300 ease-in-out overflow-hidden ${
+                  showPreview ? 'w-1/2 opacity-100' : 'w-0 opacity-0'
+                }`}
+              >
+                <h3 className="text-sm font-semibold text-primary whitespace-nowrap">实时预览</h3>
                 <div className="flex-1 min-h-0 p-4 bg-content1 rounded-md border border-default-200 overflow-auto">
                   <MarkdownPreview value={content} />
                 </div>
