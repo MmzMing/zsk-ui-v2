@@ -44,9 +44,7 @@ const VideoUpload = lazy(() => import('@/pages/Admin/Video/Upload'))
 const VideoAudit = lazy(() => import('@/pages/Admin/Video/Audit'))
 
 // 文档管理页面
-const DocumentEdit = lazy(() => import('@/pages/Admin/Document/Edit'))
 const DocumentList = lazy(() => import('@/pages/Admin/Document/List'))
-const DocumentUpload = lazy(() => import('@/pages/Admin/Document/Upload'))
 const DocumentAudit = lazy(() => import('@/pages/Admin/Document/Audit'))
 const DocumentCreateEdit = lazy(() => import('@/pages/Admin/Document/CreateEdit'))
 const DocumentEditor = lazy(() => import('@/pages/Admin/Document/Editor'))
@@ -219,16 +217,8 @@ export const routes: RouteObject[] = [
             path: 'document',
             children: [
               {
-                path: 'edit',
-                element: withSuspense(DocumentEdit),
-              },
-              {
                 path: 'list',
                 element: withSuspense(DocumentList),
-              },
-              {
-                path: 'upload',
-                element: withSuspense(DocumentUpload),
               },
               {
                 path: 'audit',

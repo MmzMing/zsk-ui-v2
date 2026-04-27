@@ -211,3 +211,92 @@ export const DOC_AUDIT_STATUS_OPTIONS: DocAuditStatusOption[] = [
   { value: 1, label: '已通过' },
   { value: 2, label: '已拒绝' }
 ]
+
+// ===== 笔记评论管理类型 =====
+
+/** 评论状态：1-正常，2-隐藏，3-删除 */
+export type DocCommentStatus = 1 | 2 | 3
+
+/** 评论审核状态：0-待审核，1-审核通过，2-审核驳回 */
+export type DocCommentAuditStatus = 0 | 1 | 2
+
+/** 评论作者信息（前台接口返回格式） */
+export interface DocCommentAuthor {
+  id: string
+  name: string
+  avatar: string
+}
+
+/** 被回复对象信息（前台接口返回格式） */
+export interface DocCommentReplyTo {
+  id: string
+  name: string
+}
+
+/** 前台评论列表项（对接 /comments/{noteId} 接口） */
+export interface DocNoteComment {
+  id: string
+  content: string
+  createdAt: string
+  likes: number
+  isLiked: boolean
+  status: DocCommentStatus
+  author: DocCommentAuthor
+  replies: DocNoteCommentReply[]
+}
+
+/** 前台评论回复项（挂在根评论下的回复） */
+export interface DocNoteCommentReply {
+  id: string
+  content: string
+  createdAt: string
+  likes: number
+  isLiked: boolean
+  status: DocCommentStatus
+  author: DocCommentAuthor
+  replyTo: DocCommentReplyTo
+}
+
+/** 前台评论分页数据 */
+export interface DocNoteCommentPageData {
+  list: DocNoteComment[]
+  total: number
+  pageNum: number
+  pageSize: number
+}
+
+/** 后台评论列表项（对接后台管理接口） */
+export interface DocNoteCommentAdmin {
+  id: string
+  noteId: string
+  commentUserId: string
+  commentContent: string
+  parentCommentId: string | null
+  replyUserId: string | null
+  auditStatus: DocCommentAuditStatus
+  status: DocCommentStatus
+  version: number
+  deleted: number
+  createTime: string
+  updateTime: string
+}
+
+/** 评论查询参数 */
+export interface DocNoteCommentQueryParams {
+  noteId?: string
+  commentUserId?: string
+  commentContent?: string
+  auditStatus?: DocCommentAuditStatus
+  status?: DocCommentStatus
+  deleted?: number
+  pageNum?: number
+  pageSize?: number
+}
+
+/** 修改评论输入 */
+export interface DocNoteCommentUpdateInput {
+  id: string
+  commentContent?: string
+  auditStatus?: DocCommentAuditStatus
+  status?: DocCommentStatus
+}

@@ -117,6 +117,16 @@ export async function toggleDocNoteRecommended(id: string): Promise<void> {
 // ===== 笔记聚合管理（元信息 + 正文） =====
 
 /**
+ * 获取笔记元信息
+ *
+ * @param id - 笔记 ID
+ * @returns 笔记元信息（包含封面文件信息，不含作者和统计信息）
+ */
+export async function getNoteMeta(id: string): Promise<DocNote> {
+  return get(`/document/docNote/${id}/meta`)
+}
+
+/**
  * 创建笔记（元信息 + 正文）
  *
  * @param data - 聚合数据：docNote + content
@@ -199,4 +209,52 @@ export async function uploadDocNoteDtlFile(noteId: string, file: File): Promise<
     { headers: { 'Content-Type': 'multipart/form-data' } }
   )
   return response.data.data!
+}
+
+// ===== 笔记评论管理 =====
+
+import type {
+  DocNoteCommentPageData,
+  DocNoteCommentUpdateInput,
+} from '@/types/document.types'
+
+/**
+ * 获取笔记评论列表（前台接口）
+ * 采用B站式评论结构，所有回复统一挂在根评论下
+ *
+ * @param noteId - 笔记ID
+ * @param pageNum - 页码，默认1
+ * @param pageSize - 每页数量，默认10
+ * @param sort - 排序方式：hot（热门）/ new（最新）
+ * @returns 评论分页数据（含树状回复结构）
+ */
+export async function getDocNoteComments(
+  noteId: string,
+  pageNum = 1,
+  pageSize = 10,
+  sort: 'hot' | 'new' = 'new'
+): Promise<DocNoteCommentPageData> {
+  return get(`/document/docNoteComment/comments/${noteId}`, {
+    pageNum,
+    pageSize,
+    sort,
+  })
+}
+
+/**
+ * 删除笔记评论（支持批量）
+ *
+ * @param ids - 评论ID列表，多个用逗号分隔
+ */
+export async function deleteDocNoteComment(ids: string): Promise<boolean> {
+  return del(`/document/docNoteComment/${ids}`)
+}
+
+/**
+ * 修改笔记评论
+ *
+ * @param data - 评论数据（必须包含id）
+ */
+export async function updateDocNoteComment(data: DocNoteCommentUpdateInput): Promise<boolean> {
+  return put('/document/docNoteComment', data as unknown as Record<string, unknown>)
 }

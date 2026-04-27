@@ -16,7 +16,7 @@
  */
 
 // React
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo, memo } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 // HeroUI
@@ -71,14 +71,14 @@ interface EditorLocationState {
 /**
  * 编辑器页（含元信息提交弹窗）
  */
-export default function DocumentEditor() {
+function DocumentEditor() {
   const navigate = useNavigate()
   const location = useLocation()
   const { id } = useParams<{ id?: string }>()
   const userInfo = useUserStore((s) => s.userInfo)
 
-  /** 是否编辑模式 */
-  const isEdit = Boolean(id)
+  /** 是否编辑模式（用 useMemo 缓存） */
+  const isEdit = useMemo(() => Boolean(id), [id])
 
   /** 编辑器内容 */
   const [content, setContent] = useState<string>('')
@@ -92,8 +92,6 @@ export default function DocumentEditor() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   /** 桌面端实时预览显示/隐藏 */
   const [showPreview, setShowPreview] = useState(true)
-
-
 
   /** 元信息提交弹窗 */
   const metaModal = useDisclosure()
@@ -137,8 +135,6 @@ export default function DocumentEditor() {
     }
   }, [isEdit, id])
 
-
-
   // ===== 事件 =====
 
   /** 返回 */
@@ -155,6 +151,12 @@ export default function DocumentEditor() {
     metaModal.onOpen()
   }, [content, metaModal])
 
+  /** 从路由 state 获取初始标题（用 useMemo 缓存） */
+  const initialTitle = useMemo(
+    () => (location.state as EditorLocationState | null)?.initialTitle,
+    [location.state]
+  )
+
   /**
    * 元信息弹窗确认 → 调用聚合接口
    */
@@ -163,7 +165,6 @@ export default function DocumentEditor() {
       if (!result) return
       const { meta } = result
 
-      const initialTitle = (location.state as EditorLocationState | null)?.initialTitle
       if (!meta.noteName?.trim() && initialTitle) {
         meta.noteName = initialTitle
       }
@@ -196,7 +197,7 @@ export default function DocumentEditor() {
         setIsSubmitting(false)
       }
     },
-    [isEdit, id, content, userInfo, metaModal, navigate, location.state]
+    [isEdit, id, content, userInfo, metaModal, navigate, initialTitle]
   )
 
   // ===== 渲染 =====
@@ -328,3 +329,5 @@ export default function DocumentEditor() {
     </div>
   )
 }
+
+export default memo(DocumentEditor)

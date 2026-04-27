@@ -58,6 +58,7 @@ import {
   Eye,
   ThumbsUp,
   MessageCircle,
+  MessageSquare,
 } from 'lucide-react'
 
 // 工具
@@ -69,6 +70,7 @@ import { StatusState } from '@/components/ui/StatusState'
 
 // 复用组件
 import { DocMetaFormModal } from './components/DocMetaFormModal'
+import { DocCommentModal } from './components/DocCommentModal'
 
 // 常量
 import { PAGINATION } from '@/constants'
@@ -80,6 +82,7 @@ import {
   batchUpdateDocNoteStatus,
   toggleDocNotePinned,
   toggleDocNoteRecommended,
+  getNoteMeta,
 } from '@/api/admin/document'
 
 // 类型
@@ -295,8 +298,10 @@ export default function DocumentList() {
 
   const deleteModal = useDisclosure()
   const statusModal = useDisclosure()
+  const commentModal = useDisclosure()
 
   const [searchKeyword, setSearchKeyword] = useState('')
+  const [commentDoc, setCommentDoc] = useState<DocNote | null>(null)
 
   // ===== 数据请求 =====
 
@@ -361,14 +366,18 @@ export default function DocumentList() {
       try {
         await toggleDocNotePinned(id)
         toast.success('置顶状态切换成功')
-        fetchDocList()
+        setDocList((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, isPinned: item.isPinned === 1 ? 0 : 1 } : item
+          )
+        )
       } catch (error) {
         const message = error instanceof Error ? error.message : '置顶状态切换失败'
         toast.error(message)
         console.error('切换置顶状态失败：', error)
       }
     },
-    [fetchDocList]
+    []
   )
 
   /**
@@ -379,14 +388,20 @@ export default function DocumentList() {
       try {
         await toggleDocNoteRecommended(id)
         toast.success('推荐状态切换成功')
-        fetchDocList()
+        setDocList((prev) =>
+          prev.map((item) =>
+            item.id === id
+              ? { ...item, isRecommended: item.isRecommended === 1 ? 0 : 1 }
+              : item
+          )
+        )
       } catch (error) {
         const message = error instanceof Error ? error.message : '推荐状态切换失败'
         toast.error(message)
         console.error('切换推荐状态失败：', error)
       }
     },
-    [fetchDocList]
+    []
   )
 
   // ===== 副作用 =====
@@ -398,12 +413,19 @@ export default function DocumentList() {
   // ===== 事件 =====
 
   /**
-   * 打开编辑信息弹窗
+   * 打开编辑信息弹窗（先查询元信息）
    */
   const handleEditDoc = useCallback(
-    (doc: DocNote) => {
-      setEditingDoc(doc)
-      editModal.onOpen()
+    async (doc: DocNote) => {
+      try {
+        const meta = await getNoteMeta(doc.id)
+        setEditingDoc(meta)
+        editModal.onOpen()
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '获取文档元信息失败'
+        toast.error(message)
+        console.error('获取文档元信息失败：', error)
+      }
     },
     [editModal]
   )
@@ -416,6 +438,17 @@ export default function DocumentList() {
       navigate(`/admin/document/editor/${doc.id}`)
     },
     [navigate]
+  )
+
+  /**
+   * 打开评论管理弹窗
+   */
+  const handleOpenCommentModal = useCallback(
+    (doc: DocNote) => {
+      setCommentDoc(doc)
+      commentModal.onOpen()
+    },
+    [commentModal]
   )
 
   /**
@@ -799,6 +832,17 @@ export default function DocumentList() {
                               <FileText size={14} />
                             </Button>
                           </Tooltip>
+                          <Tooltip content="评论管理" size="sm">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="light"
+                              color="secondary"
+                              onPress={() => handleOpenCommentModal(item)}
+                            >
+                              <MessageSquare size={14} />
+                            </Button>
+                          </Tooltip>
                           <Tooltip content="删除" size="sm">
                             <Button
                               isIconOnly
@@ -880,6 +924,14 @@ export default function DocumentList() {
           fetchDocList()
           setSelectedKeys(new Set())
         }}
+      />
+
+      {/* 评论管理弹窗 */}
+      <DocCommentModal
+        isOpen={commentModal.isOpen}
+        onOpenChange={commentModal.onOpenChange}
+        docId={commentDoc?.id ?? ''}
+        docTitle={commentDoc?.noteName}
       />
     </div>
   )

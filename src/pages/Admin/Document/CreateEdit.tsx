@@ -14,7 +14,7 @@
  */
 
 // React
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // HeroUI
@@ -44,25 +44,7 @@ const ALLOWED_MD_EXTENSIONS = ['.md', '.markdown']
 /** Markdown 文件大小上限：2MB */
 const MAX_MD_SIZE = 2 * 1024 * 1024
 
-// ===== 工具函数 =====
 
-/**
- * 校验 Markdown 文件是否合法
- *
- * @param file - 待校验文件
- * @returns 错误信息，合法返回 null
- */
-function validateMarkdownFile(file: File): string | null {
-  const lower = file.name.toLowerCase()
-  const ok = ALLOWED_MD_EXTENSIONS.some((ext) => lower.endsWith(ext))
-  if (!ok) {
-    return '文件格式不支持：仅支持 .md 和 .markdown 格式的文件'
-  }
-  if (file.size > MAX_MD_SIZE) {
-    return 'Markdown 文件大小不能超过 2MB'
-  }
-  return null
-}
 
 /**
  * 以 UTF-8 读取文件文本内容
@@ -88,7 +70,7 @@ function readFileAsText(file: File): Promise<string> {
 /**
  * 文档创建与编辑入口
  */
-export default function DocumentCreateEdit() {
+function DocumentCreateEdit() {
   const navigate = useNavigate()
 
   /** 创建方式选择弹窗 */
@@ -129,8 +111,8 @@ export default function DocumentCreateEdit() {
       if (!file) return
 
       const lower = file.name.toLowerCase()
-      const ok = ALLOWED_MD_EXTENSIONS.some((ext) => lower.endsWith(ext))
-      if (!ok) {
+      const isValidExtension = ALLOWED_MD_EXTENSIONS.some((ext) => lower.endsWith(ext))
+      if (!isValidExtension) {
         toast.error('文件格式不支持：仅支持 .md 和 .markdown 格式的文件')
         return
       }
@@ -147,7 +129,6 @@ export default function DocumentCreateEdit() {
           toast.warning('Markdown 文件内容为空')
           return
         }
-        // 关闭弹窗并跳转编辑器，同时通过 location.state 传递初始内容
         createModal.onClose()
         navigate('/admin/document/editor', {
           state: {
@@ -291,3 +272,5 @@ export default function DocumentCreateEdit() {
     </div>
   )
 }
+
+export default memo(DocumentCreateEdit)
