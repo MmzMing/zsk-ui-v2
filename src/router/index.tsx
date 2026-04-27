@@ -42,6 +42,7 @@ const PersonnelUser = lazy(() => import('@/pages/Admin/Personnel/User'))
 const VideoList = lazy(() => import('@/pages/Admin/Video/List'))
 const VideoUpload = lazy(() => import('@/pages/Admin/Video/Upload'))
 const VideoAudit = lazy(() => import('@/pages/Admin/Video/Audit'))
+const VideoCollection = lazy(() => import('@/pages/Admin/Video/Collection'))
 
 // 文档管理页面
 const DocumentList = lazy(() => import('@/pages/Admin/Document/List'))
@@ -210,6 +211,10 @@ export const routes: RouteObject[] = [
               {
                 path: 'audit',
                 element: withSuspense(VideoAudit),
+              },
+              {
+                path: 'collection',
+                element: withSuspense(VideoCollection),
               },
             ],
           },

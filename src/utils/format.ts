@@ -101,4 +101,17 @@ export function parseDate(dateStr: string, format: string): dayjs.Dayjs | null {
   return parsed.isValid() ? parsed : null
 }
 
+/**
+ * 截断文本
+ * @param text - 文本内容
+ * @param length - 最大长度
+ * @param suffix - 后缀，默认 '...'
+ * @returns 截断后的文本
+ */
+export function truncateText(text: string, length: number, suffix: string = '...'): string {
+  if (!text) return ''
+  if (text.length <= length) return text
+  return text.substring(0, length) + suffix
+}
+
 export { dayjs }
