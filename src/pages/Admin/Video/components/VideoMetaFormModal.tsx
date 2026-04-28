@@ -35,11 +35,14 @@ import { toast } from '@/utils/toast'
 import ImageCropModal from '@/components/ui/image-crop/ImageCropModal'
 import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
 
-import { updateDocVideo, saveDocVideoDraft } from '@/api/admin/video'
+import { createDocVideo, updateDocVideo, saveDocVideoDraft } from '@/api/admin/video'
 import { uploadDocFile } from '@/api/admin/file'
+
+import { useUserStore } from '@/stores/user'
 
 import type {
   DocVideo,
+  DocVideoCreateInput,
   DocVideoUpdateInput,
   DocVideoStatus,
   DocVideoAuditStatus,
@@ -189,6 +192,7 @@ export function VideoMetaFormModal({
   onSuccess,
 }: VideoMetaFormModalProps) {
   // ===== 状态 =====
+  const { userInfo } = useUserStore()
   const [formData, setFormData] = useState<VideoMetaFormState>(buildEmptyForm())
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -498,48 +502,74 @@ export function VideoMetaFormModal({
     }
   }, [formData, videoData, onSuccess, onOpenChange])
 
+  const isEditMode = !!videoData
+
   /**
    * 确认发布（更新视频信息）
    */
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) return
 
+    // 新增模式下需校验用户登录态
+    if (!isEditMode && !userInfo?.id) {
+      toast.error('用户信息获取失败，请重新登录')
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      const updateData: DocVideoUpdateInput = {
-        id: formData.id,
-        videoTitle: formData.videoTitle,
-        fileId: formData.fileId,
-        coverFileId: formData.coverFileId,
-        tags: formData.tags || undefined,
-        fileContent: formData.fileContent || undefined,
-        broadCode: formData.broadCode,
-        narrowCode: formData.narrowCode || undefined,
-        metaData: formData.metaData || undefined,
-        status: formData.status,
-        auditStatus: formData.auditStatus,
-        isPinned: formData.isPinned,
-        isRecommended: formData.isRecommended,
+      if (isEditMode) {
+        const updateData: DocVideoUpdateInput = {
+          id: formData.id,
+          videoTitle: formData.videoTitle,
+          fileId: formData.fileId,
+          coverFileId: formData.coverFileId,
+          tags: formData.tags || undefined,
+          fileContent: formData.fileContent || undefined,
+          broadCode: formData.broadCode,
+          narrowCode: formData.narrowCode || undefined,
+          metaData: formData.metaData || undefined,
+          status: formData.status,
+          auditStatus: formData.auditStatus,
+          isPinned: formData.isPinned,
+          isRecommended: formData.isRecommended,
+        }
+        await updateDocVideo(updateData)
+        toast.success('视频修改成功')
+      } else {
+        const createData: DocVideoCreateInput = {
+          userId: userInfo!.id,
+          videoTitle: formData.videoTitle,
+          fileId: formData.fileId,
+          coverFileId: formData.coverFileId,
+          tags: formData.tags || undefined,
+          fileContent: formData.fileContent || undefined,
+          broadCode: formData.broadCode,
+          narrowCode: formData.narrowCode || undefined,
+          metaData: formData.metaData || undefined,
+          status: formData.status,
+          auditStatus: formData.auditStatus,
+          isPinned: formData.isPinned,
+          isRecommended: formData.isRecommended,
+        }
+        await createDocVideo(createData)
+        toast.success('视频新增成功')
       }
-
-      await updateDocVideo(updateData)
-      toast.success('视频修改成功')
       onSuccess()
       onOpenChange(false)
     } catch (error) {
       const message = error instanceof Error ? error.message : '操作失败，请稍后重试'
       toast.error(message)
-      console.error('视频修改失败：', error)
+      console.error(isEditMode ? '视频修改失败：' : '视频新增失败：', error)
     } finally {
       setIsSubmitting(false)
     }
-  }, [formData, validateForm, onSuccess, onOpenChange])
+  }, [formData, validateForm, isEditMode, userInfo, onSuccess, onOpenChange])
 
   // ===== 10. TODO任务管理区域 =====
 
   // ===== 11. 导出区域 =====
 
-  const isEditMode = !!videoData
   const dialogTitle = isEditMode ? '编辑视频信息' : '新增视频'
 
   return (

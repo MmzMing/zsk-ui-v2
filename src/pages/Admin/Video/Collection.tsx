@@ -42,6 +42,7 @@ import {
   useDisclosure,
   Tooltip,
   Pagination,
+  Spinner,
   Switch,
   Image,
   Textarea,
@@ -220,41 +221,53 @@ function CollectionFormModal({ isOpen, onOpenChange, collectionData, onSuccess }
   const [formData, setFormData] = useState<{
     collectionName: string
     description: string
-    coverImage: string
+    coverFileId: string
+    coverFileUrl: string
     status: DocVideoCollectionStatus
   }>({
     collectionName: '',
     description: '',
-    coverImage: '',
+    coverFileId: '',
+    coverFileUrl: '',
     status: 1,
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 上传相关
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [uploadError, setUploadError] = useState('')
 
   // 图片裁剪弹窗状态
   const cropModal = useDisclosure()
   const [cropFile, setCropFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // 初始化表单数据
+  // 弹窗打开时初始化表单数据
   useEffect(() => {
     if (isOpen) {
       if (collectionData) {
         setFormData({
           collectionName: collectionData.collectionName || '',
           description: collectionData.description || '',
-          coverImage: collectionData.coverImage || '',
+          coverFileId: collectionData.cover?.fileId || '',
+          coverFileUrl: collectionData.cover?.fileUrl || '',
           status: collectionData.status ?? 1,
         })
       } else {
         setFormData({
           collectionName: '',
           description: '',
-          coverImage: '',
+          coverFileId: '',
+          coverFileUrl: '',
           status: 1,
         })
       }
+      setUploadProgress(0)
+      setUploadStatus('idle')
+      setUploadError('')
     }
   }, [isOpen, collectionData])
 
@@ -294,17 +307,16 @@ function CollectionFormModal({ isOpen, onOpenChange, collectionData, onSuccess }
           id: collectionData.id,
           collectionName: formData.collectionName.trim(),
           description: formData.description.trim() || undefined,
-          coverImage: formData.coverImage || undefined,
+          coverFileId: formData.coverFileId || undefined,
           status: formData.status,
         }
         await updateDocVideoCollection(data)
         toast.success('合集修改成功')
       } else {
         const data: DocVideoCollectionCreateInput = {
-          userId: userInfo.id,
           collectionName: formData.collectionName.trim(),
           description: formData.description.trim() || undefined,
-          coverImage: formData.coverImage || undefined,
+          coverFileId: formData.coverFileId || undefined,
           status: formData.status,
         }
         await createDocVideoCollection(data)
@@ -321,29 +333,23 @@ function CollectionFormModal({ isOpen, onOpenChange, collectionData, onSuccess }
     }
   }, [formData, isEdit, collectionData, userInfo, validateForm, onSuccess, onOpenChange])
 
-  /**
-   * 选择封面图片文件
-   */
-  const handleSelectCover = useCallback(() => {
+  /** 触发文件选择 */
+  const triggerFileSelect = useCallback(() => {
     fileInputRef.current?.click()
   }, [])
 
-  /**
-   * 处理文件选择变化
-   */
-  const handleFileChange = useCallback(
+  /** 选择文件 → 校验 → 打开裁剪弹窗 */
+  const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
       if (!file) return
 
-      // 校验文件类型
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg']
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
       if (!allowedTypes.includes(file.type)) {
-        toast.error('仅支持 jpg、png、jpeg 格式的图片')
+        toast.error('仅支持 JPG、PNG、WebP 格式的图片')
         return
       }
 
-      // 校验文件大小（3MB）
       const maxSize = 3 * 1024 * 1024
       if (file.size > maxSize) {
         toast.error('图片大小不能超过 3MB')
@@ -352,29 +358,67 @@ function CollectionFormModal({ isOpen, onOpenChange, collectionData, onSuccess }
 
       setCropFile(file)
       cropModal.onOpen()
-
-      // 清空 input 值，允许重复选择同一文件
       e.target.value = ''
     },
     [cropModal]
   )
 
-  /**
-   * 裁剪完成回调
-   */
+  /** 修改现有封面图片：从 URL 拉取 → 转 File → 打开裁剪 */
+  const handleEditCoverImage = useCallback(async () => {
+    if (!formData.coverFileUrl) return
+
+    try {
+      const response = await fetch(formData.coverFileUrl)
+      if (!response.ok) {
+        throw new Error('图片获取失败')
+      }
+      const blob = await response.blob()
+      const urlParts = formData.coverFileUrl.split('/')
+      const fileName = urlParts[urlParts.length - 1] || 'cover.jpg'
+      const file = new File([blob], fileName, { type: blob.type })
+
+      setCropFile(file)
+      cropModal.onOpen()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '图片加载失败'
+      toast.error(message)
+      console.error('修改封面图片失败：', error)
+    }
+  }, [formData.coverFileUrl, cropModal])
+
+  /** 裁剪完成 → 异步上传封面 */
   const handleCropComplete = useCallback(
     async (file: File) => {
+      cropModal.onClose()
+
       setIsUploading(true)
+      setUploadProgress(30)
+      setUploadStatus('uploading')
+      setUploadError('')
+
       try {
-        const result = await uploadDocFile(file)
-        if (result.fileUrl) {
-          setFormData((prev) => ({ ...prev, coverImage: result.fileUrl }))
-          toast.success('封面上传成功')
-        } else {
-          toast.error('封面上传失败，未返回文件地址')
+        setUploadProgress(60)
+        const uploadedFile = await uploadDocFile(file)
+
+        if (!uploadedFile || !uploadedFile.id) {
+          throw new Error('上传失败，未返回文件ID')
         }
+
+        setUploadProgress(100)
+        setUploadStatus('success')
+
+        setFormData((prev) => ({
+          ...prev,
+          coverFileId: uploadedFile.id,
+          coverFileUrl: uploadedFile.fileUrl || '',
+        }))
+
+        toast.success('封面上传成功')
       } catch (error) {
         const message = error instanceof Error ? error.message : '封面上传失败'
+        setUploadProgress(0)
+        setUploadStatus('error')
+        setUploadError(message)
         toast.error(message)
         console.error('封面上传失败：', error)
       } finally {
@@ -382,14 +426,14 @@ function CollectionFormModal({ isOpen, onOpenChange, collectionData, onSuccess }
         setCropFile(null)
       }
     },
-    []
+    [cropModal]
   )
 
-  /**
-   * 删除封面
-   */
+  /** 删除已上传封面 */
   const handleRemoveCover = useCallback(() => {
-    setFormData((prev) => ({ ...prev, coverImage: '' }))
+    setFormData((prev) => ({ ...prev, coverFileId: '', coverFileUrl: '' }))
+    setUploadStatus('idle')
+    setUploadProgress(0)
   }, [])
 
   return (
@@ -400,45 +444,104 @@ function CollectionFormModal({ isOpen, onOpenChange, collectionData, onSuccess }
           <ModalBody>
             <div className="flex flex-col gap-4">
               {/* 封面上传区域 */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">合集封面</label>
-                {formData.coverImage ? (
-                  <div className="relative w-40 h-24 rounded-lg overflow-hidden group">
-                    <Image
-                      src={formData.coverImage}
-                      alt="合集封面"
-                      className="w-full h-full object-cover"
-                      classNames={{ wrapper: 'w-full h-full' }}
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button isIconOnly size="sm" variant="light" color="primary" onPress={handleSelectCover}>
-                        <Pencil size={14} />
-                      </Button>
-                      <Button isIconOnly size="sm" variant="light" color="danger" onPress={handleRemoveCover}>
-                        <Trash2 size={14} />
-                      </Button>
-                    </div>
-                    {isUploading && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-white text-xs">上传中...</span>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium">合集封面</span>
+                <div className="relative w-full aspect-[4/3] max-w-md rounded-lg overflow-hidden border-2 border-dashed border-default-300 hover:border-primary transition-colors cursor-pointer">
+                  {formData.coverFileUrl ? (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={formData.coverFileUrl}
+                        alt="合集封面"
+                        className="w-full h-full object-cover"
+                        classNames={{ wrapper: 'w-full h-full' }}
+                      />
+                      {/* 悬停操作遮罩 */}
+                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 z-10">
+                        <div className="flex items-center gap-3">
+                          <Button
+                            size="sm"
+                            variant="solid"
+                            color="success"
+                            className="opacity-70 hover:opacity-100 transition-opacity duration-200"
+                            startContent={<Pencil size={16} />}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleEditCoverImage()
+                            }}
+                          >
+                            修改
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="solid"
+                            color="danger"
+                            className="opacity-70 hover:opacity-100 transition-opacity duration-200"
+                            startContent={<Trash2 size={16} />}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemoveCover()
+                            }}
+                          >
+                            删除
+                          </Button>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                  ) : (
+                    <div
+                      className="w-full h-full flex flex-col items-center justify-center text-default-400"
+                      onClick={triggerFileSelect}
+                    >
+                      <ImageIcon size={32} className="mb-2" />
+                      <span className="text-sm">点击上传封面图片</span>
+                      <span className="text-xs mt-1">支持 JPG、PNG、WebP，最大 3MB</span>
+                    </div>
+                  )}
+
+                  {/* 上传中遮罩 */}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center z-20">
+                      <Spinner size="md" color="primary" />
+                      <span className="text-white text-sm mt-2">上传中... {uploadProgress}%</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 上传进度条 */}
+                <div className="w-full max-w-md">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-default-500">
+                      {uploadStatus === 'success'
+                        ? '上传成功'
+                        : uploadStatus === 'error'
+                          ? '上传失败'
+                          : '上传状态'}
+                    </span>
+                    <span className="text-xs text-default-500">{uploadProgress}%</span>
                   </div>
-                ) : (
-                  <div
-                    className="w-40 h-24 border-2 border-dashed border-default-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                    onClick={handleSelectCover}
-                  >
-                    <ImageIcon size={24} className="text-default-400" />
-                    <span className="text-xs text-default-400 mt-1">点击上传封面</span>
+                  <div className="relative h-2 bg-default-200 rounded-full overflow-hidden">
+                    <div
+                      className={`absolute left-0 top-0 h-full rounded-full transition-all duration-300 ${
+                        uploadStatus === 'success'
+                          ? 'bg-success'
+                          : uploadStatus === 'error'
+                            ? 'bg-danger'
+                            : 'bg-primary'
+                      }`}
+                      style={{ width: `${uploadProgress}%` }}
+                    />
                   </div>
-                )}
+                  {uploadStatus === 'error' && uploadError && (
+                    <p className="text-xs text-danger mt-1">{uploadError}</p>
+                  )}
+                </div>
+
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/jpg"
+                  accept="image/jpeg,image/png,image/webp"
                   className="hidden"
-                  onChange={handleFileChange}
+                  onChange={handleFileSelect}
                 />
               </div>
 
@@ -493,9 +596,16 @@ function CollectionFormModal({ isOpen, onOpenChange, collectionData, onSuccess }
         onClose={cropModal.onClose}
         file={cropFile}
         aspect={16 / 9}
+        compressionOptions={{
+          maxSizeMB: 3,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          initialQuality: 0.8,
+        }}
         onCropComplete={handleCropComplete}
         title="裁剪合集封面"
         confirmText="确认并上传"
+        cancelText="取消"
       />
     </>
   )
@@ -532,8 +642,8 @@ function CollectionDetailModal({ isOpen, onOpenChange, collectionId, onEdit, onR
       const detail = await getDocVideoCollectionById(collectionId)
       setCollection(detail)
       // 从详情中获取视频列表，如果没有则单独请求
-      if (detail.videos) {
-        setVideos(detail.videos)
+      if (detail.videoList) {
+        setVideos(detail.videoList)
       } else {
         const videoList = await getDocVideoCollectionVideos(collectionId)
         setVideos(videoList)
@@ -558,7 +668,7 @@ function CollectionDetailModal({ isOpen, onOpenChange, collectionId, onEdit, onR
     async (videoId: string) => {
       setIsRemoving(videoId)
       try {
-        await removeVideoFromCollection(collectionId, videoId)
+        await removeVideoFromCollection(collectionId, { videoIds: [videoId] })
         toast.success('视频已从合集中移除')
         setVideos((prev) => prev.filter((v) => v.id !== videoId))
         onRefresh()
@@ -587,11 +697,8 @@ function CollectionDetailModal({ isOpen, onOpenChange, collectionId, onEdit, onR
 
       setIsReordering(true)
       try {
-        const videoOrders = newVideos.map((v, i) => ({
-          videoId: v.id,
-          sortOrder: i + 1,
-        }))
-        await updateCollectionVideoOrder(collectionId, { videoOrders })
+        const videoIds = newVideos.map((v) => v.id)
+        await updateCollectionVideoOrder(collectionId, { videoIds })
         setVideos(newVideos)
         toast.success('排序更新成功')
         onRefresh()
@@ -620,11 +727,8 @@ function CollectionDetailModal({ isOpen, onOpenChange, collectionId, onEdit, onR
 
       setIsReordering(true)
       try {
-        const videoOrders = newVideos.map((v, i) => ({
-          videoId: v.id,
-          sortOrder: i + 1,
-        }))
-        await updateCollectionVideoOrder(collectionId, { videoOrders })
+        const videoIds = newVideos.map((v) => v.id)
+        await updateCollectionVideoOrder(collectionId, { videoIds })
         setVideos(newVideos)
         toast.success('排序更新成功')
         onRefresh()
@@ -656,16 +760,17 @@ function CollectionDetailModal({ isOpen, onOpenChange, collectionId, onEdit, onR
               <div className="flex flex-col gap-4">
                 {/* 合集信息区 */}
                 <div className="flex gap-4">
-                  {collection.coverImage ? (
+                  {collection.cover?.fileUrl ? (
                     <Image
-                      src={collection.coverImage}
+                      src={collection.cover.fileUrl}
                       alt={collection.collectionName}
-                      className="w-32 h-20 object-cover rounded-lg flex-shrink-0"
-                      classNames={{ wrapper: 'w-32 h-20 flex-shrink-0' }}
+                      className="w-32 h-20 object-cover"
+                      classNames={{ wrapper: 'w-32 h-20 flex-shrink-0 overflow-hidden rounded-lg' }}
+                      fallbackSrc="https://via.placeholder.com/128x80?text=No+Cover"
                     />
                   ) : (
-                    <div className="w-32 h-20 bg-default-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <ImageIcon size={24} className="text-default-400" />
+                    <div className="w-32 h-20 bg-default-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <FolderOpen size={24} className="text-default-400" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -888,13 +993,7 @@ function AddVideoModal({ isOpen, onOpenChange, collectionId, existingVideoIds, o
     setIsSubmitting(true)
     try {
       const ids = Array.from(selectedVideoIds)
-      // 逐个添加视频到合集
-      for (let i = 0; i < ids.length; i++) {
-        await addVideoToCollection(collectionId, {
-          videoId: ids[i],
-          sortOrder: existingVideoIds.length + i + 1,
-        })
-      }
+      await addVideoToCollection(collectionId, { videoIds: ids })
       toast.success(`成功添加 ${ids.length} 个视频到合集`)
       onSuccess()
       onOpenChange(false)
@@ -1393,16 +1492,17 @@ export default function VideoCollection() {
                     <TableRow key={item.id}>
                       {/* 合集封面 */}
                       <TableCell>
-                        {item.coverImage ? (
+                        {item.cover?.fileUrl ? (
                           <Image
-                            src={item.coverImage}
+                            src={item.cover.fileUrl}
                             alt={item.collectionName}
-                            className="w-16 h-10 object-cover rounded"
-                            classNames={{ wrapper: 'w-16 h-10' }}
+                            className="w-12 h-12 object-cover"
+                            classNames={{ wrapper: 'w-12 h-12 overflow-hidden rounded' }}
+                            fallbackSrc="https://via.placeholder.com/48?text=No+Cover"
                           />
                         ) : (
-                          <div className="w-16 h-10 bg-default-100 rounded flex items-center justify-center">
-                            <ImageIcon size={16} className="text-default-400" />
+                          <div className="w-12 h-12 bg-default-100 rounded flex items-center justify-center">
+                            <FolderOpen size={20} className="text-default-400" />
                           </div>
                         )}
                       </TableCell>

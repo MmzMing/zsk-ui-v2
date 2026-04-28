@@ -1,7 +1,7 @@
 /**
  * 视频合集管理 API
  * 对接后端 DocVideoCollectionController 接口
- * 支持合集CRUD、合集内视频的添加/移除/排序
+ * 支持合集CRUD、合集内视频的批量添加/移除/排序
  */
 
 import { get, post, put, del } from '../../request'
@@ -12,8 +12,8 @@ import type {
   DocVideoCollectionDetail,
   DocVideoCollectionCreateInput,
   DocVideoCollectionUpdateInput,
-  DocVideoCollectionAddVideoInput,
-  DocVideoCollectionUpdateOrderInput,
+  DocVideoCollectionBatchVideoInput,
+  DocVideoCollectionSortVideosInput,
 } from '@/types/videoCollection.types'
 import type { DocVideo } from '@/types/video.types'
 
@@ -42,7 +42,7 @@ export async function getDocVideoCollectionPage(
 }
 
 /**
- * 根据ID获取合集详情
+ * 根据ID获取合集详情（含视频列表）
  *
  * @param id - 合集ID
  * @returns 合集详情（含视频列表）
@@ -53,6 +53,7 @@ export async function getDocVideoCollectionById(id: string): Promise<DocVideoCol
 
 /**
  * 新增合集
+ * 用户ID由后端自动设置为当前登录用户
  *
  * @param data - 合集数据
  */
@@ -96,14 +97,14 @@ export async function getDocVideoCollectionVideos(
 }
 
 /**
- * 添加视频到合集
+ * 批量添加视频到合集
  *
  * @param collectionId - 合集ID
- * @param data - 添加视频参数
+ * @param data - 视频ID列表
  */
 export async function addVideoToCollection(
   collectionId: string,
-  data: DocVideoCollectionAddVideoInput
+  data: DocVideoCollectionBatchVideoInput
 ): Promise<boolean> {
   return post(
     `/document/docVideoCollection/${collectionId}/videos`,
@@ -112,30 +113,34 @@ export async function addVideoToCollection(
 }
 
 /**
- * 从合集中移除视频
+ * 批量从合集中移除视频
  *
  * @param collectionId - 合集ID
- * @param videoId - 视频ID
+ * @param data - 待移除的视频ID列表
  */
 export async function removeVideoFromCollection(
   collectionId: string,
-  videoId: string
+  data: DocVideoCollectionBatchVideoInput
 ): Promise<boolean> {
-  return del(`/document/docVideoCollection/${collectionId}/videos/${videoId}`)
+  return del(
+    `/document/docVideoCollection/${collectionId}/videos`,
+    data as unknown as Record<string, unknown>
+  )
 }
 
 /**
- * 更新合集内视频排序
+ * 调整合集内视频排序
+ * 传入的视频ID列表顺序即为最终排序结果
  *
  * @param collectionId - 合集ID
- * @param data - 排序参数
+ * @param data - 按期望顺序排列的视频ID列表
  */
 export async function updateCollectionVideoOrder(
   collectionId: string,
-  data: DocVideoCollectionUpdateOrderInput
+  data: DocVideoCollectionSortVideosInput
 ): Promise<boolean> {
   return put(
-    `/document/docVideoCollection/${collectionId}/videos/order`,
+    `/document/docVideoCollection/${collectionId}/videos/sort`,
     data as unknown as Record<string, unknown>
   )
 }
