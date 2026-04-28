@@ -757,53 +757,41 @@ function CollectionDetailModal({ isOpen, onOpenChange, collectionId, onEdit, onR
             {isLoading ? (
               <StatusState type="loading" scene="admin" />
             ) : collection ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-6">
                 {/* 合集信息区 */}
-                <div className="flex gap-4">
-                  {collection.cover?.fileUrl ? (
-                    <Image
-                      src={collection.cover.fileUrl}
-                      alt={collection.collectionName}
-                      className="w-32 h-20 object-cover"
-                      classNames={{ wrapper: 'w-32 h-20 flex-shrink-0 overflow-hidden rounded-lg' }}
-                      fallbackSrc="https://via.placeholder.com/128x80?text=No+Cover"
-                    />
-                  ) : (
-                    <div className="w-32 h-20 bg-default-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      <FolderOpen size={24} className="text-default-400" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg">{collection.collectionName}</h3>
-                    <p className="text-sm text-default-500 mt-1 line-clamp-2">
-                      {collection.description || '暂无描述'}
-                    </p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-default-400">
+                <div className="flex gap-4 p-5 bg-default-50 rounded-xl">
+                  <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-xl">{collection.collectionName}</h3>
                       <Chip size="sm" variant="flat" color={getCollectionStatusColor(collection.status)}>
                         {getCollectionStatusLabel(collection.status)}
                       </Chip>
+                    </div>
+                    <p className="text-sm text-default-500 line-clamp-2">
+                      {collection.description || '暂无描述'}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-default-400">
                       <span>创建时间：{formatDateTime(collection.createTime)}</span>
                       <span>更新时间：{formatDateTime(collection.updateTime)}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button size="sm" variant="flat" startContent={<Pencil size={14} />} onPress={() => onEdit(collection)}>
-                      编辑合集
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="primary"
-                      startContent={<Plus size={14} />}
-                      onPress={addVideoModal.onOpen}
-                    >
-                      添加视频
-                    </Button>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Tooltip content="编辑合集">
+                      <Button isIconOnly size="sm" variant="light" onPress={() => onEdit(collection)}>
+                        <Pencil size={16} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip content="添加视频">
+                      <Button isIconOnly size="sm" color="primary" variant="light" onPress={addVideoModal.onOpen}>
+                        <Plus size={16} />
+                      </Button>
+                    </Tooltip>
                   </div>
                 </div>
 
                 {/* 视频列表区 */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2">
+                  <h4 className="text-sm font-semibold mb-3">
                     合集内视频（{videos.length}）
                   </h4>
                   {videos.length === 0 ? (
