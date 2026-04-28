@@ -31,7 +31,7 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
       onClick={handleClick}
       className="group relative flex cursor-pointer gap-3 overflow-hidden p-3 transition-all"
     >
-      <span className="absolute left-0 top-1/2 h-0 w-[3px] -translate-y-1/2 bg-primary transition-all duration-200 group-hover:h-full group-hover:top-0 group-hover:translate-y-0" />
+      <span className="absolute left-0 top-1/2 h-0 w-[3px] -translate-y-1/2 bg-black transition-all duration-200 group-hover:h-full group-hover:top-0 group-hover:translate-y-0 dark:bg-white" />
 
       <div className="relative h-[90px] w-40 flex-shrink-0 overflow-hidden rounded-lg bg-default-100">
         {item.thumbnail ? (
@@ -58,11 +58,7 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
         {/* 第一层：类型 + 标题 */}
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-              isVideo
-                ? 'bg-primary/15 text-primary'
-                : 'bg-secondary/15 text-secondary'
-            }`}
+            className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-default-800 text-white dark:bg-default-100 dark:text-default-900`}
           >
             {isVideo ? <Play className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
             {isVideo ? '视频' : '文档'}

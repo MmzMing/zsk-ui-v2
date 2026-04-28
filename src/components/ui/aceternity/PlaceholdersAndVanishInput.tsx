@@ -13,8 +13,8 @@ interface PlaceholdersAndVanishInputProps {
   placeholders: string[];
   /** 输入框值改变时的回调 */
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  /** 提交时的回调 */
-  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
+  /** 提交时的回调，传入当前输入值 */
+  onSubmit?: (value: string) => void;
   /** 容器自定义类名 */
   className?: string;
 }
@@ -166,7 +166,7 @@ export function PlaceholdersAndVanishInput({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     vanishAndSubmit();
-    onSubmit?.(e);
+    onSubmit?.(value);
   };
 
   return (

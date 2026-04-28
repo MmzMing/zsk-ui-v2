@@ -3,10 +3,11 @@
  * 包含 Aceternity UI 的 PlaceholdersAndVanishInput
  */
 
-import { 
-  Modal, 
-  ModalContent, 
-  ModalBody, 
+import { useNavigate } from 'react-router-dom'
+import {
+  Modal,
+  ModalContent,
+  ModalBody,
   Kbd
 } from '@heroui/react'
 import { PlaceholdersAndVanishInput } from '@/components/ui/aceternity/PlaceholdersAndVanishInput'
@@ -20,6 +21,8 @@ interface SearchDialogProps {
 }
 
 export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
+  const navigate = useNavigate()
+
   // 搜索建议占位符
   const placeholders = [
     "搜索文章、分类或标签...",
@@ -29,14 +32,11 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     "Vite 7 构建优化技巧"
   ]
 
-  // 处理搜索提交
-  const handleSearch = () => {
-    // 这里可以执行实际的搜索逻辑，比如跳转到搜索页面
-    console.info('执行搜索...')
-    // 延迟关闭，让用户看到消失动画
-    setTimeout(() => {
-      onClose()
-    }, 1500)
+  // 处理搜索提交：跳转到搜索页面
+  const handleSearch = (keyword: string) => {
+    if (!keyword.trim()) return
+    navigate(`/search?keyword=${encodeURIComponent(keyword.trim())}`)
+    onClose()
   }
 
   return (

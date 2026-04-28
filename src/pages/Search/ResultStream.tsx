@@ -36,8 +36,8 @@ function useColumnCount(view: SearchView): number {
   return cols.current
 }
 
-const CARD_ROW_HEIGHT = 320
-const LIST_ROW_HEIGHT = 116
+const CARD_ROW_HEIGHT = 304
+const LIST_ROW_HEIGHT = 100
 
 export function ResultStream({
   items,
@@ -99,8 +99,8 @@ export function ResultStream({
       <div
         className={
           view === 'list'
-            ? 'flex flex-col gap-3'
-            : 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            ? 'flex flex-col gap-2'
+            : 'grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
         }
       >
         {Array.from({ length: view === 'list' ? 6 : 8 }).map((_, idx) => (
@@ -165,12 +165,12 @@ export function ResultStream({
                       width: '100%',
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
-                    className="pb-4"
+                    className="pb-2"
                   >
                     {view === 'list' ? (
                       <ResultRow item={row[0]} keyword={keyword} />
                     ) : (
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {row.map((it) => (
                           <ResultCard key={it.id} item={it} keyword={keyword} />
                         ))}

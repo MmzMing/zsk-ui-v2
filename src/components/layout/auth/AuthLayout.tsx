@@ -9,7 +9,7 @@ import ClickSpark from '@/components/ui/reactbits/ClickSpark'
 export default function AuthLayout() {
   return (
     <ClickSpark sparkColor="#3b82f6" sparkSize={10} sparkRadius={15} duration={400}>
-      <div className="min-h-screen bg-background font-pixel">
+      <div className="min-h-screen bg-background">
         <Outlet />
       </div>
     </ClickSpark>

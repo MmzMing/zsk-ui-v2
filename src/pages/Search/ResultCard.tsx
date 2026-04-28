@@ -47,11 +47,7 @@ export function ResultCard({ item, keyword }: ResultCardProps) {
         )}
 
         <span
-          className={`absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-            isVideo
-              ? 'bg-primary/90 text-primary-foreground'
-              : 'bg-secondary/90 text-secondary-foreground'
-          }`}
+          className={`absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium bg-default-800 text-white dark:bg-default-100 dark:text-default-900`}
         >
           {isVideo ? <Play className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
           {isVideo ? '视频' : '文档'}

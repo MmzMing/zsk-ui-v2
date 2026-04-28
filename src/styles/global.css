@@ -9,14 +9,6 @@
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
-@font-face {
-  font-family: 'ArkPixel';
-  src: url('/fonts/ark-pixel/ark-pixel-12px-proportional-zh_cn.otf.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ===== Tailwind v4 主题变量覆盖 ===== */
 /* 让 Tailwind 的 text-* 类使用动态字体大小 */
 @theme inline {

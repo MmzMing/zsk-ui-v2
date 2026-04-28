@@ -44,7 +44,7 @@ export default function FrontLayout({
 
   return (
     <ClickSpark sparkColor="#3b82f6" sparkSize={10} sparkRadius={15} duration={400}>
-      <div className={cn('min-h-screen flex flex-col bg-background font-pixel', className)}>
+      <div className={cn('min-h-screen flex flex-col bg-background', className)}>
         {/* 顶部导航 */}
         {showHeader && <FrontHeader logoText={defaultSiteName} />}
 
