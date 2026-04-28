@@ -18,6 +18,8 @@ import { StatusState } from '@/components/ui/StatusState'
 const HomePage = lazy(() => import('@/pages/Home'))
 const AboutPage = lazy(() => import('@/pages/About'))
 const TestPage = lazy(() => import('@/pages/Test'))
+const DocumentDetailPage = lazy(() => import('@/pages/Document'))
+const VideoDetailPage = lazy(() => import('@/pages/VideoDetail'))
 const SearchPage = lazy(() => import('@/pages/Search'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const LoginPage = lazy(() => import('@/pages/Auth/Login'))
@@ -112,6 +114,14 @@ export const routes: RouteObject[] = [
           {
             path: 'test',
             element: withSuspense(TestPage),
+          },
+          {
+            path: 'document/:id',
+            element: withSuspense(DocumentDetailPage),
+          },
+          {
+            path: 'video/:id',
+            element: withSuspense(VideoDetailPage),
           },
         ],
       },

@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, Variants } from 'motion/react';
+import { AnimatePresence, motion, Variants } from 'framer-motion';
 import React, { Children, HTMLAttributes, JSX, ReactNode, useLayoutEffect, useRef, useState } from 'react';
 
 import './Stepper.css';

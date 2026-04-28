@@ -5,6 +5,7 @@
  * 支持 GFM (表格、删除线、任务列表等)。
  */
 
+import type { Components } from 'react-markdown'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -13,12 +14,14 @@ export interface MarkdownPreviewProps {
   value?: string
   /** 自定义 className */
   className?: string
+  /** 自定义组件覆盖（用于标题锚点等扩展） */
+  components?: Components
 }
 
 /**
  * Markdown 预览（react-markdown 封装）
  */
-export function MarkdownPreview({ value = '', className }: MarkdownPreviewProps) {
+export function MarkdownPreview({ value = '', className, components }: MarkdownPreviewProps) {
   return (
     <div
       className={
@@ -28,7 +31,9 @@ export function MarkdownPreview({ value = '', className }: MarkdownPreviewProps)
         (className ?? '')
       }
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        {value}
+      </ReactMarkdown>
     </div>
   )
 }

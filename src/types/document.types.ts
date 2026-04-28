@@ -300,3 +300,101 @@ export interface DocNoteCommentUpdateInput {
   auditStatus?: DocCommentAuditStatus
   status?: DocCommentStatus
 }
+
+// ===== 前台文档详情类型（对接 docHomeNote 接口） =====
+
+/** 前台文档元信息+详情 */
+export interface DocHomeNoteDetail {
+  id: string
+  title: string
+  content: string
+  category: string
+  tags: string
+  description: string
+  coverUrl: string
+  date: string
+}
+
+/** 前台文档交互信息 */
+export interface DocHomeInteraction {
+  viewCount: number
+  likeCount: number
+  favoriteCount: number
+  isLiked: boolean
+  isFavorited: boolean
+  author: DocHomeAuthor
+}
+
+/** 前台文档作者信息（含粉丝/关注状态） */
+export interface DocHomeAuthor {
+  id: string
+  name: string
+  avatar: string
+  fans: number
+  isFollowing: boolean
+}
+
+/** 前台评论作者信息（含粉丝/关注状态） */
+export interface DocHomeCommentAuthor {
+  id: string
+  name: string
+  avatar: string
+  fans: number
+  isFollowing: boolean
+}
+
+/** 前台评论回复目标信息 */
+export interface DocHomeCommentReplyTo {
+  id: string
+  name: string
+  avatar: string
+  fans: number
+  isFollowing: boolean
+}
+
+/** 前台评论列表项（对接 /comments/{noteId} 接口，B站式二级结构） */
+export interface DocHomeComment {
+  id: string
+  content: string
+  author: DocHomeCommentAuthor
+  createdAt: string
+  likes: number
+  isLiked: boolean
+  replies: DocHomeCommentReply[]
+  replyTo: DocHomeCommentReplyTo | null
+}
+
+/** 前台评论回复项 */
+export interface DocHomeCommentReply {
+  id: string
+  content: string
+  author: DocHomeCommentAuthor
+  createdAt: string
+  likes: number
+  isLiked: boolean
+  replies: DocHomeCommentReply[]
+  replyTo: DocHomeCommentReplyTo | null
+}
+
+/** 前台评论分页数据 */
+export interface DocHomeCommentPageData {
+  list: DocHomeComment[]
+  total: number
+  pageNum: number
+  pageSize: number
+}
+
+/** 发表评论请求体 */
+export interface DocHomeCommentInput {
+  noteId: string
+  content: string
+  parentId?: string | null
+  replyToId?: string | null
+}
+
+/** 交互操作结果 */
+export interface DocHomeToggleResult {
+  success: boolean
+  status: boolean
+  count: number
+}

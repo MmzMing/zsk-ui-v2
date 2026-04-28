@@ -231,7 +231,7 @@ export default function FrontHeader({
     const currentPath = location.pathname
     const index = navItems.findIndex(item => {
       if (item.href === '/') return currentPath === '/'
-      return currentPath.startsWith(item.href)
+      return currentPath === item.href || currentPath.startsWith(item.href + '/')
     })
     return index >= 0 ? index : 0
   }, [location.pathname, navItems])
