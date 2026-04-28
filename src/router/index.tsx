@@ -18,6 +18,7 @@ import { StatusState } from '@/components/ui/StatusState'
 const HomePage = lazy(() => import('@/pages/Home'))
 const AboutPage = lazy(() => import('@/pages/About'))
 const TestPage = lazy(() => import('@/pages/Test'))
+const SearchPage = lazy(() => import('@/pages/Search'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const LoginPage = lazy(() => import('@/pages/Auth/Login'))
 const CallbackPage = lazy(() => import('@/pages/Auth/Callback'))
@@ -103,6 +104,10 @@ export const routes: RouteObject[] = [
           {
             path: 'about',
             element: withSuspense(AboutPage),
+          },
+          {
+            path: 'search',
+            element: withSuspense(SearchPage),
           },
           {
             path: 'test',

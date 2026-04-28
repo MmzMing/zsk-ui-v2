@@ -156,7 +156,7 @@ export default function FrontHeader({
   // 默认导航配置
   const defaultNavItems: NavItem[] = useMemo(() => [
     { label: t('menu.home'), href: '/', icon: HiOutlineHome },
-    { label: t('menu.articles', '文章'), href: '/articles', icon: HiOutlineDocumentText },
+    { label: t('menu.documents', '文档'), href: '/search', icon: HiOutlineDocumentText },
     { label: t('menu.categories', '分类'), href: '/categories', icon: HiOutlineTag },
     { label: t('menu.test', '测试'), href: '/test', icon: HiOutlineBeaker },
     { label: t('menu.about'), href: '/about', icon: HiOutlineUserCircle }
