@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Play, Eye, Heart, FileText, Clock } from 'lucide-react'
 import { HighlightText } from './HighlightText'
+import { formatDateTime } from '@/utils/format'
 import type { SearchItem } from '@/types/search.types'
 
 interface ResultRowProps {
@@ -19,7 +20,8 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
   const count = isVideo ? item.playCount ?? 0 : item.readCount ?? 0
 
   const handleClick = () => {
-    navigate(isVideo ? `/video/${item.id}` : `/document/${item.id}`)
+    const rawId = item.id.split('_').slice(1).join('_')
+    navigate(isVideo ? `/video/${rawId}` : `/document/${rawId}`)
   }
 
   return (
@@ -27,7 +29,7 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
       layout
       role="listitem"
       onClick={handleClick}
-      className="group relative flex cursor-pointer gap-3 overflow-hidden rounded-xl border border-default-200 bg-content1 p-3 shadow-sm transition-all hover:border-primary-300 hover:shadow-md"
+      className="group relative flex cursor-pointer gap-3 overflow-hidden p-3 transition-all"
     >
       <span className="absolute left-0 top-1/2 h-0 w-[3px] -translate-y-1/2 bg-primary transition-all duration-200 group-hover:h-full group-hover:top-0 group-hover:translate-y-0" />
 
@@ -52,10 +54,11 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
         )}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
+        {/* 第一层：类型 + 标题 */}
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+            className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
               isVideo
                 ? 'bg-primary/15 text-primary'
                 : 'bg-secondary/15 text-secondary'
@@ -68,30 +71,39 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
             <HighlightText text={item.title} keyword={keyword} />
           </h3>
         </div>
-        {item.description && (
-          <p className="line-clamp-2 text-xs leading-relaxed text-default-500">
-            <HighlightText text={item.description} keyword={keyword} />
-          </p>
-        )}
-        <div className="mt-auto flex items-center gap-3 text-[11px] text-default-500">
-          <span className="truncate">{item.author || '匿名作者'}</span>
-          {item.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="rounded-md bg-default-100 px-1.5 py-0.5 text-default-600">
-              #{tag}
-            </span>
-          ))}
-        </div>
-      </div>
 
-      <div className="flex flex-shrink-0 flex-col items-end justify-center gap-1 text-[11px] text-default-500">
-        <span className="flex items-center gap-1">
-          <Eye className="h-3.5 w-3.5" />
-          {count}
-        </span>
-        <span className="flex items-center gap-1">
-          <Heart className="h-3.5 w-3.5" />
-          {item.likeCount}
-        </span>
+        {/* 第二层：作者 + 日期时间 */}
+        <div className="flex items-center gap-2 text-[11px] text-default-500">
+          <span className="truncate">{item.author || '匿名作者'}</span>
+          {item.updateTime && (
+            <span className="flex-shrink-0 text-default-400">
+              {formatDateTime(item.updateTime, 'YYYY-MM-DD HH:mm')}
+            </span>
+          )}
+        </div>
+
+        {/* 第三层：浏览量 + 点赞量 */}
+        <div className="flex items-center gap-3 text-[11px] text-default-500">
+          <span className="flex items-center gap-1">
+            <Eye className="h-3.5 w-3.5" />
+            {count}
+          </span>
+          <span className="flex items-center gap-1">
+            <Heart className="h-3.5 w-3.5" />
+            {item.likeCount}
+          </span>
+        </div>
+
+        {/* 第四层：标签 */}
+        {item.tags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {item.tags.slice(0, 4).map((tag) => (
+              <span key={tag} className="rounded-md bg-default-100 px-1.5 py-0.5 text-[11px] text-default-600">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   )

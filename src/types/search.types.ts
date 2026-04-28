@@ -16,14 +16,14 @@ export type SearchView = 'card' | 'list'
 
 // 搜索结果项
 export interface SearchItem {
-  /** 资源 ID */
+  /** 资源 ID（格式：类型_原始ID，如 video_123, document_456） */
   id: string
   /** 资源类型：video=视频，document=笔记 */
   type: 'video' | 'document'
   /** 标题 */
   title: string
-  /** 描述/内容摘要 */
-  description: string
+  /** 更新时间 */
+  updateTime: string
   /** 分类编码 */
   category: string
   /** 缩略图 URL */
@@ -40,6 +40,8 @@ export interface SearchItem {
   authorId: string
   /** 作者名 */
   author: string
+  /** 描述 */
+  description: string
   /** 标签列表 */
   tags: string[]
 }

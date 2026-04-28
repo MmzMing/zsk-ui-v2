@@ -6,7 +6,6 @@
 // ===== 1. 依赖导入区域 =====
 import { useTranslation } from 'react-i18next'
 import { Eye, Heart, MessageCircle, Calendar } from 'lucide-react'
-import { HoverCard } from '../aceternity/HoverEffect'
 import type { UserWork } from '@/api/profile/index'
 import { cn } from '@/utils'
 
@@ -61,23 +60,24 @@ function getTypeBadge(type: UserWork['type'], t: (key: string) => string): strin
  */
 export function WorkCard({ work, loading, onClick, className }: WorkCardProps) {
   const { t } = useTranslation('profile')
-  
+
   if (loading) {
     return <WorkSkeleton className={className} />
   }
 
   return (
     <div
-      className={cn('cursor-pointer', className)}
+      className={cn('cursor-pointer group', className)}
       onClick={onClick}
     >
-      <HoverCard className="aspect-[4/3]">
+      {/* 封面区域 */}
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
         {/* 封面图 */}
         {work?.cover ? (
           <img
             src={work.cover}
             alt={work.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           />
         ) : (
           <div className="w-full h-full bg-default-100 flex items-center justify-center">
@@ -98,7 +98,7 @@ export function WorkCard({ work, loading, onClick, className }: WorkCardProps) {
             </p>
           )}
         </div>
-      </HoverCard>
+      </div>
 
       {/* 底部信息 */}
       <div className="px-1 py-3">

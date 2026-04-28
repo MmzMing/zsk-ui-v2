@@ -11,7 +11,7 @@ import type { SearchPageResult, SearchParams } from '@/types/search.types'
  * @param params 搜索参数
  */
 export async function searchAll(params: SearchParams): Promise<SearchPageResult> {
-  return get<SearchPageResult>('/api/document/search/all', {
+  return get<SearchPageResult>('/document/search/all', {
     keyword: params.keyword || undefined,
     type: params.type || 'all',
     sort: params.sort || undefined,

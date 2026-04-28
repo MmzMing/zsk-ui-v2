@@ -19,7 +19,8 @@ export function ResultCard({ item, keyword }: ResultCardProps) {
   const count = isVideo ? item.playCount ?? 0 : item.readCount ?? 0
 
   const handleClick = () => {
-    navigate(isVideo ? `/video/${item.id}` : `/document/${item.id}`)
+    const rawId = item.id.split('_').slice(1).join('_')
+    navigate(isVideo ? `/video/${rawId}` : `/document/${rawId}`)
   }
 
   return (
@@ -29,7 +30,7 @@ export function ResultCard({ item, keyword }: ResultCardProps) {
       onClick={handleClick}
       whileHover={{ y: -2 }}
       transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-default-200 bg-content1 shadow-sm transition-all hover:border-primary-300 hover:shadow-lg"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl transition-all"
     >
       <div className="relative aspect-video overflow-hidden bg-default-100">
         {item.thumbnail ? (
@@ -44,6 +45,7 @@ export function ResultCard({ item, keyword }: ResultCardProps) {
             {isVideo ? <Play className="h-8 w-8" /> : <FileText className="h-8 w-8" />}
           </div>
         )}
+
         <span
           className={`absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
             isVideo
@@ -54,36 +56,35 @@ export function ResultCard({ item, keyword }: ResultCardProps) {
           {isVideo ? <Play className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
           {isVideo ? '视频' : '文档'}
         </span>
+
         {isVideo && item.duration && (
-          <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
+          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
             <Clock className="h-3 w-3" />
             {item.duration}
           </span>
         )}
+
+        <span className="absolute bottom-2 right-2 inline-flex items-center gap-2 rounded-md bg-black/70 px-2 py-0.5 text-[10px] text-white">
+          <span className="flex items-center gap-1">
+            <Eye className="h-3 w-3" />
+            {count}
+          </span>
+          <span className="flex items-center gap-1">
+            <Heart className="h-3 w-3" />
+            {item.likeCount}
+          </span>
+        </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-3">
-        <h3 className="line-clamp-2 text-sm font-semibold text-default-900 transition-colors group-hover:text-primary">
+      <div className="flex flex-1 flex-col gap-2 pt-2">
+        <h3 className="truncate text-sm font-semibold text-default-900 transition-colors group-hover:text-primary">
           <HighlightText text={item.title} keyword={keyword} />
         </h3>
-        {item.description && (
-          <p className="line-clamp-2 text-xs leading-relaxed text-default-500">
-            <HighlightText text={item.description} keyword={keyword} />
-          </p>
-        )}
 
-        <div className="mt-auto flex items-center justify-between pt-1 text-[11px] text-default-500">
+        <div className="flex items-center gap-2 text-xs text-default-500">
           <span className="truncate">{item.author || '匿名作者'}</span>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1">
-              <Eye className="h-3 w-3" />
-              {count}
-            </span>
-            <span className="flex items-center gap-1">
-              <Heart className="h-3 w-3" />
-              {item.likeCount}
-            </span>
-          </div>
+          <span className="text-default-300">|</span>
+          <span>{item.updateTime}</span>
         </div>
 
         {item.tags.length > 0 && (
