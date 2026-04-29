@@ -18,6 +18,7 @@ import CommentSection from './CommentSection'
 import CollectionSidebar from './CollectionSidebar'
 import VideoDetailSkeleton from './VideoDetailSkeleton'
 import ScrollToTopLever from '@/pages/Document/ScrollToTopLever'
+import { useStickySidebar } from './useStickySidebar'
 
 export default function VideoDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -36,6 +37,8 @@ export default function VideoDetailPage() {
     handleFollow,
     handleShare,
   } = useVideoDetail(id!)
+
+  const { containerRef, contentRef, state: stickyState } = useStickySidebar({ offsetTop: 80 })
 
   // 错误态
   if (error) {
@@ -135,14 +138,44 @@ export default function VideoDetailPage() {
             <CommentSection videoId={videoDetail.id} />
           </div>
 
-          {/* 右侧合集栏（桌面端悬浮） */}
+          {/* 右侧合集栏（桌面端自定义 sticky） */}
           <aside className="hidden md:block w-[30%] shrink-0">
-            <div className="sticky top-20 space-y-6">
-              <CollectionSidebar
-                collections={collections}
-                currentVideoId={videoDetail.id}
+            {/* 原始容器：用于计算 sticky 触发位置 */}
+            <div ref={containerRef}>
+              {/* 占位元素：始终保持与内容相同高度，避免固定时布局跳动 */}
+              <div
+                style={{
+                  height: stickyState.placeholderHeight,
+                  minHeight: stickyState.isFixed ? stickyState.placeholderHeight : undefined,
+                }}
+                aria-hidden="true"
               />
-              <ScrollToTopLever />
+
+              {/* 合集内容 */}
+              <div
+                ref={contentRef}
+                className="space-y-6"
+                style={
+                  stickyState.isFixed
+                    ? {
+                        position: 'fixed',
+                        top: 80,
+                        right: 'max(1rem, calc((100vw - 80rem) / 2 + 1rem))',
+                        width: stickyState.contentWidth > 0 ? stickyState.contentWidth : 'calc(30% - 1.5rem)',
+                        maxWidth: 'calc(80rem * 0.3 - 1.5rem)',
+                        maxHeight: 'calc(100vh - 6rem)',
+                        overflowY: 'auto',
+                        zIndex: 10,
+                      }
+                    : undefined
+                }
+              >
+                <CollectionSidebar
+                  collections={collections}
+                  currentVideoId={videoDetail.id}
+                />
+                <ScrollToTopLever />
+              </div>
             </div>
           </aside>
         </div>

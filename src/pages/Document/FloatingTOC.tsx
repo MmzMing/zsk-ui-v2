@@ -2,11 +2,12 @@
  * 悬浮目录导航
  * 从 Markdown 渲染后的 DOM 中提取 h1-h4 标题
  * 支持高亮当前阅读位置、点击跳转
+ * 已优化：使用 scroll 事件 + 节流替代 IntersectionObserver，减少长文档下的回调频率
  */
 
 // ===== 1. 依赖导入区域 =====
 // React 核心
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef, memo } from 'react'
 
 // 工具函数
 import { cn } from '@/utils'
@@ -25,30 +26,65 @@ interface FloatingTOCProps {
 // ===== 3. 导出区域 =====
 /**
  * 悬浮目录导航组件
+ * 使用 scroll 事件 + 节流计算当前阅读位置
+ * 避免 IntersectionObserver 在大量标题元素下的性能问题
  */
-export default function FloatingTOC({ items }: FloatingTOCProps) {
+export default memo(function FloatingTOC({ items }: FloatingTOCProps) {
   const [activeId, setActiveId] = useState<string>('')
+  const rafRef = useRef<number | null>(null)
+  const lastActiveRef = useRef<string>('')
 
   // 监听滚动高亮当前标题
   useEffect(() => {
     if (items.length === 0) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntries = entries.filter((e) => e.isIntersecting)
-        if (visibleEntries.length > 0) {
-          setActiveId(visibleEntries[0].target.id)
+    const handleScroll = () => {
+      if (rafRef.current) return
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+
+        // 找到当前视口内最靠近顶部的标题
+        let bestId = ''
+        let bestOffset = -Infinity
+        const offsetTop = 120 // 导航栏高度偏移
+
+        for (const item of items) {
+          const el = document.getElementById(item.id)
+          if (!el) continue
+          const rect = el.getBoundingClientRect()
+          const offset = rect.top - offsetTop
+          // 选择：在视口上方或刚好进入视口的最后一个标题
+          if (offset <= 0 && offset > bestOffset) {
+            bestOffset = offset
+            bestId = item.id
+          }
         }
-      },
-      { rootMargin: '-80px 0px -60% 0px' }
-    )
 
-    items.forEach((item) => {
-      const el = document.getElementById(item.id)
-      if (el) observer.observe(el)
-    })
+        // 如果所有标题都在视口下方，取第一个
+        if (!bestId && items.length > 0) {
+          for (const item of items) {
+            const el = document.getElementById(item.id)
+            if (el) {
+              bestId = item.id
+              break
+            }
+          }
+        }
 
-    return () => observer.disconnect()
+        if (bestId && bestId !== lastActiveRef.current) {
+          lastActiveRef.current = bestId
+          setActiveId(bestId)
+        }
+      })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll() // 初始化
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
   }, [items])
 
   // 点击跳转
@@ -91,4 +127,4 @@ export default function FloatingTOC({ items }: FloatingTOCProps) {
       </div>
     </nav>
   )
-}
+})

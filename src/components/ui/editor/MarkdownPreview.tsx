@@ -3,8 +3,10 @@
  *
  * 渲染 Markdown 字符串为带 Tailwind Typography 样式的 HTML，
  * 支持 GFM (表格、删除线、任务列表等)。
+ * 已做性能优化：React.memo 避免不必要重渲染。
  */
 
+import { memo } from 'react'
 import type { Components } from 'react-markdown'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -20,8 +22,13 @@ export interface MarkdownPreviewProps {
 
 /**
  * Markdown 预览（react-markdown 封装）
+ * 使用 memo 避免父组件更新时重新解析渲染
  */
-export function MarkdownPreview({ value = '', className, components }: MarkdownPreviewProps) {
+export const MarkdownPreview = memo(function MarkdownPreview({
+  value = '',
+  className,
+  components,
+}: MarkdownPreviewProps) {
   return (
     <div
       className={
@@ -36,6 +43,6 @@ export function MarkdownPreview({ value = '', className, components }: MarkdownP
       </ReactMarkdown>
     </div>
   )
-}
+})
 
 export default MarkdownPreview

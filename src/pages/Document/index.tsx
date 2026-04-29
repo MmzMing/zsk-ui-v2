@@ -3,20 +3,21 @@
  * 左-中-右三栏布局，渐进式加载，评论区懒加载
  * 左侧：Tracing Beam 装饰光束
  * 中间：导航栏 → 元信息 → 交互栏 → 正文 → 评论区
- * 右侧：悬浮目录 + 回顶滑块
+ * 右侧：悬浮目录
  * 移动端：隐藏左右栏，单栏展示
+ * 已优化：组件拆分、memo、headingComponents 静态化、单实例 Markdown 渲染
  */
 
 // ===== 1. 依赖导入区域 =====
 // React 核心
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 
 // React Router
 import { useParams } from 'react-router-dom'
 
 // 组件
 import { StatusState } from '@/components/ui/StatusState'
-import { MarkdownPreview } from '@/components/ui/editor'
+import { VirtualMarkdownPreview } from '@/components/ui/editor'
 
 // 自定义 Hooks
 import { useDocumentDetail } from '@/hooks/useDocumentDetail'
@@ -29,7 +30,6 @@ import CommentSection from './CommentSection'
 import FloatingTOC from './FloatingTOC'
 import type { TocItem } from './FloatingTOC'
 import TracingBeam from './TracingBeam'
-import ScrollToTopLever from './ScrollToTopLever'
 import DocumentDetailSkeleton from './DocumentDetailSkeleton'
 
 // 第三方类型
@@ -63,20 +63,23 @@ function extractHeadings(md: string): TocItem[] {
 
 /**
  * 生成标题组件的 props 映射，为每个级别生成带 id 的标题
+ * 使用静态常量避免每次渲染创建新对象
  * @returns React Markdown 组件映射
  */
-function buildHeadingComponents(): Components {
-  const headingLevels = ['h1', 'h2', 'h3', 'h4'] as const
-  const components: Components = {}
-  headingLevels.forEach((level) => {
-    components[level] = ({ children, ...props }: ComponentPropsWithoutRef<ElementType>) => {
+const headingLevels = ['h1', 'h2', 'h3', 'h4'] as const
+
+const headingComponents: Components = {}
+
+headingLevels.forEach((level) => {
+  headingComponents[level] = memo(
+    function HeadingComponent({ children, ...props }: ComponentPropsWithoutRef<ElementType>) {
       const text =
         typeof children === 'string'
           ? children
           : Array.isArray(children)
             ? children
-                .map((c) => (typeof c === 'string' ? c : ''))
-                .join('')
+              .map((c) => (typeof c === 'string' ? c : ''))
+              .join('')
             : ''
       const id =
         'h-' +
@@ -88,11 +91,26 @@ function buildHeadingComponents(): Components {
       const Tag = level as ElementType
       return <Tag id={id} {...props}>{children}</Tag>
     }
-  })
-  return components
-}
+  )
+})
 
-// ===== 3. 导出区域 =====
+// ===== 3. UI渲染逻辑区域 =====
+/**
+ * 文档正文渲染区（独立组件，避免父级状态变化导致重渲染）
+ */
+const DocumentContent = memo(function DocumentContent({ content }: { content: string }) {
+  return (
+    <section className="py-8">
+      <VirtualMarkdownPreview
+        value={content}
+        className="max-w-none"
+        components={headingComponents}
+      />
+    </section>
+  )
+})
+
+// ===== 4. 导出区域 =====
 /**
  * 文档详情页组件
  */
@@ -118,9 +136,6 @@ export default function DocumentDetailPage() {
     () => (detail?.content ? extractHeadings(detail.content) : []),
     [detail?.content]
   )
-
-  // 标题渲染组件（带 id 锚点）
-  const headingComponents = useMemo(() => buildHeadingComponents(), [])
 
   // 错误态
   if (error) {
@@ -195,23 +210,16 @@ export default function DocumentDetailPage() {
             />
 
             {/* 文档正文渲染区 */}
-            <section className="py-8">
-              <MarkdownPreview
-                value={detail.content ?? ''}
-                className="max-w-none"
-                components={headingComponents}
-              />
-            </section>
+            <DocumentContent content={detail.content ?? ''} />
 
             {/* 评论区 */}
             <CommentSection noteId={id!} />
           </div>
 
-          {/* 右侧：悬浮目录 + 回顶滑块 */}
+          {/* 右侧：悬浮目录 */}
           <aside className="hidden md:block shrink-0">
             <div className="sticky top-20 space-y-6">
               <FloatingTOC items={tocItems} />
-              <ScrollToTopLever />
             </div>
           </aside>
         </div>
