@@ -1,19 +1,56 @@
 /**
  * 个人中心页面
  * 左侧用户卡片 + 右侧内容区
+ * 作品列表根据用户ID加载（使用 docHomeUser 接口）
  */
 
+// ===== 1. 依赖导入区域 =====
+// React 核心
 import { useState, useEffect, useCallback } from 'react'
+
+// HeroUI 组件
 import { ProfileCard, type ProfileTab } from '@/components/ui/profile/ProfileCard'
 import { WorksGrid } from '@/components/ui/profile/WorksGrid'
 import { EditProfile } from '@/components/ui/profile/EditProfile'
 import { MessagesPanel } from '@/components/ui/profile/MessagesPanel'
 import { SecurityPanel } from '@/components/ui/profile/SecurityPanel'
-import { getUserWorks, getSystemUserInfo } from '@/api/profile'
+
+// API
+import { getSystemUserInfo } from '@/api/profile'
+import { getDocHomeUserWorks } from '@/api/document'
+
+// 类型定义
 import type { UserWork } from '@/api/profile'
 import type { SysUser } from '@/api/auth'
+import type { DocHomeUserWorksVo } from '@/types/document.types'
+
+// 状态管理
 import { useUserStore } from '@/stores/user'
 
+// ===== 4. 通用工具函数区域 =====
+/**
+ * 将 DocHomeUserWorksVo 转换为 UserWork 格式
+ * docHomeUser 接口返回的字段与 profile 接口不同，需要映射
+ * @param vo - docHomeUser 接口返回的作品数据
+ * @returns 符合 UserWork 类型的作品数据
+ */
+function mapDocWorkToUserWork(vo: DocHomeUserWorksVo): UserWork {
+  return {
+    id: vo.id,
+    title: vo.title,
+    cover: vo.coverUrl,
+    description: vo.description,
+    type: vo.type === 'note' ? 'document' : vo.type,
+    status: 'published',
+    views: vo.viewCount,
+    likes: vo.likeCount,
+    comments: 0,
+    createdAt: vo.createTime,
+    updatedAt: vo.createTime,
+  }
+}
+
+// ===== 8. UI渲染逻辑区域 =====
 /**
  * ProfilePage 个人中心页面
  */
@@ -22,9 +59,13 @@ export default function ProfilePage() {
   const [works, setWorks] = useState<UserWork[]>([])
   const [worksLoading, setWorksLoading] = useState(true)
   const [sysUser, setSysUser] = useState<SysUser | null>(null)
-  
+
   const { userInfo, isLoggedIn } = useUserStore()
 
+  // ===== 9. 页面初始化与事件绑定 =====
+  /**
+   * 获取系统用户详细信息
+   */
   useEffect(() => {
     const fetchSysUser = async () => {
       if (userInfo?.id) {
@@ -39,28 +80,42 @@ export default function ProfilePage() {
     fetchSysUser()
   }, [userInfo?.id])
 
-  // 加载作品列表
+  /**
+   * 根据用户ID加载作品列表
+   * 使用 docHomeUser 接口，通过 userId 查询已发布作品
+   */
   useEffect(() => {
     async function loadWorks() {
+      if (!userInfo?.id) return
       try {
-        const data = await getUserWorks({ page: 1, pageSize: 12 })
-        setWorks(data.list || [])
+        const data = await getDocHomeUserWorks(userInfo.id, {
+          pageNum: 1,
+          pageSize: 12,
+        })
+        const mappedWorks = (data.list || []).map(mapDocWorkToUserWork)
+        setWorks(mappedWorks)
       } catch (error) {
         console.error('加载作品列表失败：', error)
       } finally {
         setWorksLoading(false)
       }
     }
-    if (activeTab === 'works') {
+    if (activeTab === 'works' && userInfo?.id) {
       setWorksLoading(true)
       loadWorks()
     }
-  }, [activeTab])
+  }, [activeTab, userInfo?.id])
 
+  /**
+   * Tab 切换回调
+   */
   const handleTabChange = useCallback((tab: ProfileTab) => {
     setActiveTab(tab)
   }, [])
 
+  /**
+   * 点击作品回调
+   */
   const handleWorkClick = useCallback((work: UserWork) => {
     console.log('点击作品：', work.id)
   }, [])
