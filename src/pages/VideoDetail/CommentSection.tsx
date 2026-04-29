@@ -144,8 +144,8 @@ function CommentItem({
 }
 
 export default function CommentSection({ videoId }: Props) {
-  const isLoggedIn = useUserStore((s) => s.isLoggedIn)
   const userInfo = useUserStore((s) => s.userInfo)
+  const isLoggedIn = !!userInfo
 
   const [visible, setVisible] = useState(false)
   const [loading, setLoading] = useState(false)

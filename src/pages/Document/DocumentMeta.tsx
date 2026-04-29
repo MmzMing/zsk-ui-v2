@@ -5,7 +5,7 @@
 
 // ===== 1. 依赖导入区域 =====
 // HeroUI 组件
-import { Chip, Avatar } from '@heroui/react'
+import { Chip } from '@heroui/react'
 
 // 图标 (Lucide 优先)
 import { Calendar } from 'lucide-react'
@@ -14,12 +14,11 @@ import { Calendar } from 'lucide-react'
 import { formatDate } from '@/utils/format'
 
 // 类型定义
-import type { DocHomeNoteDetail, DocHomeInteraction } from '@/types/document.types'
+import type { DocHomeNoteDetail } from '@/types/document.types'
 
 // ===== 2. Props 类型定义 =====
 interface DocumentMetaProps {
   detail: DocHomeNoteDetail | null
-  author?: DocHomeInteraction['author'] | null
   loading: boolean
 }
 
@@ -27,7 +26,7 @@ interface DocumentMetaProps {
 /**
  * 文档元信息区组件
  */
-export default function DocumentMeta({ detail, author, loading }: DocumentMetaProps) {
+export default function DocumentMeta({ detail, loading }: DocumentMetaProps) {
   // 加载态骨架屏
   if (loading || !detail) {
     return (
@@ -49,34 +48,21 @@ export default function DocumentMeta({ detail, author, loading }: DocumentMetaPr
   return (
     <section className="py-6 border-b border-default-200">
       {/* 标题 */}
-      <h1 className="text-2xl font-bold text-foreground leading-tight">{detail.title}</h1>
+      <h1 className="text-5xl font-bold text-foreground leading-tight">{detail.title}</h1>
 
-      {/* 作者 + 日期 */}
-      <div className="flex items-center gap-3 mt-3 flex-wrap">
-        {author && (
-          <div className="flex items-center gap-2">
-            <Avatar
-              src={author.avatar}
-              name={author.name}
-              size="sm"
-              className="w-7 h-7"
-            />
-            <span className="text-sm text-default-600 font-medium">{author.name}</span>
-          </div>
-        )}
-        {detail.date && (
-          <div className="flex items-center gap-1 text-default-400 text-sm">
-            <Calendar size={14} />
-            <span>{formatDate(detail.date, 'YYYY年MM月DD日')}</span>
-          </div>
-        )}
-      </div>
+      {/* 日期 */}
+      {detail.date && (
+        <div className="flex items-center gap-1 text-default-400 text-sm mt-3">
+          <Calendar size={14} />
+          <span>{formatDate(detail.date, 'YYYY年MM月DD日')}</span>
+        </div>
+      )}
 
       {/* 分类 + 标签 */}
       {(detail.category || tagList.length > 0) && (
         <div className="flex gap-2 mt-3 flex-wrap">
           {detail.category && (
-            <Chip size="sm" variant="flat" color="primary">
+            <Chip size="sm" variant="flat" color="default">
               {detail.category}
             </Chip>
           )}
@@ -90,7 +76,7 @@ export default function DocumentMeta({ detail, author, loading }: DocumentMetaPr
 
       {/* 简介 */}
       {detail.description && (
-        <p className="text-sm text-default-500 mt-3 leading-relaxed">{detail.description}</p>
+        <p className="text-3xl text-default-500 mt-3 leading-relaxed">{detail.description}</p>
       )}
     </section>
   )

@@ -12,14 +12,12 @@ interface Props {
 
 export default function VideoPlayerSection({ detail }: Props) {
   return (
-    <section className="mt-4">
+    <section>
       <VideoPlayer
         src={detail.videoUrl}
         title={detail.title}
         poster={detail.coverUrl}
         storageKey={`video-progress-${detail.id}`}
-        aspectRatio="16/9"
-        className="rounded-xl"
       />
     </section>
   )

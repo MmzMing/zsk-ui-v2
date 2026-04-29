@@ -85,7 +85,7 @@ export default function DocumentInteraction({
           >
             <Heart
               size={18}
-              className={interaction.isLiked ? 'text-danger fill-danger' : 'text-default-500'}
+              className={interaction.isLiked ? 'text-default-700 fill-default-700' : 'text-default-500'}
             />
             <span className="text-sm text-default-500">
               {formatCount(interaction.likeCount)}
@@ -105,7 +105,7 @@ export default function DocumentInteraction({
             <Star
               size={18}
               className={
-                interaction.isFavorited ? 'text-warning fill-warning' : 'text-default-500'
+                interaction.isFavorited ? 'text-default-700 fill-default-700' : 'text-default-500'
               }
             />
             <span className="text-sm text-default-500">
@@ -149,7 +149,7 @@ export default function DocumentInteraction({
             <Button
               size="sm"
               variant={interaction.author.isFollowing ? 'bordered' : 'solid'}
-              color={interaction.author.isFollowing ? 'default' : 'primary'}
+              color="default"
               className="h-8 text-xs"
               isDisabled={followLoading}
               onPress={onFollow}

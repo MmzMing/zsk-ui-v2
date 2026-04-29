@@ -231,6 +231,10 @@ export default function FrontHeader({
     const currentPath = location.pathname
     const index = navItems.findIndex(item => {
       if (item.href === '/') return currentPath === '/'
+      // 视频详情 /video/:id 和文档详情 /document/:id 映射到"文档"（搜索）菜单
+      if (currentPath.startsWith('/video/') || currentPath.startsWith('/document/')) {
+        return item.href === '/search'
+      }
       return currentPath === item.href || currentPath.startsWith(item.href + '/')
     })
     return index >= 0 ? index : 0

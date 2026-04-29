@@ -91,7 +91,7 @@ export function VideoPlayer({
   }, [])
 
   return (
-    <div className={cn("w-full relative overflow-hidden rounded-xl bg-black shadow-lg", className)}>
+    <div className={cn("w-full relative overflow-hidden rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.25)]", className)}>
       <MediaPlayer
         ref={player}
         title={title}

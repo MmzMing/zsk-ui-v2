@@ -177,7 +177,6 @@ export default function DocumentDetailPage() {
             {/* 文档元信息区 */}
             <DocumentMeta
               detail={detail}
-              author={interaction?.author ?? null}
               loading={false}
             />
 

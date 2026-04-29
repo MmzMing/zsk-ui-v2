@@ -60,44 +60,7 @@ export default function InteractionBar({
   return (
     <section className="py-5 border-b border-default-200">
       <div className="flex items-center justify-between gap-4">
-        {/* 左侧：作者信息 */}
-        <div className="flex items-center gap-3">
-          <Avatar
-            src={interaction.author?.avatar}
-            name={interaction.author?.name || '作者'}
-            size="md"
-            className="w-10 h-10 shrink-0"
-          />
-          <div>
-            <p className="text-base text-foreground font-medium leading-tight">
-              {interaction.author?.name || '未知作者'}
-            </p>
-            <p className="text-sm text-default-400 mt-0.5">
-              {interaction.author ? formatCount(interaction.author.fans) + ' 粉丝' : ''}
-            </p>
-          </div>
-          {interaction.author && (
-            <Button
-              size="md"
-              variant={interaction.author.isFollowing ? 'bordered' : 'solid'}
-              color={interaction.author.isFollowing ? 'default' : 'primary'}
-              className="h-9 text-sm ml-2"
-              isDisabled={followLoading}
-              onPress={onFollow}
-              startContent={
-                interaction.author.isFollowing ? (
-                  <UserCheck size={16} />
-                ) : (
-                  <UserPlus size={16} />
-                )
-              }
-            >
-              {interaction.author.isFollowing ? '已关注' : '关注'}
-            </Button>
-          )}
-        </div>
-
-        {/* 右侧：交互按钮 */}
+        {/* 左侧：点赞/收藏/分享 */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* 点赞 */}
           <Tooltip content={interaction.isLiked ? '取消点赞' : '点赞'}>
@@ -107,11 +70,11 @@ export default function InteractionBar({
               className="min-w-0 gap-1.5 px-3 h-10"
               isDisabled={likeLoading}
               onPress={onLike}
-              color={interaction.isLiked ? 'danger' : 'default'}
+              color="default"
             >
               <Heart
                 size={20}
-                className={interaction.isLiked ? 'fill-danger text-danger' : 'text-default-500'}
+                className={interaction.isLiked ? 'fill-default-700 text-default-700' : 'text-default-500'}
               />
               <span className="text-sm text-default-600">
                 {formatCount(interaction.likeCount)}
@@ -127,12 +90,12 @@ export default function InteractionBar({
               className="min-w-0 gap-1.5 px-3 h-10"
               isDisabled={favLoading}
               onPress={onFavorite}
-              color={interaction.isFavorited ? 'warning' : 'default'}
+              color="default"
             >
               <Star
                 size={20}
                 className={
-                  interaction.isFavorited ? 'fill-warning text-warning' : 'text-default-500'
+                  interaction.isFavorited ? 'fill-default-700 text-default-700' : 'text-default-500'
                 }
               />
               <span className="text-sm text-default-600">
@@ -153,6 +116,43 @@ export default function InteractionBar({
               <span className="text-sm text-default-600">分享</span>
             </Button>
           </Tooltip>
+        </div>
+
+        {/* 右侧：作者信息 */}
+        <div className="flex items-center gap-3">
+          <Avatar
+            src={interaction.author?.avatar}
+            name={interaction.author?.name || '作者'}
+            size="md"
+            className="w-10 h-10 shrink-0"
+          />
+          <div>
+            <p className="text-base text-foreground font-medium leading-tight">
+              {interaction.author?.name || '未知作者'}
+            </p>
+            <p className="text-sm text-default-400 mt-0.5">
+              {interaction.author ? formatCount(interaction.author.fans) + ' 粉丝' : ''}
+            </p>
+          </div>
+          {interaction.author && (
+            <Button
+              size="md"
+              variant={interaction.author.isFollowing ? 'bordered' : 'solid'}
+              color="default"
+              className="h-9 text-sm ml-2"
+              isDisabled={followLoading}
+              onPress={onFollow}
+              startContent={
+                interaction.author.isFollowing ? (
+                  <UserCheck size={16} />
+                ) : (
+                  <UserPlus size={16} />
+                )
+              }
+            >
+              {interaction.author.isFollowing ? '已关注' : '关注'}
+            </Button>
+          )}
         </div>
       </div>
     </section>
