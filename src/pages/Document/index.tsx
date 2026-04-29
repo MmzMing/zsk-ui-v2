@@ -34,6 +34,7 @@ import DocumentDetailSkeleton from './DocumentDetailSkeleton'
 
 // 第三方类型
 import type { Components } from 'react-markdown'
+import type { ElementType, ComponentPropsWithoutRef } from 'react'
 
 // ===== 2. 通用工具函数区域 =====
 /**
@@ -68,7 +69,7 @@ function buildHeadingComponents(): Components {
   const headingLevels = ['h1', 'h2', 'h3', 'h4'] as const
   const components: Components = {}
   headingLevels.forEach((level) => {
-    components[level] = ({ children, ...props }: Record<string, unknown>) => {
+    components[level] = ({ children, ...props }: ComponentPropsWithoutRef<ElementType>) => {
       const text =
         typeof children === 'string'
           ? children
@@ -84,7 +85,7 @@ function buildHeadingComponents(): Components {
           .replace(/<[^>]*>/g, '')
           .replace(/[^\w一-鿿]+/g, '-')
           .replace(/^-+|-+$/g, '')
-      const Tag = level as keyof JSX.IntrinsicElements
+      const Tag = level as ElementType
       return <Tag id={id} {...props}>{children}</Tag>
     }
   })

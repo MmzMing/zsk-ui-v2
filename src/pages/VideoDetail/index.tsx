@@ -9,7 +9,6 @@
 import { useParams } from 'react-router-dom'
 import { StatusState } from '@/components/ui/StatusState'
 import { Chip } from '@heroui/react'
-import { Eye } from 'lucide-react'
 import { useVideoDetail } from '@/hooks/useVideoDetail'
 import VideoBreadcrumb from './VideoBreadcrumb'
 import VideoPlayerSection from './VideoPlayerSection'
@@ -19,12 +18,6 @@ import CommentSection from './CommentSection'
 import CollectionSidebar from './CollectionSidebar'
 import VideoDetailSkeleton from './VideoDetailSkeleton'
 import ScrollToTopLever from '@/pages/Document/ScrollToTopLever'
-
-function formatCount(n: number): string {
-  if (n >= 10000) return `${(n / 10000).toFixed(1)}万`
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
-  return String(n)
-}
 
 export default function VideoDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -94,7 +87,7 @@ export default function VideoDetailPage() {
           {videoDetail.title}
         </h1>
 
-        {/* 分类/标签/观看量 */}
+        {/* 分类/标签 */}
         <div className="flex items-center gap-3 pb-4 pt-2 flex-wrap">
           {videoDetail.category && (
             <Chip size="md" variant="flat" color="default" className="text-sm">
@@ -107,12 +100,6 @@ export default function VideoDetailPage() {
                 {tag}
               </Chip>
             ))}
-          {interaction && (
-            <div className="flex items-center gap-1.5 text-default-400 text-base ml-auto">
-              <Eye size={18} />
-              <span>{formatCount(interaction.viewCount)} 次观看</span>
-            </div>
-          )}
         </div>
 
         <div className="flex gap-6 mt-0">

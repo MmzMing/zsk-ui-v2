@@ -91,7 +91,6 @@ export function VideoPlayer({
   }, [])
 
   return (
-    <div className={cn("w-full relative overflow-hidden rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.25)]", className)}>
       <MediaPlayer
         ref={player}
         title={title}
@@ -101,6 +100,7 @@ export function VideoPlayer({
         loop={loop}
         muted={muted}
         playsInline
+        crossOrigin="anonymous"
         storage={storageKey}
         aspectRatio={aspectRatio}
         fullscreenOrientation="landscape"
@@ -126,6 +126,6 @@ export function VideoPlayer({
           audioGains={{ min: 0, max: 200, step: 5 }}
         />
       </MediaPlayer>
-    </div>
+
   )
 }

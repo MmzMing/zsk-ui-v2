@@ -6,7 +6,7 @@
  */
 
 import { Button, Avatar, Tooltip } from '@heroui/react'
-import { Heart, Star, Share2, UserPlus, UserCheck } from 'lucide-react'
+import { Heart, Star, Share2, UserPlus, UserCheck, Eye } from 'lucide-react'
 import type { HomeVideoInteraction } from '@/types/video-home.types'
 
 interface Props {
@@ -60,8 +60,16 @@ export default function InteractionBar({
   return (
     <section className="py-5 border-b border-default-200">
       <div className="flex items-center justify-between gap-4">
-        {/* 左侧：点赞/收藏/分享 */}
+        {/* 左侧：浏览量/点赞/收藏/分享 */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* 浏览量 */}
+          <div className="flex items-center gap-1.5 px-3 h-10 text-default-400">
+            <Eye size={20} />
+            <span className="text-sm text-default-600">
+              {formatCount(interaction.viewCount)}
+            </span>
+          </div>
+
           {/* 点赞 */}
           <Tooltip content={interaction.isLiked ? '取消点赞' : '点赞'}>
             <Button

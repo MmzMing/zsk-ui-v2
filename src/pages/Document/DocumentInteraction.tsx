@@ -43,6 +43,7 @@ function formatCount(n: number): string {
  * 文档交互信息区组件
  */
 export default function DocumentInteraction({
+  docId: _docId,
   interaction,
   likeLoading,
   favLoading,
@@ -51,7 +52,7 @@ export default function DocumentInteraction({
   onFavorite,
   onFollow,
   onShare,
-}: Omit<DocumentInteractionProps, 'docId'>) {
+}: DocumentInteractionProps) {
   // 加载态骨架屏
   if (!interaction) {
     return (
