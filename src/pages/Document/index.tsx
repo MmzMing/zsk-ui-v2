@@ -7,11 +7,21 @@
  * 移动端：隐藏左右栏，单栏展示
  */
 
-import { useParams } from 'react-router-dom'
+// ===== 1. 依赖导入区域 =====
+// React 核心
 import { useMemo } from 'react'
+
+// React Router
+import { useParams } from 'react-router-dom'
+
+// 组件
 import { StatusState } from '@/components/ui/StatusState'
 import { MarkdownPreview } from '@/components/ui/editor'
+
+// 自定义 Hooks
 import { useDocumentDetail } from '@/hooks/useDocumentDetail'
+
+// 页面子组件
 import DocumentNavBar from './DocumentNavBar'
 import DocumentMeta from './DocumentMeta'
 import DocumentInteraction from './DocumentInteraction'
@@ -21,9 +31,16 @@ import type { TocItem } from './FloatingTOC'
 import TracingBeam from './TracingBeam'
 import ScrollToTopLever from './ScrollToTopLever'
 import DocumentDetailSkeleton from './DocumentDetailSkeleton'
+
+// 第三方类型
 import type { Components } from 'react-markdown'
 
-/** 从 Markdown 文本中提取 h1-h4 标题 */
+// ===== 2. 通用工具函数区域 =====
+/**
+ * 从 Markdown 文本中提取 h1-h4 标题
+ * @param md - Markdown 文本
+ * @returns 目录项列表
+ */
 function extractHeadings(md: string): TocItem[] {
   const headingRegex = /^(#{1,4})\s+(.+)$/gm
   const result: TocItem[] = []
@@ -43,7 +60,10 @@ function extractHeadings(md: string): TocItem[] {
   return result
 }
 
-/** 生成标题组件的 props 映射，为每个级别生成带 id 的标题 */
+/**
+ * 生成标题组件的 props 映射，为每个级别生成带 id 的标题
+ * @returns React Markdown 组件映射
+ */
 function buildHeadingComponents(): Components {
   const headingLevels = ['h1', 'h2', 'h3', 'h4'] as const
   const components: Components = {}
@@ -71,6 +91,10 @@ function buildHeadingComponents(): Components {
   return components
 }
 
+// ===== 3. 导出区域 =====
+/**
+ * 文档详情页组件
+ */
 export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>()
 
@@ -147,17 +171,17 @@ export default function DocumentDetailPage() {
 
           {/* 中间：主内容区 */}
           <div className="flex-1 min-w-0 max-w-[780px] mx-auto">
-            {/* ① 顶部导航栏 */}
+            {/* 顶部导航栏 */}
             <DocumentNavBar title={detail.title} />
 
-            {/* ② 文档元信息区 */}
+            {/* 文档元信息区 */}
             <DocumentMeta
               detail={detail}
               author={interaction?.author ?? null}
               loading={false}
             />
 
-            {/* ③ 交互信息区 */}
+            {/* 交互信息区 */}
             <DocumentInteraction
               docId={id!}
               interaction={interaction}
@@ -170,7 +194,7 @@ export default function DocumentDetailPage() {
               onShare={handleShare}
             />
 
-            {/* ④ 文档正文渲染区 */}
+            {/* 文档正文渲染区 */}
             <section className="py-8">
               <MarkdownPreview
                 value={detail.content ?? ''}
@@ -179,7 +203,7 @@ export default function DocumentDetailPage() {
               />
             </section>
 
-            {/* ⑤ 评论区 */}
+            {/* 评论区 */}
             <CommentSection noteId={id!} />
           </div>
 

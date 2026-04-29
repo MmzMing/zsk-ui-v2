@@ -3,26 +3,56 @@
  * B站式二级评论结构，支持热门/最新排序、发表评论、点赞
  */
 
+// ===== 1. 依赖导入区域 =====
+// React 核心
 import { useState, useCallback, useEffect, useRef } from 'react'
+
+// HeroUI 组件
 import { Button, Avatar, Spinner, Textarea } from '@heroui/react'
+
+// 图标 (Lucide 优先)
 import { Heart, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react'
+
+// 工具函数
 import { toast } from '@/utils/toast'
+
+// 状态管理
 import { useUserStore } from '@/stores/user'
+
+// API
 import {
   getDocHomeNoteComments,
   postDocHomeNoteComment,
   toggleDocHomeNoteCommentLike,
 } from '@/api/document'
+
+// 类型定义
 import type { DocHomeComment, DocHomeCommentPageData } from '@/types/document.types'
 
-interface Props {
+// ===== 2. Props 类型定义 =====
+interface CommentSectionProps {
   noteId: string
 }
 
-function relativeTime(dateStr: string): string {
+interface CommentItemProps {
+  comment: DocHomeComment
+  noteId: string
+  onReply: (parentId: string, replyToId: string, replyToName: string) => void
+  onLike: (commentId: string, isLiked: boolean) => void
+  depth: number
+}
+
+// ===== 3. 通用工具函数区域 =====
+/**
+ * 格式化相对时间
+ * @param dateStr - 日期字符串
+ * @returns 相对时间描述
+ */
+function formatRelativeTime(dateStr: string): string {
   const now = Date.now()
   const past = new Date(dateStr).getTime()
   const diff = Math.floor((now - past) / 1000)
+
   if (diff < 60) return '刚刚'
   if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`
   if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`
@@ -30,19 +60,17 @@ function relativeTime(dateStr: string): string {
   return dateStr.slice(0, 10)
 }
 
+// ===== 4. UI渲染逻辑区域 =====
+/**
+ * 单条评论组件
+ */
 function CommentItem({
   comment,
   noteId,
   onReply,
   onLike,
   depth,
-}: {
-  comment: DocHomeComment
-  noteId: string
-  onReply: (parentId: string, replyToId: string, replyToName: string) => void
-  onLike: (commentId: string, isLiked: boolean) => void
-  depth: number
-}) {
+}: CommentItemProps) {
   const [showReplies, setShowReplies] = useState(depth === 0)
   const hasReplies = comment.replies && comment.replies.length > 0
 
@@ -58,7 +86,7 @@ function CommentItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground">{comment.author.name}</span>
-            <span className="text-xs text-default-400">{relativeTime(comment.createdAt)}</span>
+            <span className="text-xs text-default-400">{formatRelativeTime(comment.createdAt)}</span>
           </div>
 
           {comment.replyTo && (
@@ -143,10 +171,16 @@ function CommentItem({
   )
 }
 
-export default function CommentSection({ noteId }: Props) {
+// ===== 5. 导出区域 =====
+/**
+ * 评论区组件
+ */
+export default function CommentSection({ noteId }: CommentSectionProps) {
+  // 状态管理
   const isLoggedIn = useUserStore((s) => s.isLoggedIn)
   const userInfo = useUserStore((s) => s.userInfo)
 
+  // 懒加载状态
   const [visible, setVisible] = useState(false)
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<DocHomeCommentPageData | null>(null)
@@ -154,6 +188,7 @@ export default function CommentSection({ noteId }: Props) {
   const [pageNum, setPageNum] = useState(1)
   const [loadingMore, setLoadingMore] = useState(false)
 
+  // 评论输入状态
   const [inputText, setInputText] = useState('')
   const [replyTo, setReplyTo] = useState<{
     parentId: string
@@ -162,6 +197,7 @@ export default function CommentSection({ noteId }: Props) {
   } | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  // 懒加载观察器
   const sentinelRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
@@ -205,7 +241,7 @@ export default function CommentSection({ noteId }: Props) {
     fetchComments()
   }, [visible, noteId, sort])
 
-  // 加载更多
+  // 加载更多评论
   const loadMore = useCallback(async () => {
     if (!data || loadingMore) return
     setLoadingMore(true)
@@ -286,6 +322,7 @@ export default function CommentSection({ noteId }: Props) {
     [isLoggedIn]
   )
 
+  // 处理回复
   const handleReply = useCallback(
     (parentId: string, replyToId: string, replyToName: string) => {
       if (!isLoggedIn) {

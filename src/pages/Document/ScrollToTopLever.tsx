@@ -3,15 +3,26 @@
  * 向下拖拽释放后弹簧回弹，同时页面滚动到顶部
  */
 
+// ===== 1. 依赖导入区域 =====
+// 动画库
 import { useMotionValue, useSpring, motion } from 'motion/react'
+
+// React 核心
 import { useEffect, useState, useCallback } from 'react'
+
+// 图标 (Lucide 优先)
 import { ChevronUp } from 'lucide-react'
 
+// ===== 2. 导出区域 =====
+/**
+ * 回顶拉动条组件
+ */
 export default function ScrollToTopLever() {
   const [visible, setVisible] = useState(false)
   const y = useMotionValue(0)
   const springY = useSpring(y, { stiffness: 300, damping: 20 })
 
+  // 监听滚动显示/隐藏
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > window.innerHeight)
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -19,6 +30,7 @@ export default function ScrollToTopLever() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // 拖拽结束处理
   const handleDragEnd = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     y.set(0)

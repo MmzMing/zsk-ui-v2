@@ -3,14 +3,23 @@
  * 返回按钮 + 面包屑
  */
 
+// ===== 1. 依赖导入区域 =====
+// 图标 (Lucide 优先)
 import { ArrowLeft } from 'lucide-react'
+
+// React Router
 import { Link } from 'react-router-dom'
 
-interface Props {
+// ===== 2. Props 类型定义 =====
+interface DocumentNavBarProps {
   title?: string
 }
 
-export default function DocumentNavBar({ title }: Props) {
+// ===== 3. 导出区域 =====
+/**
+ * 文档顶部导航栏组件
+ */
+export default function DocumentNavBar({ title }: DocumentNavBarProps) {
   return (
     <nav className="flex items-center gap-3 h-14 border-b border-default-200">
       <Link

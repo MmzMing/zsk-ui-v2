@@ -1,12 +1,11 @@
 /**
  * 用户初始化 Hook
- * 用于初始化用户登录状态，包含缓存策略和用户统计数据获取
- * 
+ * 用于初始化用户登录状态，包含用户统计数据获取
+ *
  * 功能特性：
  * - 自动检测用户登录状态（通过 Cookie 中的 Token）
- * - 用户信息缓存机制（2小时过期）
- * - 用户统计数据缓存机制（点赞数、粉丝数、收藏数）
- * - 接口失败时自动回退到缓存数据
+ * - 优先使用本地缓存展示用户信息，同时异步刷新最新数据
+ * - 接口返回 401 时清除本地缓存并跳转登录页
  * - 状态管理集成（Zustand）
  */
 
@@ -16,8 +15,7 @@ import { useUserStore } from '@/stores/user'
 import { useMenuStore } from '@/stores/menu'
 import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
-import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS } from '@/utils/storage'
-import { toast } from '@/utils'
+import { getStorageValue, removeStorage, STORAGE_KEYS } from '@/utils/storage'
 import type { UserInfo } from '@/types'
 import type { UserStats } from '@/api/profile'
 
@@ -32,14 +30,6 @@ interface UseUserInitReturn {
 }
 
 /**
- * 用户信息缓存数据结构
- */
-interface CachedUserInfo {
-  user: UserInfo
-  timestamp: number
-}
-
-/**
  * 用户统计数据缓存结构
  */
 interface CachedUserStats {
@@ -49,9 +39,6 @@ interface CachedUserStats {
 
 // ===== 3. 常量定义区域 =====
 
-/** 用户信息缓存过期时间（毫秒）- 2小时 */
-const USER_INFO_CACHE_EXPIRY = 1000 * 60 * 60 * 2
-
 /** 用户统计数据缓存过期时间（毫秒）- 30分钟 */
 const USER_STATS_CACHE_EXPIRY = 1000 * 60 * 30
 
@@ -60,15 +47,15 @@ const USER_STATS_CACHE_EXPIRY = 1000 * 60 * 30
 /**
  * 用户初始化 Hook
  * 负责在应用启动时初始化用户登录状态和统计数据
- * 
+ *
  * @returns 初始化状态对象
  * @example
  * const { isInit } = useUserInit()
- * 
+ *
  * if (!isInit) {
  *   return <LoadingComponent />
  * }
- * 
+ *
  * return <AppContent />
  */
 export function useUserInit(): UseUserInitReturn {
@@ -89,25 +76,14 @@ export function useUserInit(): UseUserInitReturn {
       try {
         // 从 Cookie 获取 Token，判断用户是否已登录
         const token = getStorageValue<string>(STORAGE_KEYS.TOKEN, undefined, 'cookie')
-        
-        // 检查是否存在缓存的用户信息
-        const cachedUserInfo = getStorageValue<CachedUserInfo>(STORAGE_KEYS.USER_INFO)
-
-        // 如果 cookie 为空但缓存中有用户信息，说明登录已过期
-        if (!token && cachedUserInfo) {
-          handleLoginExpired(setUserInfo, setUserStats)
-          return
-        }
 
         // 只有当 Cookie 中有 token 时，才处理用户信息
         if (token) {
-          const now = Date.now()
-
           // ===== 用户信息初始化 =====
-          await initUserInfo(now, setUserInfo, setPermissions)
+          await initUserInfo(setUserInfo, setPermissions)
 
           // ===== 用户统计数据初始化 =====
-          await initUserStats(now, setUserStats)
+          await initUserStats(setUserStats)
 
           // ===== 菜单数据初始化 =====
           await refreshMenus()
@@ -129,68 +105,37 @@ export function useUserInit(): UseUserInitReturn {
 // ===== 5. 辅助函数区域 =====
 
 /**
- * 处理登录过期逻辑
- * 清空缓存和状态，提示用户并跳转到登录页面
- * 
- * @param setUserInfo - 用户信息设置函数
- * @param setUserStats - 用户统计数据设置函数
- */
-function handleLoginExpired(
-  setUserInfo: (user: UserInfo | null) => void,
-  setUserStats: (stats: UserStats | null) => void
-): void {
-  // 清空缓存中的用户信息（使用 removeStorage 彻底删除键）
-  removeStorage(STORAGE_KEYS.USER_INFO)
-  removeStorage(STORAGE_KEYS.USER_STATS)
-  removeStorage(STORAGE_KEYS.MENU_CACHE)
-
-  // 清空状态管理中的用户信息
-  setUserInfo(null)
-  setUserStats(null)
-  toast.error('登录已过期，请重新登录')
-}
-
-/**
  * 初始化用户信息
- * 优先使用缓存，缓存过期或不存在时调用接口获取
- * 
- * @param now - 当前时间戳
+ * 优先使用本地缓存快速展示，同时异步请求最新数据刷新
+ *
  * @param setUserInfo - 用户信息设置函数
+ * @param setPermissions - 权限设置函数
  */
 async function initUserInfo(
-  now: number,
   setUserInfo: (user: UserInfo | null) => void,
   setPermissions: (permissions: string[]) => void
 ): Promise<void> {
-  // 尝试从 localStorage 获取缓存的用户信息
-  const cachedUserInfo = getStorageValue<CachedUserInfo>(STORAGE_KEYS.USER_INFO)
-
-  // 检查缓存是否过期，如果过期则清除缓存
-  if (cachedUserInfo && now - cachedUserInfo.timestamp >= USER_INFO_CACHE_EXPIRY) {
-    removeStorage(STORAGE_KEYS.USER_INFO)
+  // 如果本地有缓存，先使用缓存数据快速展示
+  const cachedUserInfo = getStorageValue<{ userInfo: UserInfo, permissions: string[] }>(STORAGE_KEYS.USER_INFO)
+  if (cachedUserInfo?.userInfo) {
+    setUserInfo(cachedUserInfo.userInfo)
+    setPermissions(cachedUserInfo.permissions || [])
   }
 
-  // 如果缓存存在且未过期，直接使用缓存
-  if (cachedUserInfo && now - cachedUserInfo.timestamp < USER_INFO_CACHE_EXPIRY) {
-    setUserInfo(cachedUserInfo.user)
-    setPermissions(cachedUserInfo.user.permissions || [])
-    return
-  }
-
-  // 缓存不存在或已过期，调用接口获取最新信息
+  // 异步请求最新数据刷新
   try {
     const loginUser = await getCurrentUser()
-    
+
     // 验证返回数据的有效性
     if (loginUser && loginUser.sysUser) {
       const { sysUser, permissions, roles } = loginUser
-      
+
       // 如果后端返回了 roles 数组且不为空，则直接使用；否则设置为 ['user']
       const userRoles = roles && roles.length > 0 ? roles : ['user']
-      
+
       // 转换用户状态（0 表示正常，其他表示停用）
       const status: 'active' | 'inactive' | 'banned' = sysUser.status === '0' ? 'active' : 'inactive'
-      
+
       // 构建标准化的用户信息对象
       const user = {
         id: String(sysUser.id ?? ''),
@@ -205,31 +150,30 @@ async function initUserInfo(
         bio: sysUser.remark
       }
 
-      // 更新状态和缓存（带过期时间戳）
+      // 更新状态
       setUserInfo(user)
       setPermissions(user.permissions)
-      setStorage(STORAGE_KEYS.USER_INFO, { user, timestamp: now })
     }
-  } catch {
-    // 接口失败时，如果有未过期的缓存则使用缓存
-    if (cachedUserInfo && now - cachedUserInfo.timestamp < USER_INFO_CACHE_EXPIRY) {
-      setUserInfo(cachedUserInfo.user)
-      setPermissions(cachedUserInfo.user.permissions || [])
+  } catch (error: any) {
+    // 如果后端返回 401，说明 Token 已过期，清除本地缓存
+    if (error?.response?.status === 401) {
+      handleLoginExpired(setUserInfo)
     }
+    // 其他错误（如网络问题）保持现有缓存数据不变
   }
 }
 
 /**
  * 初始化用户统计数据
  * 优先使用缓存，缓存过期或不存在时调用接口获取
- * 
- * @param now - 当前时间戳
+ *
  * @param setUserStats - 用户统计数据设置函数
  */
 async function initUserStats(
-  now: number,
   setUserStats: (stats: UserStats | null) => void
 ): Promise<void> {
+  const now = Date.now()
+
   // 尝试从 localStorage 获取缓存的用户统计数据
   const cachedUserStats = getStorageValue<CachedUserStats>(STORAGE_KEYS.USER_STATS)
 
@@ -247,12 +191,12 @@ async function initUserStats(
   // 缓存不存在或已过期，调用接口获取最新统计数据
   try {
     const statsResponse = await getUserStats()
-    
+
     // 验证响应的有效性（code 为 200 且有数据）
     if (statsResponse && statsResponse.code === 200 && statsResponse.data) {
       // 更新状态和缓存（带过期时间戳）
       setUserStats(statsResponse.data)
-      setStorage(STORAGE_KEYS.USER_STATS, { stats: statsResponse.data, timestamp: now })
+      // 注意：userStore 的 setUserStats 会自动保存到 localStorage
     }
   } catch {
     // 接口失败时，如果有未过期的缓存则使用缓存
@@ -260,6 +204,25 @@ async function initUserStats(
       setUserStats(cachedUserStats.stats)
     }
   }
+}
+
+/**
+ * 处理登录过期逻辑
+ * 清空缓存和状态，由后端驱动过期逻辑
+ *
+ * @param setUserInfo - 用户信息设置函数
+ */
+function handleLoginExpired(
+  setUserInfo: (user: UserInfo | null) => void
+): void {
+  // 清空缓存中的用户信息
+  removeStorage(STORAGE_KEYS.USER_INFO)
+  removeStorage(STORAGE_KEYS.USER_STATS)
+  removeStorage(STORAGE_KEYS.MENU_CACHE)
+
+  // 清空状态管理中的用户信息
+  setUserInfo(null)
+  // 页面会由路由守卫或错误处理逻辑跳转到登录页
 }
 
 // ===== 6. 默认导出 =====

@@ -3,6 +3,10 @@
  * 模拟导航栏、元信息、交互栏、正文、评论区的加载态
  */
 
+// ===== 1. 导出区域 =====
+/**
+ * 文档详情骨架屏组件
+ */
 export default function DocumentDetailSkeleton() {
   return (
     <div className="animate-pulse">

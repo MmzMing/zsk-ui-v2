@@ -3,11 +3,18 @@
  * 浏览量 / 点赞 / 收藏 / 分享 / 关注作者
  */
 
+// ===== 1. 依赖导入区域 =====
+// 图标 (Lucide 优先)
 import { Eye, Heart, Star, Share2, UserPlus, UserCheck } from 'lucide-react'
+
+// HeroUI 组件
 import { Button, Avatar, Tooltip } from '@heroui/react'
+
+// 类型定义
 import type { DocHomeInteraction } from '@/types/document.types'
 
-interface Props {
+// ===== 2. Props 类型定义 =====
+interface DocumentInteractionProps {
   docId: string
   interaction?: DocHomeInteraction | null
   likeLoading: boolean
@@ -19,12 +26,22 @@ interface Props {
   onShare: () => void
 }
 
+// ===== 3. 通用工具函数区域 =====
+/**
+ * 格式化数字显示
+ * @param n - 数字
+ * @returns 格式化后的字符串
+ */
 function formatCount(n: number): string {
   if (n >= 10000) return `${(n / 10000).toFixed(1)}万`
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
   return String(n)
 }
 
+// ===== 4. 导出区域 =====
+/**
+ * 文档交互信息区组件
+ */
 export default function DocumentInteraction({
   interaction,
   likeLoading,
@@ -34,7 +51,8 @@ export default function DocumentInteraction({
   onFavorite,
   onFollow,
   onShare,
-}: Props) {
+}: Omit<DocumentInteractionProps, 'docId'>) {
+  // 加载态骨架屏
   if (!interaction) {
     return (
       <section className="py-4 border-b border-default-200">

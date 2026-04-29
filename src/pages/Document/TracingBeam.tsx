@@ -4,9 +4,17 @@
  * 直线为主，顶部有类似 Git 分支图转弯折线
  */
 
+// ===== 1. 依赖导入区域 =====
+// React 核心
 import { useRef } from 'react'
+
+// 动画库
 import { motion, useScroll, useTransform, useSpring } from 'motion/react'
 
+// ===== 2. 导出区域 =====
+/**
+ * Tracing Beam 装饰光束组件
+ */
 export default function TracingBeam() {
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({

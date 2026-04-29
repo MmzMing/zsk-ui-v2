@@ -3,18 +3,32 @@
  * 标题、作者、日期、分类、标签、简介
  */
 
+// ===== 1. 依赖导入区域 =====
+// HeroUI 组件
 import { Chip, Avatar } from '@heroui/react'
+
+// 图标 (Lucide 优先)
 import { Calendar } from 'lucide-react'
+
+// 工具函数
 import { formatDate } from '@/utils/format'
+
+// 类型定义
 import type { DocHomeNoteDetail, DocHomeInteraction } from '@/types/document.types'
 
-interface Props {
+// ===== 2. Props 类型定义 =====
+interface DocumentMetaProps {
   detail: DocHomeNoteDetail | null
   author?: DocHomeInteraction['author'] | null
   loading: boolean
 }
 
-export default function DocumentMeta({ detail, author, loading }: Props) {
+// ===== 3. 导出区域 =====
+/**
+ * 文档元信息区组件
+ */
+export default function DocumentMeta({ detail, author, loading }: DocumentMetaProps) {
+  // 加载态骨架屏
   if (loading || !detail) {
     return (
       <section className="py-6 border-b border-default-200 animate-pulse space-y-3">
@@ -27,6 +41,7 @@ export default function DocumentMeta({ detail, author, loading }: Props) {
     )
   }
 
+  // 解析标签列表
   const tagList = detail.tags
     ? detail.tags.split(',').filter(Boolean)
     : []

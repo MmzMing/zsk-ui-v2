@@ -4,20 +4,29 @@
  * 支持高亮当前阅读位置、点击跳转
  */
 
+// ===== 1. 依赖导入区域 =====
+// React 核心
 import { useEffect, useState, useCallback } from 'react'
+
+// 工具函数
 import { cn } from '@/utils'
 
+// ===== 2. 类型定义区域 =====
 export interface TocItem {
   id: string
   text: string
   level: number
 }
 
-interface Props {
+interface FloatingTOCProps {
   items: TocItem[]
 }
 
-export default function FloatingTOC({ items }: Props) {
+// ===== 3. 导出区域 =====
+/**
+ * 悬浮目录导航组件
+ */
+export default function FloatingTOC({ items }: FloatingTOCProps) {
   const [activeId, setActiveId] = useState<string>('')
 
   // 监听滚动高亮当前标题
