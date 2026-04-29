@@ -11,8 +11,10 @@ interface StickyState {
   isFixed: boolean
   /** 占位元素高度 */
   placeholderHeight: number
-  /** 内容宽度 */
-  contentWidth: number
+  /** 容器在文档流中的 left 位置 */
+  containerLeft: number
+  /** 容器在文档流中的宽度 */
+  containerWidth: number
 }
 
 interface UseStickySidebarOptions {
@@ -31,7 +33,8 @@ export function useStickySidebar(options: UseStickySidebarOptions = {}) {
   const [state, setState] = useState<StickyState>({
     isFixed: false,
     placeholderHeight: 0,
-    contentWidth: 0,
+    containerLeft: 0,
+    containerWidth: 0,
   })
 
   // 使用 ref 避免闭包问题
@@ -54,13 +57,15 @@ export function useStickySidebar(options: UseStickySidebarOptions = {}) {
         setState({
           isFixed: true,
           placeholderHeight: content.offsetHeight,
-          contentWidth: content.offsetWidth,
+          containerLeft: rect.left,
+          containerWidth: rect.width,
         })
       } else {
         setState({
           isFixed: false,
           placeholderHeight: 0,
-          contentWidth: 0,
+          containerLeft: 0,
+          containerWidth: 0,
         })
       }
     }

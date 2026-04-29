@@ -5,7 +5,7 @@
  * 中间：导航栏 → 元信息 → 交互栏 → 正文 → 评论区
  * 右侧：悬浮目录
  * 移动端：隐藏左右栏，单栏展示
- * 已优化：组件拆分、memo、headingComponents 静态化、单实例 Markdown 渲染
+ * 已优化：组件拆分、memo、headingComponents 静态化、LazyMarkdownPreview 分片渲染
  */
 
 // ===== 1. 依赖导入区域 =====
@@ -17,7 +17,7 @@ import { useParams } from 'react-router-dom'
 
 // 组件
 import { StatusState } from '@/components/ui/StatusState'
-import { VirtualMarkdownPreview } from '@/components/ui/editor'
+import { LazyMarkdownPreview } from '@/components/ui/editor'
 
 // 自定义 Hooks
 import { useDocumentDetail } from '@/hooks/useDocumentDetail'
@@ -38,6 +38,23 @@ import type { ElementType, ComponentPropsWithoutRef } from 'react'
 
 // ===== 2. 通用工具函数区域 =====
 /**
+ * 标题文本转锚点 id 的统一逻辑
+ * extractHeadings 和 headingComponents 共用，避免重复正则计算
+ * @param text - 标题纯文本
+ * @returns 锚点 id
+ */
+function headingTextToId(text: string): string {
+  return (
+    'h-' +
+    text
+      .toLowerCase()
+      .replace(/<[^>]*>/g, '')
+      .replace(/[^\w一-鿿]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+  )
+}
+
+/**
  * 从 Markdown 文本中提取 h1-h4 标题
  * @param md - Markdown 文本
  * @returns 目录项列表
@@ -49,23 +66,12 @@ function extractHeadings(md: string): TocItem[] {
   while ((match = headingRegex.exec(md)) !== null) {
     const level = match[1].length
     const text = match[2].trim()
-    const id =
-      'h-' +
-      text
-        .toLowerCase()
-        .replace(/<[^>]*>/g, '')
-        .replace(/[^\w一-鿿]+/g, '-')
-        .replace(/^-+|-+$/g, '')
+    const id = headingTextToId(text)
     result.push({ id, text, level })
   }
   return result
 }
 
-/**
- * 生成标题组件的 props 映射，为每个级别生成带 id 的标题
- * 使用静态常量避免每次渲染创建新对象
- * @returns React Markdown 组件映射
- */
 const headingLevels = ['h1', 'h2', 'h3', 'h4'] as const
 
 const headingComponents: Components = {}
@@ -81,13 +87,7 @@ headingLevels.forEach((level) => {
               .map((c) => (typeof c === 'string' ? c : ''))
               .join('')
             : ''
-      const id =
-        'h-' +
-        text
-          .toLowerCase()
-          .replace(/<[^>]*>/g, '')
-          .replace(/[^\w一-鿿]+/g, '-')
-          .replace(/^-+|-+$/g, '')
+      const id = headingTextToId(text)
       const Tag = level as ElementType
       return <Tag id={id} {...props}>{children}</Tag>
     }
@@ -101,10 +101,11 @@ headingLevels.forEach((level) => {
 const DocumentContent = memo(function DocumentContent({ content }: { content: string }) {
   return (
     <section className="py-8">
-      <VirtualMarkdownPreview
+      <LazyMarkdownPreview
         value={content}
         className="max-w-none"
         components={headingComponents}
+        threshold={6000}
       />
     </section>
   )

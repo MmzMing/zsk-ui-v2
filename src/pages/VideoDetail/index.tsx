@@ -159,9 +159,8 @@ export default function VideoDetailPage() {
                     ? {
                         position: 'fixed',
                         top: 80,
-                        right: 'max(1rem, calc((100vw - 100rem) / 2 + 1rem))',
-                        width: stickyState.contentWidth > 0 ? stickyState.contentWidth : 'calc(22% - 1.5rem)',
-                        maxWidth: 'calc(100rem * 0.22 - 1.5rem)',
+                        left: stickyState.containerLeft,
+                        width: stickyState.containerWidth,
                         maxHeight: 'calc(100vh - 6rem)',
                         overflowY: 'auto',
                         zIndex: 10,

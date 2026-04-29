@@ -8,6 +8,7 @@ import { ScrollShadow } from '@heroui/react'
 import FrontHeader from './FrontHeader'
 import FrontFooter from './FrontFooter'
 import ClickSpark from '@/components/ui/reactbits/ClickSpark'
+import ScrollToTop from '@/components/ui/ScrollToTop'
 import { cn } from '@/utils'
 
 import { useTranslation } from 'react-i18next'
@@ -64,6 +65,9 @@ export default function FrontLayout({
             policeIcp={policeIcp}
           />
         )}
+
+        {/* 返回顶部 */}
+        <ScrollToTop />
       </div>
     </ClickSpark>
   )

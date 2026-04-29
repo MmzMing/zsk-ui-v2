@@ -1,12 +1,12 @@
 /**
  * 懒加载 Markdown 预览组件
- * 针对超长文档优化：首屏立即渲染，剩余内容通过 requestIdleCallback 渐进加载
+ * 针对超长文档优化：多段渐进渲染，每段通过 requestIdleCallback 逐批加载
  * 避免一次性渲染大量 DOM 导致页面卡顿
  */
 
 // ===== 1. 依赖导入区域 =====
 // React 核心
-import { useState, useEffect, useRef, memo, useMemo } from 'react'
+import { useState, useEffect, useRef, memo, useMemo, useCallback } from 'react'
 
 // 组件
 import { MarkdownPreview } from './MarkdownPreview'
@@ -22,35 +22,49 @@ interface LazyMarkdownPreviewProps {
   className?: string
   /** 自定义组件覆盖 */
   components?: import('react-markdown').Components
-  /** 首屏渲染的字符数阈值，默认 8000 */
+  /** 每段渲染的字符数阈值，默认 6000 */
   threshold?: number
 }
 
 // ===== 3. 通用工具函数区域 =====
 /**
- * 安全地分割 Markdown 内容
- * 优先在段落边界（双换行）处切割，避免破坏表格/代码块
+ * 将 Markdown 内容按段落边界分割为多个片段
+ * 优先在双换行处切割，避免破坏表格/代码块
  * @param content - 完整内容
- * @param threshold - 首屏字符阈值
- * @returns [首屏内容, 剩余内容]
+ * @param chunkSize - 每段字符数上限
+ * @returns 分割后的片段数组
  */
-function splitContent(content: string, threshold: number): [string, string] {
-  if (content.length <= threshold) return [content, '']
+function splitIntoChunks(content: string, chunkSize: number): string[] {
+  if (content.length <= chunkSize) return [content]
 
-  // 优先在双换行处切割
-  const breakPoint = content.lastIndexOf('\n\n', threshold)
-  if (breakPoint > threshold * 0.5) {
-    return [content.slice(0, breakPoint), content.slice(breakPoint)]
+  const chunks: string[] = []
+  let remaining = content
+
+  while (remaining.length > 0) {
+    if (remaining.length <= chunkSize) {
+      chunks.push(remaining)
+      break
+    }
+
+    const breakPoint = remaining.lastIndexOf('\n\n', chunkSize)
+    if (breakPoint > chunkSize * 0.5) {
+      chunks.push(remaining.slice(0, breakPoint))
+      remaining = remaining.slice(breakPoint)
+      continue
+    }
+
+    const singleBreak = remaining.lastIndexOf('\n', chunkSize)
+    if (singleBreak > chunkSize * 0.5) {
+      chunks.push(remaining.slice(0, singleBreak))
+      remaining = remaining.slice(singleBreak)
+      continue
+    }
+
+    chunks.push(remaining.slice(0, chunkSize))
+    remaining = remaining.slice(chunkSize)
   }
 
-  // 次选在单换行处切割
-  const singleBreak = content.lastIndexOf('\n', threshold)
-  if (singleBreak > threshold * 0.5) {
-    return [content.slice(0, singleBreak), content.slice(singleBreak)]
-  }
-
-  // 兜底直接切割
-  return [content.slice(0, threshold), content.slice(threshold)]
+  return chunks
 }
 
 /**
@@ -60,7 +74,6 @@ function requestIdle(callback: () => void, timeout = 2000): number {
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
     return window.requestIdleCallback(callback, { timeout })
   }
-  // 降级使用 setTimeout
   return window.setTimeout(callback, 1)
 }
 
@@ -75,50 +88,63 @@ function cancelIdle(id: number): void {
 // ===== 4. 导出区域 =====
 /**
  * 懒加载 Markdown 预览
- * 超长文档分片渲染，避免一次性挂载大量 DOM
+ * 超长文档多段渐进渲染：首段立即渲染，后续段逐批通过 requestIdleCallback 加载
+ * 每段渲染时间可控，避免长时间阻塞主线程
  */
 export const LazyMarkdownPreview = memo(function LazyMarkdownPreview({
   value = '',
   className,
   components,
-  threshold = 8000,
+  threshold = 6000,
 }: LazyMarkdownPreviewProps) {
-  const [displayValue, setDisplayValue] = useState('')
-  const [isPending, setIsPending] = useState(false)
+  const [renderedChunkCount, setRenderedChunkCount] = useState(1)
   const idleRef = useRef<number | null>(null)
-  const hasRenderedRef = useRef(false)
 
-  const [firstChunk, restChunk] = useMemo(
-    () => splitContent(value, threshold),
+  const chunks = useMemo(
+    () => splitIntoChunks(value, threshold),
     [value, threshold]
   )
 
-  useEffect(() => {
-    // 重置状态
-    setDisplayValue(firstChunk)
-    setIsPending(!!restChunk)
-    hasRenderedRef.current = false
+  const hasMoreChunks = renderedChunkCount < chunks.length
 
-    if (!restChunk) return
+  // 逐批加载后续片段
+  const scheduleNextChunk = useCallback(() => {
+    if (!hasMoreChunks) return
 
-    // 使用 requestIdleCallback 在浏览器空闲时渲染剩余内容
     idleRef.current = requestIdle(() => {
-      if (!hasRenderedRef.current) {
-        hasRenderedRef.current = true
-        setDisplayValue(value)
-        setIsPending(false)
-      }
+      setRenderedChunkCount((prev) => Math.min(prev + 1, chunks.length))
     })
+  }, [hasMoreChunks, chunks.length])
+
+  // 当已渲染片段数 < 总片段数时，调度下一批
+  useEffect(() => {
+    if (!hasMoreChunks) return
+
+    scheduleNextChunk()
 
     return () => {
-      if (idleRef.current) cancelIdle(idleRef.current)
+      if (idleRef.current !== null) {
+        cancelIdle(idleRef.current)
+        idleRef.current = null
+      }
     }
-  }, [firstChunk, restChunk, value])
+  }, [renderedChunkCount, hasMoreChunks, scheduleNextChunk])
+
+  // 内容切换时重置
+  useEffect(() => {
+    setRenderedChunkCount(1)
+  }, [value])
+
+  // 拼接当前已渲染的片段
+  const displayValue = useMemo(
+    () => chunks.slice(0, renderedChunkCount).join(''),
+    [chunks, renderedChunkCount]
+  )
 
   return (
     <div className="relative">
       <MarkdownPreview value={displayValue} className={className} components={components} />
-      {isPending && (
+      {hasMoreChunks && (
         <div className="flex justify-center py-6">
           <Spinner size="sm" />
           <span className="text-sm text-default-400 ml-2">内容加载中...</span>

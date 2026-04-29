@@ -20,6 +20,17 @@ type LenisOptions = Partial<{
   touchMultiplier: number
 }>
 
+// 模块级 Lenis 实例引用，供其他组件访问
+let lenisInstance: Lenis | null = null
+
+/**
+ * 获取当前 Lenis 实例
+ * 用于在其他组件中调用 lenis.scrollTo 等方法
+ */
+export function getLenisInstance(): Lenis | null {
+  return lenisInstance
+}
+
 /**
  * Lenis 平滑滚动 Hook
  * @param options Lenis 配置选项
@@ -45,6 +56,8 @@ export function useLenis(options?: LenisOptions) {
       ...options
     })
 
+    lenisInstance = lenis
+
     // 动画循环
     function raf(time: number) {
       lenis.raf(time)
@@ -55,6 +68,7 @@ export function useLenis(options?: LenisOptions) {
     // 清理函数
     return () => {
       lenis.destroy()
+      lenisInstance = null
     }
   }, [options])
 }

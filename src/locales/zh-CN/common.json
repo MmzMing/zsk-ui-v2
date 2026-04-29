@@ -82,5 +82,6 @@
     "error": "失败",
     "warning": "警告",
     "info": "提示"
-  }
+  },
+  "scrollToTop": "返回顶部"
 }
