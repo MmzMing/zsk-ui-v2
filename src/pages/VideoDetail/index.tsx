@@ -85,7 +85,7 @@ export default function VideoDetailPage() {
         <VideoBreadcrumb title={videoDetail.title} />
 
         {/* 标题 */}
-        <h1 className="text-xl font-bold text-foreground leading-tight pt-4 pb-2">
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground leading-tight pt-4 pb-2">
           {videoDetail.title}
         </h1>
 
@@ -106,7 +106,7 @@ export default function VideoDetailPage() {
 
         <div className="flex gap-5 mt-0">
           {/* 左侧主内容区 */}
-          <div className="w-[78%] min-w-0">
+          <div className="w-full md:w-[78%] min-w-0">
             {/* 视频播放器 */}
             <VideoPlayerSection detail={videoDetail} />
 

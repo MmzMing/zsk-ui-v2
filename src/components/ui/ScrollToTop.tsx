@@ -45,13 +45,12 @@ export function ScrollToTop({ threshold = 300, className }: ScrollToTopProps) {
         >
           <Button
             isIconOnly
-            color="primary"
-            variant="flat"
+            variant="bordered"
             size="lg"
             radius="full"
             aria-label={t('scrollToTop')}
             onPress={handleScrollToTop}
-            className="shadow-lg backdrop-blur-sm transition-shadow hover:shadow-xl"
+            className="bg-white/90 dark:bg-black/90 border-black/20 dark:border-white/20 text-black dark:text-white shadow-lg backdrop-blur-md transition-all hover:shadow-xl hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black"
           >
             <ArrowUp className="size-5" />
           </Button>
