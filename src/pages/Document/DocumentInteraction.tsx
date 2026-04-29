@@ -86,7 +86,7 @@ export default function DocumentInteraction({
           >
             <Heart
               size={18}
-              className={interaction.isLiked ? 'text-default-700 fill-default-700' : 'text-default-500'}
+              className={interaction.isLiked ? 'text-default-800 fill-default-800' : 'text-default-500'}
             />
             <span className="text-sm text-default-500">
               {formatCount(interaction.likeCount)}
@@ -106,7 +106,7 @@ export default function DocumentInteraction({
             <Star
               size={18}
               className={
-                interaction.isFavorited ? 'text-default-700 fill-default-700' : 'text-default-500'
+                interaction.isFavorited ? 'text-default-800 fill-default-800' : 'text-default-500'
               }
             />
             <span className="text-sm text-default-500">
@@ -123,7 +123,7 @@ export default function DocumentInteraction({
             className="min-w-0 gap-1 px-2"
             onPress={onShare}
           >
-            <Share2 size={18} className="text-default-500" />
+            <Share2 size={18} className="text-default-800" />
           </Button>
         </Tooltip>
 
@@ -151,7 +151,11 @@ export default function DocumentInteraction({
               size="sm"
               variant={interaction.author.isFollowing ? 'bordered' : 'solid'}
               color="default"
-              className="h-8 text-xs"
+              className={`h-8 text-xs rounded-full ${
+                interaction.author.isFollowing
+                  ? ''
+                  : 'bg-default-800 text-white dark:bg-default-100 dark:text-default-900'
+              }`}
               isDisabled={followLoading}
               onPress={onFollow}
               startContent={

@@ -82,7 +82,7 @@ export default function InteractionBar({
             >
               <Heart
                 size={20}
-                className={interaction.isLiked ? 'fill-default-700 text-default-700' : 'text-default-500'}
+                className={interaction.isLiked ? 'fill-default-800 text-default-800' : 'text-default-500'}
               />
               <span className="text-sm text-default-600">
                 {formatCount(interaction.likeCount)}
@@ -103,7 +103,7 @@ export default function InteractionBar({
               <Star
                 size={20}
                 className={
-                  interaction.isFavorited ? 'fill-default-700 text-default-700' : 'text-default-500'
+                  interaction.isFavorited ? 'fill-default-800 text-default-800' : 'text-default-500'
                 }
               />
               <span className="text-sm text-default-600">
@@ -120,7 +120,7 @@ export default function InteractionBar({
               className="min-w-0 gap-1.5 px-3 h-10"
               onPress={onShare}
             >
-              <Share2 size={20} className="text-default-500" />
+              <Share2 size={20} className="text-default-800" />
               <span className="text-sm text-default-600">分享</span>
             </Button>
           </Tooltip>
@@ -147,7 +147,11 @@ export default function InteractionBar({
               size="md"
               variant={interaction.author.isFollowing ? 'bordered' : 'solid'}
               color="default"
-              className="h-9 text-sm ml-2"
+              className={`h-9 text-sm ml-2 rounded-full ${
+                interaction.author.isFollowing
+                  ? ''
+                  : 'bg-default-800 text-white dark:bg-default-100 dark:text-default-900'
+              }`}
               isDisabled={followLoading}
               onPress={onFollow}
               startContent={

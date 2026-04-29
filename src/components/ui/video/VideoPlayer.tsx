@@ -12,7 +12,6 @@ import {
 import { useRef, useEffect } from 'react'
 import '@vidstack/react/player/styles/default/theme.css'
 import '@vidstack/react/player/styles/default/layouts/video.css'
-import { cn } from '@/utils'
 import { CHINESE } from './VideoPlayer.i18n'
 
 export interface VideoTrack {
@@ -67,7 +66,6 @@ export function VideoPlayer({
   poster,
   tracks,
   thumbnails,
-  className,
   autoPlay = false,
   loop = false,
   muted = false,

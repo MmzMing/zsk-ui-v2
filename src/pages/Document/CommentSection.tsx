@@ -13,6 +13,9 @@ import { Button, Avatar, Spinner, Textarea } from '@heroui/react'
 // 图标 (Lucide 优先)
 import { Heart, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react'
 
+// Aceternity Tabs
+import { Tabs as AceternityTabs } from '@/components/ui/aceternity/tabs'
+
 // 工具函数
 import { toast } from '@/utils/toast'
 
@@ -354,27 +357,19 @@ export default function CommentSection({ noteId }: CommentSectionProps) {
           </h3>
 
           {/* 排序切换 */}
-          <div className="flex gap-4 mb-4">
-            <button
-              className={`text-sm pb-1 transition-colors ${
-                sort === 'new'
-                  ? 'text-primary border-b-2 border-primary font-medium'
-                  : 'text-default-400 hover:text-default-600'
-              }`}
-              onClick={() => setSort('new')}
-            >
-              最新
-            </button>
-            <button
-              className={`text-sm pb-1 transition-colors ${
-                sort === 'hot'
-                  ? 'text-primary border-b-2 border-primary font-medium'
-                  : 'text-default-400 hover:text-default-600'
-              }`}
-              onClick={() => setSort('hot')}
-            >
-              热门
-            </button>
+          <div className="mb-4">
+            <AceternityTabs
+              tabs={[
+                { title: '最新', value: 'new' },
+                { title: '热门', value: 'hot' },
+              ]}
+              activeValue={sort}
+              onValueChange={(v) => setSort(v as 'new' | 'hot')}
+              containerClassName="w-auto"
+              tabClassName="text-sm font-medium text-default-700 dark:text-default-300"
+              activeTabClassName="bg-default-800 text-white dark:bg-default-100 dark:text-default-900"
+              layoutIdNamespace="doc-comment-sort-pill"
+            />
           </div>
 
           {/* 评论输入框 */}
@@ -407,7 +402,8 @@ export default function CommentSection({ noteId }: CommentSectionProps) {
                   <div className="flex justify-end">
                     <Button
                       size="sm"
-                      color="primary"
+                      color="default"
+                      className="rounded-full bg-default-800 text-white dark:bg-default-100 dark:text-default-900"
                       onPress={handleSubmit}
                       isDisabled={!inputText.trim() || submitting}
                       isLoading={submitting}
