@@ -14,7 +14,7 @@ import {
   Tag,
   ShieldCheck,
   Upload,
-  CheckCircle,
+  ClipboardCheck,
   Database,
   MessageSquare,
   Video,
@@ -69,7 +69,7 @@ export interface MenuConfig {
 
 /**
  * 后台管理系统默认菜单配置
- * 包含7大模块：仪表盘、机器人平台、人员管理、视频管理、文档管理、系统管理、系统运维
+ * 包含8大模块：仪表盘、机器人平台、人员管理、视频管理、文档管理、审批流、系统管理、系统运维
  */
 export const ADMIN_MENUS: MenuItem[] = [
   {
@@ -185,15 +185,6 @@ export const ADMIN_MENUS: MenuItem[] = [
         order: 2,
         permission: 'video:upload:view',
         parentKey: 'video'
-      },
-      {
-        key: 'video-audit',
-        label: '视频审核',
-        path: '/admin/video/audit',
-        icon: CheckCircle,
-        order: 3,
-        permission: 'video:audit:view',
-        parentKey: 'video'
       }
     ]
   },
@@ -230,15 +221,24 @@ export const ADMIN_MENUS: MenuItem[] = [
         order: 3,
         permission: 'document:upload:view',
         parentKey: 'document'
-      },
+      }
+    ]
+  },
+  {
+    key: 'audit',
+    label: '审批流',
+    icon: ClipboardCheck,
+    order: 6,
+    permission: 'audit:view',
+    children: [
       {
-        key: 'document-audit',
-        label: '文档审核',
-        path: '/admin/document/audit',
-        icon: CheckCircle,
-        order: 4,
-        permission: 'document:audit:view',
-        parentKey: 'document'
+        key: 'audit-front',
+        label: '前台审批',
+        path: '/admin/audit/front',
+        icon: ClipboardCheck,
+        order: 1,
+        permission: 'audit:front:view',
+        parentKey: 'audit'
       }
     ]
   },
@@ -246,7 +246,7 @@ export const ADMIN_MENUS: MenuItem[] = [
     key: 'system',
     label: '系统管理',
     icon: Settings,
-    order: 6,
+    order: 7,
     permission: 'system:view',
     children: [
       {
@@ -273,7 +273,7 @@ export const ADMIN_MENUS: MenuItem[] = [
     key: 'monitor',
     label: '系统运维',
     icon: Monitor,
-    order: 7,
+    order: 8,
     permission: 'monitor:view',
     children: [
       {

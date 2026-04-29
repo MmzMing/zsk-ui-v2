@@ -45,14 +45,15 @@ const PersonnelUser = lazy(() => import('@/pages/Admin/Personnel/User'))
 // 视频管理页面
 const VideoList = lazy(() => import('@/pages/Admin/Video/List'))
 const VideoUpload = lazy(() => import('@/pages/Admin/Video/Upload'))
-const VideoAudit = lazy(() => import('@/pages/Admin/Video/Audit'))
 const VideoCollection = lazy(() => import('@/pages/Admin/Video/Collection'))
 
 // 文档管理页面
 const DocumentList = lazy(() => import('@/pages/Admin/Document/List'))
-const DocumentAudit = lazy(() => import('@/pages/Admin/Document/Audit'))
 const DocumentCreateEdit = lazy(() => import('@/pages/Admin/Document/CreateEdit'))
 const DocumentEditor = lazy(() => import('@/pages/Admin/Document/Editor'))
+
+// 审批流页面
+const AuditFront = lazy(() => import('@/pages/Admin/Audit/FrontAudit'))
 
 // 系统管理页面
 const SystemConfig = lazy(() => import('@/pages/Admin/System/Config'))
@@ -229,10 +230,6 @@ export const routes: RouteObject[] = [
                 element: withSuspense(VideoUpload),
               },
               {
-                path: 'audit',
-                element: withSuspense(VideoAudit),
-              },
-              {
                 path: 'collection',
                 element: withSuspense(VideoCollection),
               },
@@ -246,10 +243,6 @@ export const routes: RouteObject[] = [
                 element: withSuspense(DocumentList),
               },
               {
-                path: 'audit',
-                element: withSuspense(DocumentAudit),
-              },
-              {
                 path: 'create-edit',
                 element: withSuspense(DocumentCreateEdit),
               },
@@ -260,6 +253,15 @@ export const routes: RouteObject[] = [
               {
                 path: 'editor/:id',
                 element: withSuspense(DocumentEditor),
+              },
+            ],
+          },
+          {
+            path: 'audit',
+            children: [
+              {
+                path: 'front',
+                element: withSuspense(AuditFront),
               },
             ],
           },
