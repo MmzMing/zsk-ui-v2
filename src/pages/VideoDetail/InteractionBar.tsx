@@ -1,12 +1,22 @@
 /**
  * 视频交互栏
- * 左侧：作者信息 + 关注按钮
- * 右侧：点赞/收藏/分享
+ * 左侧：浏览量/点赞/收藏/分享
+ * 右侧：作者信息 + 关注按钮
+ * 作者头像/昵称可点击跳转到用户主页
  * 参考 B站风格
  */
 
+// ===== 1. 依赖导入区域 =====
+// React Router
+import { useNavigate } from 'react-router-dom'
+
+// HeroUI 组件
 import { Button, Avatar, Tooltip } from '@heroui/react'
+
+// 图标 (Lucide 优先)
 import { Heart, Star, Share2, UserPlus, UserCheck, Eye } from 'lucide-react'
+
+// 类型定义
 import type { HomeVideoInteraction } from '@/types/video-home.types'
 
 interface Props {
@@ -36,6 +46,18 @@ export default function InteractionBar({
   onFollow,
   onShare,
 }: Props) {
+  const navigate = useNavigate()
+
+  /**
+   * 点击作者头像/昵称，跳转到用户主页
+   * 通过 state 传递作者信息，避免用户主页再次请求
+   */
+  const handleAuthorClick = () => {
+    if (!interaction?.author) return
+    navigate(`/user/${interaction.author.id}`, {
+      state: { author: interaction.author },
+    })
+  }
   if (!interaction) {
     return (
       <section className="py-5 border-b border-default-200">
@@ -126,22 +148,30 @@ export default function InteractionBar({
           </Tooltip>
         </div>
 
-        {/* 右侧：作者信息 */}
+        {/* 右侧：作者信息（可点击跳转用户主页） */}
         {interaction.author && (
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <Avatar
-              src={interaction.author.avatar}
-              name={interaction.author.name || '作者'}
-              size="sm"
-              className="w-8 h-8 sm:w-10 sm:h-10 shrink-0"
-            />
-            <div className="hidden sm:block">
-              <p className="text-base text-foreground font-medium leading-tight">
-                {interaction.author.name || '未知作者'}
-              </p>
-              <p className="text-sm text-default-400 mt-0.5">
-                {formatCount(interaction.author.fans)} 粉丝
-              </p>
+            <div
+              className="flex items-center gap-2 sm:gap-3 cursor-pointer group/author"
+              onClick={handleAuthorClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAuthorClick() }}
+            >
+              <Avatar
+                src={interaction.author.avatar}
+                name={interaction.author.name || '作者'}
+                size="sm"
+                className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 transition-opacity group-hover/author:opacity-80"
+              />
+              <div className="hidden sm:block">
+                <p className="text-base text-foreground font-medium leading-tight group-hover/author:underline">
+                  {interaction.author.name || '未知作者'}
+                </p>
+                <p className="text-sm text-default-400 mt-0.5">
+                  {formatCount(interaction.author.fans)} 粉丝
+                </p>
+              </div>
             </div>
             <Button
               size="sm"

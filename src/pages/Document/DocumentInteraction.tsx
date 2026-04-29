@@ -1,9 +1,13 @@
 /**
  * 文档交互信息区
  * 浏览量 / 点赞 / 收藏 / 分享 / 关注作者
+ * 作者头像/昵称可点击跳转到用户主页
  */
 
 // ===== 1. 依赖导入区域 =====
+// React Router
+import { useNavigate } from 'react-router-dom'
+
 // 图标 (Lucide 优先)
 import { Eye, Heart, Star, Share2, UserPlus, UserCheck } from 'lucide-react'
 
@@ -53,6 +57,18 @@ export default function DocumentInteraction({
   onFollow,
   onShare,
 }: DocumentInteractionProps) {
+  const navigate = useNavigate()
+
+  /**
+   * 点击作者头像/昵称，跳转到用户主页
+   * 通过 state 传递作者信息，避免用户主页再次请求
+   */
+  const handleAuthorClick = () => {
+    if (!interaction?.author) return
+    navigate(`/user/${interaction.author.id}`, {
+      state: { author: interaction.author },
+    })
+  }
   // 加载态骨架屏
   if (!interaction) {
     return (
@@ -130,22 +146,30 @@ export default function DocumentInteraction({
         {/* 分隔 */}
         <span className="w-px h-5 bg-default-200 hidden sm:block" />
 
-        {/* 作者信息 */}
+        {/* 作者信息（可点击跳转用户主页） */}
         {interaction.author && (
           <div className="flex items-center gap-3 ml-auto">
-            <Avatar
-              src={interaction.author.avatar}
-              name={interaction.author.name}
-              size="sm"
-              className="w-8 h-8 shrink-0"
-            />
-            <div className="hidden sm:block">
-              <p className="text-sm text-foreground font-medium leading-tight">
-                {interaction.author.name}
-              </p>
-              <p className="text-xs text-default-400">
-                {formatCount(interaction.author.fans)} 粉丝
-              </p>
+            <div
+              className="flex items-center gap-3 cursor-pointer group/author"
+              onClick={handleAuthorClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAuthorClick() }}
+            >
+              <Avatar
+                src={interaction.author.avatar}
+                name={interaction.author.name}
+                size="sm"
+                className="w-8 h-8 shrink-0 transition-opacity group-hover/author:opacity-80"
+              />
+              <div className="hidden sm:block">
+                <p className="text-sm text-foreground font-medium leading-tight group-hover/author:underline">
+                  {interaction.author.name}
+                </p>
+                <p className="text-xs text-default-400">
+                  {formatCount(interaction.author.fans)} 粉丝
+                </p>
+              </div>
             </div>
             <Button
               size="sm"

@@ -1,6 +1,6 @@
 /**
  * 前台文档详情 API 模块
- * 对接后端 DocHomeNoteController 接口
+ * 对接后端 DocHomeNoteController / DocHomeUserController 接口
  */
 
 import { get, post } from '@/api/request'
@@ -11,6 +11,8 @@ import type {
   DocHomeCommentPageData,
   DocHomeComment,
   DocHomeCommentInput,
+  DocHomeUserWorksPageData,
+  DocHomeUserStatsVo,
 } from '@/types/document.types'
 
 /** 获取笔记元信息+详情 */
@@ -60,4 +62,22 @@ export function postDocHomeNoteComment(data: DocHomeCommentInput) {
 /** 切换评论点赞状态 */
 export function toggleDocHomeNoteCommentLike(commentId: string) {
   return post<DocHomeToggleResult>(`/document/docHomeNote/comment/like/${commentId}`)
+}
+
+// ===== 前台用户作品主页 API（对接 DocHomeUserController） =====
+
+/** 获取用户作品列表（分页，支持按类型筛选） */
+export function getDocHomeUserWorks(
+  userId: string,
+  params?: { type?: string; pageNum?: number; pageSize?: number }
+) {
+  return get<DocHomeUserWorksPageData>(
+    `/document/docHomeUser/${userId}/works`,
+    params as unknown as Record<string, unknown>
+  )
+}
+
+/** 获取用户作品统计（总获赞/总浏览/总收藏/笔记数/视频数） */
+export function getDocHomeUserStats(userId: string) {
+  return get<DocHomeUserStatsVo>(`/document/docHomeUser/${userId}/stats`)
 }

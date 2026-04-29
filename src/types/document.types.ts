@@ -398,3 +398,66 @@ export interface DocHomeToggleResult {
   status: boolean
   count: number
 }
+
+// ===== 前台用户作品主页类型（对接 docHomeUser 接口） =====
+
+/** 用户作品类型筛选 */
+export type DocHomeUserWorkType = 'note' | 'video'
+
+/** 用户作品列表项（对接 /docHomeUser/{userId}/works 接口） */
+export interface DocHomeUserWorksVo {
+  /** 作品ID */
+  id: string
+  /** 作品标题 */
+  title: string
+  /** 作品类型（note-笔记 video-视频） */
+  type: DocHomeUserWorkType
+  /** 作品描述/简介 */
+  description: string
+  /** 封面图访问地址 */
+  coverUrl: string
+  /** 大类分类编码 */
+  category: string
+  /** 标签（多个用英文逗号分隔） */
+  tags: string
+  /** 浏览量（从Redis缓存获取） */
+  viewCount: number
+  /** 点赞数（从Redis缓存获取） */
+  likeCount: number
+  /** 收藏数（从Redis缓存获取） */
+  favoriteCount: number
+  /** 创建时间（格式：yyyy-MM-dd HH:mm:ss） */
+  createTime: string
+}
+
+/** 用户作品分页数据 */
+export interface DocHomeUserWorksPageData {
+  /** 作品列表 */
+  list: DocHomeUserWorksVo[]
+  /** 总记录数 */
+  total: number
+  /** 当前页码 */
+  pageNum: number
+  /** 每页大小 */
+  pageSize: number
+  /** 总页数 */
+  totalPages: number
+  /** 是否有下一页 */
+  hasNext: boolean
+  /** 是否有上一页 */
+  hasPrevious: boolean
+}
+
+/** 用户作品统计（对接 /docHomeUser/{userId}/stats 接口） */
+export interface DocHomeUserStatsVo {
+  /** 总获赞数（所有笔记点赞数 + 所有视频点赞数） */
+  totalLikeCount: number
+  /** 总浏览数（所有笔记浏览数 + 所有视频浏览数） */
+  totalViewCount: number
+  /** 总收藏数（所有笔记收藏数 + 所有视频收藏数） */
+  totalFavoriteCount: number
+  /** 已发布且审核通过的笔记数量 */
+  noteCount: number
+  /** 已发布且审核通过的视频数量 */
+  videoCount: number
+}

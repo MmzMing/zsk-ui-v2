@@ -69,19 +69,25 @@ function splitIntoChunks(content: string, chunkSize: number): string[] {
 
 /**
  * 安全的 requestIdleCallback 封装
+ * 优先使用浏览器原生 requestIdleCallback，降级为 setTimeout
+ * 返回值统一为 number，便于 cancelIdle 取消
  */
 function requestIdle(callback: () => void, timeout = 2000): number {
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
     return window.requestIdleCallback(callback, { timeout })
   }
-  return window.setTimeout(callback, 1)
+  return setTimeout(callback, 1) as unknown as number
 }
 
+/**
+ * 安全的 cancelIdleCallback 封装
+ * 对应 requestIdle 的取消操作
+ */
 function cancelIdle(id: number): void {
   if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
     window.cancelIdleCallback(id)
   } else {
-    window.clearTimeout(id)
+    clearTimeout(id as unknown as ReturnType<typeof setTimeout>)
   }
 }
 
