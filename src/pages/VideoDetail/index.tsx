@@ -17,7 +17,6 @@ import InteractionBar from './InteractionBar'
 import CommentSection from './CommentSection'
 import CollectionSidebar from './CollectionSidebar'
 import VideoDetailSkeleton from './VideoDetailSkeleton'
-import ScrollToTopLever from '@/pages/Document/ScrollToTopLever'
 import { useStickySidebar } from './useStickySidebar'
 
 export default function VideoDetailPage() {
@@ -81,33 +80,33 @@ export default function VideoDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 max-w-7xl">
+      <div className="mx-auto px-4 max-w-[100rem]">
         {/* 面包屑导航 */}
         <VideoBreadcrumb title={videoDetail.title} />
 
-        {/* 标题：放大 2 倍 */}
-        <h1 className="text-5xl font-bold text-foreground leading-tight pt-4 pb-2">
+        {/* 标题 */}
+        <h1 className="text-xl font-bold text-foreground leading-tight pt-4 pb-2">
           {videoDetail.title}
         </h1>
 
         {/* 分类/标签 */}
         <div className="flex items-center gap-3 pb-4 pt-2 flex-wrap">
           {videoDetail.category && (
-            <Chip size="md" variant="flat" color="default" className="text-sm">
+            <Chip size="sm" variant="flat" color="default" className="text-xs">
               {videoDetail.category}
             </Chip>
           )}
           {videoDetail.tags?.length > 0 &&
             videoDetail.tags.map((tag) => (
-              <Chip key={tag} size="md" variant="flat" className="text-sm">
+              <Chip key={tag} size="sm" variant="flat" className="text-xs">
                 {tag}
               </Chip>
             ))}
         </div>
 
-        <div className="flex gap-6 mt-0">
+        <div className="flex gap-5 mt-0">
           {/* 左侧主内容区 */}
-          <div className="flex-1 min-w-0">
+          <div className="w-[78%] min-w-0">
             {/* 视频播放器 */}
             <VideoPlayerSection detail={videoDetail} />
 
@@ -139,7 +138,7 @@ export default function VideoDetailPage() {
           </div>
 
           {/* 右侧合集栏（桌面端自定义 sticky） */}
-          <aside className="hidden md:block w-[30%] shrink-0">
+          <aside className="hidden md:block w-[22%] shrink-0">
             {/* 原始容器：用于计算 sticky 触发位置 */}
             <div ref={containerRef}>
               {/* 占位元素：始终保持与内容相同高度，避免固定时布局跳动 */}
@@ -160,9 +159,9 @@ export default function VideoDetailPage() {
                     ? {
                         position: 'fixed',
                         top: 80,
-                        right: 'max(1rem, calc((100vw - 80rem) / 2 + 1rem))',
-                        width: stickyState.contentWidth > 0 ? stickyState.contentWidth : 'calc(30% - 1.5rem)',
-                        maxWidth: 'calc(80rem * 0.3 - 1.5rem)',
+                        right: 'max(1rem, calc((100vw - 100rem) / 2 + 1rem))',
+                        width: stickyState.contentWidth > 0 ? stickyState.contentWidth : 'calc(22% - 1.5rem)',
+                        maxWidth: 'calc(100rem * 0.22 - 1.5rem)',
                         maxHeight: 'calc(100vh - 6rem)',
                         overflowY: 'auto',
                         zIndex: 10,
@@ -174,7 +173,6 @@ export default function VideoDetailPage() {
                   collections={collections}
                   currentVideoId={videoDetail.id}
                 />
-                <ScrollToTopLever />
               </div>
             </div>
           </aside>
