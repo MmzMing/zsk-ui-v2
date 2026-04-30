@@ -21,11 +21,11 @@ import type {
  * 获取审核队列
  * 根据目标类型和审核状态筛选审核队列，支持分页查询
  *
- * @param params - 查询参数（targetType必填）
+ * @param params - 查询参数（targetType可选，不传或null则查询全部类型）
  * @returns 审核队列分页数据
  */
 export async function getAuditQueue(params: AuditQueueQueryParams): Promise<AuditQueuePageData> {
-  return get('/api/document/docAudit/queue', params as unknown as Record<string, unknown>)
+  return get('/document/docAudit/queue', params as unknown as Record<string, unknown>)
 }
 
 /**
@@ -36,7 +36,7 @@ export async function getAuditQueue(params: AuditQueueQueryParams): Promise<Audi
  * @returns 审核详情
  */
 export async function getAuditDetail(params: AuditDetailQueryParams): Promise<AuditDetail> {
-  return get('/api/document/docAudit/detail', params as unknown as Record<string, unknown>)
+  return get('/document/docAudit/detail', params as unknown as Record<string, unknown>)
 }
 
 /**
@@ -45,7 +45,7 @@ export async function getAuditDetail(params: AuditDetailQueryParams): Promise<Au
  * @param data - 审核提交参数
  */
 export async function submitAudit(data: AuditSubmitInput): Promise<void> {
-  return post('/api/document/docAudit/submit', data as unknown as Record<string, unknown>)
+  return post('/document/docAudit/submit', data as unknown as Record<string, unknown>)
 }
 
 /**
@@ -55,7 +55,7 @@ export async function submitAudit(data: AuditSubmitInput): Promise<void> {
  * @param data - 批量审核提交参数
  */
 export async function submitBatchAudit(data: AuditBatchSubmitInput): Promise<void> {
-  return post('/api/document/docAudit/submitBatch', data as unknown as Record<string, unknown>)
+  return post('/document/docAudit/submitBatch', data as unknown as Record<string, unknown>)
 }
 
 /**
@@ -66,7 +66,7 @@ export async function submitBatchAudit(data: AuditBatchSubmitInput): Promise<voi
  * @returns 审核日志分页数据
  */
 export async function getAuditLogs(params?: AuditLogQueryParams): Promise<AuditLogPageData> {
-  return get('/api/document/docAudit/logs', params as unknown as Record<string, unknown>)
+  return get('/document/docAudit/logs', params as unknown as Record<string, unknown>)
 }
 
 /**
@@ -77,5 +77,5 @@ export async function getAuditLogs(params?: AuditLogQueryParams): Promise<AuditL
  * @returns 违规原因列表
  */
 export async function getViolationReasons(targetType: number): Promise<ViolationReason[]> {
-  return get('/api/document/docAudit/violation-reasons', { targetType })
+  return get('/document/docAudit/violation-reasons', { targetType })
 }

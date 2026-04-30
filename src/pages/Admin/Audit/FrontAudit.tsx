@@ -86,6 +86,7 @@ import type {
   AuditStatus,
   AuditStatusValue,
   RiskLevel,
+  AuditLogResult,
   AuditQueuePageData,
   AuditLogPageData
 } from '@/types/audit.types'
@@ -167,16 +168,16 @@ function getAuditStatusColor(status: AuditStatusValue): 'default' | 'success' | 
 /**
  * 获取审核日志结果的显示标签
  *
- * @param result - 审核日志结果
+ * @param result - 审核日志结果（1-通过 2-驳回 3-已撤回）
  * @returns 对应的中文标签
  */
-function getAuditLogResultLabel(result: string): string {
-  const labelMap: Record<string, string> = {
-    approved: '通过',
-    rejected: '驳回',
-    withdrawn: '撤回'
+function getAuditLogResultLabel(result: AuditLogResult): string {
+  const labelMap: Record<AuditLogResult, string> = {
+    1: '通过',
+    2: '驳回',
+    3: '撤回'
   }
-  return labelMap[result] ?? result
+  return labelMap[result] ?? String(result)
 }
 
 /**
@@ -185,11 +186,11 @@ function getAuditLogResultLabel(result: string): string {
  * @param result - 审核日志结果
  * @returns Chip 颜色
  */
-function getAuditLogResultColor(result: string): 'success' | 'danger' | 'default' {
-  const colorMap: Record<string, 'success' | 'danger' | 'default'> = {
-    approved: 'success',
-    rejected: 'danger',
-    withdrawn: 'default'
+function getAuditLogResultColor(result: AuditLogResult): 'success' | 'danger' | 'default' {
+  const colorMap: Record<AuditLogResult, 'success' | 'danger' | 'default'> = {
+    1: 'success',
+    2: 'danger',
+    3: 'default'
   }
   return colorMap[result] ?? 'default'
 }
@@ -602,8 +603,8 @@ export default function FrontAudit() {
   const [queueList, setQueueList] = useState<AuditQueueItem[]>([])
   /** 队列加载状态 */
   const [isQueueLoading, setIsQueueLoading] = useState(false)
-  /** 队列目标类型筛选 */
-  const [queueTargetType, setQueueTargetType] = useState<AuditTargetType>(1)
+  /** 队列目标类型筛选（undefined表示全部） */
+  const [queueTargetType, setQueueTargetType] = useState<AuditTargetType | undefined>(undefined)
   /** 队列审核状态筛选 */
   const [queueAuditStatus, setQueueAuditStatus] = useState<AuditStatus | undefined>(undefined)
   /** 队列分页参数 */
@@ -637,6 +638,7 @@ export default function FrontAudit() {
   const [actionModalOpen, setActionModalOpen] = useState(false)
   const [actionMode, setActionMode] = useState<'approve' | 'reject'>('approve')
   const [actionIsBatch, setActionIsBatch] = useState(false)
+  const [actionTargetType, setActionTargetType] = useState<AuditTargetType>(1)
   const [actionTargetIds, setActionTargetIds] = useState<string[]>([])
 
   // ===== 6. 错误处理函数区域 =====
@@ -729,9 +731,16 @@ export default function FrontAudit() {
    * 切换目标类型时重置分页和选中项
    */
   const handleQueueTargetTypeChange = useCallback((keys: 'all' | Set<React.Key>) => {
-    if (keys === 'all') return
-    const value = Array.from(keys)[0] as string
-    setQueueTargetType(Number(value) as AuditTargetType)
+    if (keys === 'all') {
+      setQueueTargetType(undefined)
+    } else {
+      const value = Array.from(keys)[0] as string
+      if (value === 'all') {
+        setQueueTargetType(undefined)
+      } else {
+        setQueueTargetType(Number(value) as AuditTargetType)
+      }
+    }
     setQueuePage(1)
     setSelectedKeys(new Set())
   }, [])
@@ -774,7 +783,7 @@ export default function FrontAudit() {
    * 重置审核队列筛选条件
    */
   const handleResetQueueQuery = useCallback(() => {
-    setQueueTargetType(1)
+    setQueueTargetType(undefined)
     setQueueAuditStatus(undefined)
     setQueuePage(1)
     setSelectedKeys(new Set())
@@ -803,6 +812,7 @@ export default function FrontAudit() {
   const handleApproveItem = useCallback((item: AuditQueueItem) => {
     setActionMode('approve')
     setActionIsBatch(false)
+    setActionTargetType(item.targetType)
     setActionTargetIds([item.targetId])
     setActionModalOpen(true)
   }, [])
@@ -813,6 +823,7 @@ export default function FrontAudit() {
   const handleRejectItem = useCallback((item: AuditQueueItem) => {
     setActionMode('reject')
     setActionIsBatch(false)
+    setActionTargetType(item.targetType)
     setActionTargetIds([item.targetId])
     setActionModalOpen(true)
   }, [])
@@ -825,12 +836,20 @@ export default function FrontAudit() {
       toast.warning('请选择要审核的内容')
       return
     }
+    // 获取选中项的目标类型（确保所有选中项类型一致）
+    const selectedItems = queueList.filter(item => selectedKeys.has(item.targetId))
+    const types = [...new Set(selectedItems.map(item => item.targetType))]
+    if (types.length !== 1) {
+      toast.warning('批量审核只支持同一类型的内容')
+      return
+    }
     const ids = Array.from(selectedKeys)
     setActionMode('approve')
     setActionIsBatch(true)
+    setActionTargetType(types[0])
     setActionTargetIds(ids)
     setActionModalOpen(true)
-  }, [selectedKeys])
+  }, [selectedKeys, queueList])
 
   /**
    * 批量驳回审核
@@ -840,12 +859,20 @@ export default function FrontAudit() {
       toast.warning('请选择要审核的内容')
       return
     }
+    // 获取选中项的目标类型（确保所有选中项类型一致）
+    const selectedItems = queueList.filter(item => selectedKeys.has(item.targetId))
+    const types = [...new Set(selectedItems.map(item => item.targetType))]
+    if (types.length !== 1) {
+      toast.warning('批量审核只支持同一类型的内容')
+      return
+    }
     const ids = Array.from(selectedKeys)
     setActionMode('reject')
     setActionIsBatch(true)
+    setActionTargetType(types[0])
     setActionTargetIds(ids)
     setActionModalOpen(true)
-  }, [selectedKeys])
+  }, [selectedKeys, queueList])
 
   /**
    * 审核操作成功后刷新列表
@@ -943,14 +970,15 @@ export default function FrontAudit() {
                     placeholder="目标类型"
                     className="w-full sm:w-28"
                     aria-label="目标类型筛选"
-                    selectedKeys={[String(queueTargetType)]}
+                    selectedKeys={queueTargetType !== undefined ? [String(queueTargetType)] : []}
                     onSelectionChange={handleQueueTargetTypeChange}
                   >
-                    {AUDIT_TARGET_TYPE_OPTIONS.map(option => (
+                    {[<SelectItem key="all" textValue="全部">全部</SelectItem>,
+                    ...AUDIT_TARGET_TYPE_OPTIONS.map(option => (
                       <SelectItem key={String(option.value)} textValue={option.label}>
                         {option.label}
                       </SelectItem>
-                    ))}
+                    ))]}
                   </Select>
                   <Select
                     size="sm"
@@ -1191,7 +1219,8 @@ export default function FrontAudit() {
                     <TableHeader>
                       <TableColumn key="targetTitle">内容标题</TableColumn>
                       <TableColumn key="targetType">类型</TableColumn>
-                      <TableColumn key="auditorName" className="hidden md:table-cell">审核人</TableColumn>
+                      <TableColumn key="auditRound" className="hidden md:table-cell">审核轮次</TableColumn>
+                      <TableColumn key="auditorName" className="hidden lg:table-cell">审核人</TableColumn>
                       <TableColumn key="result">结果</TableColumn>
                       <TableColumn key="riskLevel" className="hidden lg:table-cell">风险等级</TableColumn>
                       <TableColumn key="auditMind" className="hidden xl:table-cell">审核意见</TableColumn>
@@ -1214,6 +1243,11 @@ export default function FrontAudit() {
                             </Chip>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
+                            <Chip size="sm" variant="flat" color="primary">
+                              第 {item.auditRound} 轮
+                            </Chip>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             <span className="text-sm">{item.auditorName}</span>
                           </TableCell>
                           <TableCell>
@@ -1293,7 +1327,7 @@ export default function FrontAudit() {
         onOpenChange={setActionModalOpen}
         mode={actionMode}
         isBatch={actionIsBatch}
-        targetType={queueTargetType}
+        targetType={actionTargetType}
         targetIds={actionTargetIds}
         onSuccess={handleActionSuccess}
       />

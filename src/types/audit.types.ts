@@ -38,9 +38,9 @@ export type RiskLevel = 'low' | 'medium' | 'high'
 export type AuditType = 'ai' | 'manual'
 
 /**
- * 审核日志结果
+ * 审核日志结果（1-通过 2-驳回 3-已撤回）
  */
-export type AuditLogResult = 'approved' | 'rejected' | 'withdrawn'
+export type AuditLogResult = 1 | 2 | 3
 
 /**
  * 审核队列项数据结构
@@ -123,8 +123,10 @@ export interface AuditLogItem {
   auditorName: string
   /** 审核时间 */
   auditTime: string
-  /** 审核结果（approved/rejected/withdrawn） */
+  /** 审核结果（1-通过 2-驳回 3-已撤回） */
   result: AuditLogResult
+  /** 审核轮次 */
+  auditRound: number
   /** 审核意见 */
   auditMind: string | null
   /** 风险等级 */
@@ -146,8 +148,8 @@ export interface ViolationReason {
  * 审核队列查询参数
  */
 export interface AuditQueueQueryParams {
-  /** 审核目标类型（必填） */
-  targetType: AuditTargetType
+  /** 审核目标类型（可选，不传或null则查询全部类型） */
+  targetType?: AuditTargetType | null
   /** 审核状态（0-待审核 1-通过 2-驳回） */
   auditStatus?: AuditStatus
   /** 页码，默认1 */

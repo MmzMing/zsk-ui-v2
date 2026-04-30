@@ -154,9 +154,9 @@ async function initUserInfo(
       setUserInfo(user)
       setPermissions(user.permissions)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 如果后端返回 401，说明 Token 已过期，清除本地缓存
-    if (error?.response?.status === 401) {
+    if ((error as { response?: { status?: number } })?.response?.status === 401) {
       handleLoginExpired(setUserInfo)
     }
     // 其他错误（如网络问题）保持现有缓存数据不变

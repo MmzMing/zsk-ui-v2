@@ -19,7 +19,6 @@ import type { DocHomeInteraction } from '@/types/document.types'
 
 // ===== 2. Props 类型定义 =====
 interface DocumentInteractionProps {
-  docId: string
   interaction?: DocHomeInteraction | null
   likeLoading: boolean
   favLoading: boolean
@@ -47,7 +46,6 @@ function formatCount(n: number): string {
  * 文档交互信息区组件
  */
 export default function DocumentInteraction({
-  docId: _docId,
   interaction,
   likeLoading,
   favLoading,
