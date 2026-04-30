@@ -131,7 +131,7 @@ function buildEmptyForm(): VideoMetaFormState {
     broadCode: '',
     narrowCode: '',
     metaData: '',
-    status: 3,
+    status: 1,
     auditStatus: 0,
     isPinned: 0,
     isRecommended: 0,
@@ -827,6 +827,7 @@ export function VideoMetaFormModal({
                   <Select
                     label="发布状态"
                     placeholder="请选择状态"
+                    isDisabled={!videoData}
                     selectedKeys={formData.status ? [String(formData.status)] : []}
                     onSelectionChange={(keys) => {
                       const value = Array.from(keys)[0] as string

@@ -150,6 +150,23 @@ export function downloadFile(url: string, filename: string): void {
 }
 
 /**
+ * 下载文本内容为文件
+ * @param content - 文本内容
+ * @param filename - 文件名（含扩展名）
+ * @param mimeType - MIME 类型，默认 'text/plain;charset=utf-8'
+ */
+export function downloadTextAsFile(
+  content: string,
+  filename: string,
+  mimeType = 'text/plain;charset=utf-8'
+): void {
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  downloadFile(url, filename)
+  URL.revokeObjectURL(url)
+}
+
+/**
  * 格式化文件大小
  * @param bytes - 字节数
  * @returns 格式化后的文件大小

@@ -10,7 +10,7 @@
 
 // ===== 1. 依赖导入区域 =====
 // React 核心
-import { useMemo, memo } from 'react'
+import { useMemo, memo, useCallback } from 'react'
 
 // React Router
 import { useParams } from 'react-router-dom'
@@ -18,6 +18,9 @@ import { useParams } from 'react-router-dom'
 // 组件
 import { StatusState } from '@/components/ui/StatusState'
 import { LazyMarkdownPreview } from '@/components/ui/editor'
+
+// 工具函数
+import { downloadTextAsFile } from '@/utils/common'
 
 // 自定义 Hooks
 import { useDocumentDetail } from '@/hooks/useDocumentDetail'
@@ -56,19 +59,43 @@ function headingTextToId(text: string): string {
 
 /**
  * 从 Markdown 文本中提取 h1-h4 标题
+ * 自动过滤代码块（``` 和 ~~~）内的内容，避免代码注释被误识别为标题
  * @param md - Markdown 文本
  * @returns 目录项列表
  */
 function extractHeadings(md: string): TocItem[] {
+  // 过滤代码块内容，将代码块内的行替换为空行以保持行号一致
+  const stripCodeBlocks = (text: string): string => {
+    const lines = text.split('\n')
+    const result: string[] = []
+    let inCodeBlock = false
+
+    for (const line of lines) {
+      if (/^\s*(```|~~~)/.test(line)) {
+        inCodeBlock = !inCodeBlock
+        result.push('')
+      } else if (!inCodeBlock) {
+        result.push(line)
+      } else {
+        result.push('')
+      }
+    }
+
+    return result.join('\n')
+  }
+
+  const cleanedMd = stripCodeBlocks(md)
   const headingRegex = /^(#{1,4})\s+(.+)$/gm
   const result: TocItem[] = []
   let match: RegExpExecArray | null
-  while ((match = headingRegex.exec(md)) !== null) {
+
+  while ((match = headingRegex.exec(cleanedMd)) !== null) {
     const level = match[1].length
     const text = match[2].trim()
     const id = headingTextToId(text)
     result.push({ id, text, level })
   }
+
   return result
 }
 
@@ -137,6 +164,13 @@ export default function DocumentDetailPage() {
     () => (detail?.content ? extractHeadings(detail.content) : []),
     [detail?.content]
   )
+
+  // 下载 Markdown 文件
+  const handleDownload = useCallback(() => {
+    if (!detail) return
+    const filename = `${detail.title || '文档'}.md`
+    downloadTextAsFile(detail.content ?? '', filename, 'text/markdown;charset=utf-8')
+  }, [detail])
 
   // 错误态
   if (error) {
@@ -208,6 +242,7 @@ export default function DocumentDetailPage() {
               onFavorite={handleFavorite}
               onFollow={handleFollow}
               onShare={handleShare}
+              onDownload={handleDownload}
             />
 
             {/* 文档正文渲染区 */}

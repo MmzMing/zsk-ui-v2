@@ -99,7 +99,7 @@ function buildEmptyForm(): DocMetaFormState {
     noteGrade: undefined,
     noteMode: undefined,
     suitableUsers: '',
-    status: 3,
+    status: 1,
     auditStatus: 0,
     isPinned: 0,
     isRecommended: 0,
@@ -571,6 +571,7 @@ export function DocMetaFormModal({
               <Select
                 label="文档状态"
                 placeholder="请选择状态"
+                isDisabled={!docData}
                 selectedKeys={formData.status ? [String(formData.status)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string
@@ -586,6 +587,7 @@ export function DocMetaFormModal({
               <Select
                 label="审核状态"
                 placeholder="请选择审核状态"
+                isDisabled
                 selectedKeys={formData.auditStatus !== undefined ? [String(formData.auditStatus)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string

@@ -9,7 +9,7 @@
 import { useNavigate } from 'react-router-dom'
 
 // 图标 (Lucide 优先)
-import { Eye, Heart, Star, Share2, UserPlus, UserCheck } from 'lucide-react'
+import { Eye, Heart, Star, Share2, UserPlus, UserCheck, Download } from 'lucide-react'
 
 // HeroUI 组件
 import { Button, Avatar, Tooltip } from '@heroui/react'
@@ -27,6 +27,7 @@ interface DocumentInteractionProps {
   onFavorite: () => void
   onFollow: () => void
   onShare: () => void
+  onDownload: () => void
 }
 
 // ===== 3. 通用工具函数区域 =====
@@ -54,6 +55,7 @@ export default function DocumentInteraction({
   onFavorite,
   onFollow,
   onShare,
+  onDownload,
 }: DocumentInteractionProps) {
   const navigate = useNavigate()
 
@@ -138,6 +140,18 @@ export default function DocumentInteraction({
             onPress={onShare}
           >
             <Share2 size={18} className="text-default-800" />
+          </Button>
+        </Tooltip>
+
+        {/* 下载 */}
+        <Tooltip content="下载 Markdown">
+          <Button
+            variant="light"
+            size="sm"
+            className="min-w-0 gap-1 px-2"
+            onPress={onDownload}
+          >
+            <Download size={18} className="text-default-500" />
           </Button>
         </Tooltip>
 

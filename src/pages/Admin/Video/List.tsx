@@ -56,7 +56,6 @@ import {
   Eye,
   ThumbsUp,
   MessageCircle,
-  FolderOpen,
   MessageSquare,
 } from 'lucide-react'
 
@@ -811,18 +810,6 @@ export default function VideoList() {
                               onPress={() => handleEditVideo(item)}
                             >
                               <Pencil size={14} />
-                            </Button>
-                          </Tooltip>
-                          {/* 绑定合集（预留按钮） */}
-                          <Tooltip content="绑定合集" size="sm">
-                            <Button
-                              isIconOnly
-                              size="sm"
-                              variant="light"
-                              color="secondary"
-                              isDisabled
-                            >
-                              <FolderOpen size={14} />
                             </Button>
                           </Tooltip>
                           {/* 查看评论 */}

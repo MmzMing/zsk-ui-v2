@@ -104,6 +104,11 @@ body {
   color: var(--color-foreground);
   background-color: var(--color-background);
   overflow-x: hidden;
+  /* 前台文字默认可選中 */
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 /* ===== 滚动条样式 ===== */

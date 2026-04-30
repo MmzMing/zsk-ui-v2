@@ -62,6 +62,9 @@ export function useLenis(options?: LenisOptions) {
       smoothWheel: true,
       wheelMultiplier: 1,
       touchMultiplier: 2,
+      prevent: (node: HTMLElement) => {
+        return !!node.closest?.('[role="dialog"]')
+      },
       ...options
     })
 
