@@ -15,7 +15,10 @@ import type {
   SysDictDataUpdateInput,
   SysDictTypePageData,
   SysDictDataPageData,
-  DictStatus
+  DictStatus,
+  SysDictDataCache,
+  DictCacheTags,
+  DictCacheAllData
 } from '@/types/dict.types'
 
 export async function getDictTypeList(params?: SysDictTypeQueryParams): Promise<SysDictTypePageData> {
@@ -68,4 +71,32 @@ export async function toggleDictDataStatus(id: string, status: DictStatus): Prom
 
 export async function batchToggleDictDataStatus(ids: string[], status: DictStatus): Promise<void> {
   return put('/system/dict/data/batchToggleStatus', { ids, status } as unknown as Record<string, unknown>)
+}
+
+export async function warmUpDictCache(): Promise<void> {
+  return post('/system/dict/type/cache/warmUp')
+}
+
+export async function getDictCacheTags(): Promise<DictCacheTags> {
+  return get('/system/dict/type/cache/tags')
+}
+
+export async function getDictCacheByTag(tag: string): Promise<SysDictDataCache[]> {
+  return get(`/system/dict/type/cache/tag/${tag}`)
+}
+
+export async function getDictCacheAll(): Promise<DictCacheAllData> {
+  return get('/system/dict/type/cache/all')
+}
+
+export async function refreshDictCache(dictType: string): Promise<void> {
+  return post(`/system/dict/type/cache/refresh/${dictType}`)
+}
+
+export async function deleteDictCache(dictType: string): Promise<void> {
+  return del(`/system/dict/type/cache/${dictType}`)
+}
+
+export async function clearAllDictCache(): Promise<void> {
+  return del('/system/dict/type/cache/all')
 }

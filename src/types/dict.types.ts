@@ -107,6 +107,21 @@ export interface SysDictDataPageData {
   hasPrevious: boolean
 }
 
+export interface SysDictDataCache {
+  id: number
+  dictSort: number
+  dictLabel: string
+  dictValue: string
+  dictType: string
+  listClass: string
+  isDefault: number
+  status: DictStatus
+}
+
+export type DictCacheTags = string[]
+
+export type DictCacheAllData = Record<string, SysDictDataCache[]>
+
 export interface DictStatusOption {
   value: DictStatus
   label: string

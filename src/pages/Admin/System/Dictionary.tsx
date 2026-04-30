@@ -44,7 +44,11 @@ import {
   Pencil,
   Search,
   RefreshCw,
-  BookOpen
+  BookOpen,
+  Database,
+  Flame,
+  RotateCw,
+  XCircle
 } from 'lucide-react'
 
 import { toast } from '@/utils/toast'
@@ -59,7 +63,13 @@ import {
   deleteDictType,
   createDictData,
   updateDictData,
-  deleteDictData
+  deleteDictData,
+  warmUpDictCache,
+  getDictCacheTags,
+  getDictCacheByTag,
+  refreshDictCache,
+  deleteDictCache,
+  clearAllDictCache
 } from '@/api/admin/dict'
 
 import type {
@@ -73,7 +83,8 @@ import type {
   SysDictDataUpdateInput,
   DictStatus,
   SysDictTypePageData,
-  SysDictDataPageData
+  SysDictDataPageData,
+  SysDictDataCache
 } from '@/types/dict.types'
 import { DICT_STATUS_OPTIONS } from '@/types/dict.types'
 
@@ -90,6 +101,302 @@ function getDictStatusLabel(status: DictStatus): string {
 }
 
 // ===== 5. 子组件区域 =====
+
+interface DictCachePanelProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
+  const [cacheTags, setCacheTags] = useState<string[]>([])
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [cacheData, setCacheData] = useState<SysDictDataCache[]>([])
+  const [isLoadingTags, setIsLoadingTags] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(false)
+  const [isWarmingUp, setIsWarmingUp] = useState(false)
+
+  const fetchCacheTags = useCallback(async () => {
+    setIsLoadingTags(true)
+    try {
+      const tags = await getDictCacheTags()
+      setCacheTags(tags ?? [])
+    } catch (error) {
+      console.error('获取缓存标签失败：', error)
+      toast.error('获取缓存标签失败')
+      setCacheTags([])
+    } finally {
+      setIsLoadingTags(false)
+    }
+  }, [])
+
+  const fetchCacheData = useCallback(async (tag: string) => {
+    setIsLoadingData(true)
+    try {
+      const data = await getDictCacheByTag(tag)
+      setCacheData(data ?? [])
+    } catch (error) {
+      console.error('获取缓存数据失败：', error)
+      toast.error('获取缓存数据失败')
+      setCacheData([])
+    } finally {
+      setIsLoadingData(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCacheTags()
+      setSelectedTag(null)
+      setCacheData([])
+    }
+  }, [isOpen, fetchCacheTags])
+
+  useEffect(() => {
+    if (selectedTag) {
+      fetchCacheData(selectedTag)
+    } else {
+      setCacheData([])
+    }
+  }, [selectedTag, fetchCacheData])
+
+  const handleWarmUp = useCallback(async () => {
+    setIsWarmingUp(true)
+    try {
+      await warmUpDictCache()
+      toast.success('缓存预热成功')
+      fetchCacheTags()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '缓存预热失败'
+      toast.error(message)
+      console.error('缓存预热失败：', error)
+    } finally {
+      setIsWarmingUp(false)
+    }
+  }, [fetchCacheTags])
+
+  const handleRefreshCache = useCallback(async (tag: string) => {
+    try {
+      await refreshDictCache(tag)
+      toast.success(`缓存 ${tag} 刷新成功`)
+      if (selectedTag === tag) {
+        fetchCacheData(tag)
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '刷新缓存失败'
+      toast.error(message)
+      console.error('刷新缓存失败：', error)
+    }
+  }, [selectedTag, fetchCacheData])
+
+  const handleDeleteCache = useCallback(async (tag: string) => {
+    try {
+      await deleteDictCache(tag)
+      toast.success(`缓存 ${tag} 已删除`)
+      fetchCacheTags()
+      if (selectedTag === tag) {
+        setSelectedTag(null)
+        setCacheData([])
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '删除缓存失败'
+      toast.error(message)
+      console.error('删除缓存失败：', error)
+    }
+  }, [fetchCacheTags, selectedTag])
+
+  const handleClearAllCache = useCallback(async () => {
+    try {
+      await clearAllDictCache()
+      toast.success('所有缓存已清空')
+      setCacheTags([])
+      setSelectedTag(null)
+      setCacheData([])
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '清空缓存失败'
+      toast.error(message)
+      console.error('清空缓存失败：', error)
+    }
+  }, [])
+
+  if (!isOpen) return null
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={(open) => { if (!open) onClose() }}
+      size="2xl"
+      scrollBehavior="inside"
+    >
+      <ModalContent>
+        <ModalHeader>
+          <div className="flex items-center gap-2">
+            <Database size={18} className="text-primary" />
+            <span>字典缓存管理</span>
+          </div>
+        </ModalHeader>
+        <ModalBody className="gap-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              size="sm"
+              color="primary"
+              variant="flat"
+              startContent={<Flame size={14} />}
+              isLoading={isWarmingUp}
+              onPress={handleWarmUp}
+            >
+              缓存预热
+            </Button>
+            <Button
+              size="sm"
+              variant="flat"
+              startContent={<RefreshCw size={14} />}
+              isLoading={isLoadingTags}
+              onPress={fetchCacheTags}
+            >
+              刷新标签
+            </Button>
+            <div className="flex-1" />
+            <Button
+              size="sm"
+              color="danger"
+              variant="flat"
+              startContent={<XCircle size={14} />}
+              onPress={handleClearAllCache}
+              isDisabled={cacheTags.length === 0}
+            >
+              清空所有缓存
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-1">
+              <div className="text-xs text-default-400 mb-2">
+                缓存标签 ({cacheTags.length})
+              </div>
+              <div className="border border-divider rounded-lg max-h-64 overflow-y-auto">
+                {cacheTags.length === 0 ? (
+                  <div className="p-3 text-center text-xs text-default-400">
+                    暂无缓存标签
+                  </div>
+                ) : (
+                  cacheTags.map(tag => (
+                    <div
+                      key={tag}
+                      className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors border-b border-divider last:border-b-0 ${
+                        selectedTag === tag
+                          ? 'bg-primary/10'
+                          : 'hover:bg-default-100'
+                      }`}
+                      onClick={() => setSelectedTag(tag)}
+                    >
+                      <span className="text-xs font-mono truncate">{tag}</span>
+                      <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                        <Tooltip content="刷新" size="sm">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            className="min-w-6 w-6 h-6"
+                            onPress={() => {
+                              handleRefreshCache(tag)
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                          >
+                            <RotateCw size={12} />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip content="删除" size="sm">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            color="danger"
+                            className="min-w-6 w-6 h-6"
+                            onPress={() => {
+                              handleDeleteCache(tag)
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 size={12} />
+                          </Button>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <div className="text-xs text-default-400 mb-2">
+                缓存数据 {selectedTag ? `- ${selectedTag}` : ''}
+              </div>
+              {!selectedTag ? (
+                <div className="border border-divider rounded-lg p-6 text-center text-xs text-default-400">
+                  请选择左侧标签查看缓存数据
+                </div>
+              ) : isLoadingData ? (
+                <div className="border border-divider rounded-lg p-6 text-center">
+                  <StatusState type="loading" scene="admin" />
+                </div>
+              ) : cacheData.length === 0 ? (
+                <div className="border border-divider rounded-lg p-6 text-center text-xs text-default-400">
+                  暂无缓存数据
+                </div>
+              ) : (
+                <div className="border border-divider rounded-lg max-h-64 overflow-y-auto">
+                  <Table
+                    aria-label="缓存数据列表"
+                    classNames={{
+                      wrapper: 'p-0',
+                      thead: '[&>tr]:first:shadow-none',
+                    }}
+                  >
+                    <TableHeader>
+                      <TableColumn key="dictLabel">标签</TableColumn>
+                      <TableColumn key="dictValue">值</TableColumn>
+                      <TableColumn key="dictSort">排序</TableColumn>
+                      <TableColumn key="listClass">样式</TableColumn>
+                      <TableColumn key="isDefault">默认</TableColumn>
+                    </TableHeader>
+                    <TableBody
+                      items={cacheData.map(d => ({ ...d, key: String(d.id) }))}
+                    >
+                      {(item) => (
+                        <TableRow key={item.key}>
+                          <TableCell>
+                            <span className="text-xs">{item.dictLabel}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs font-mono">{item.dictValue}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs">{item.dictSort}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs">{item.listClass || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs">{item.isDefault ? '是' : '否'}</span>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="flat" onPress={onClose}>
+            关闭
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+}
 
 interface DictTypeEditModalProps {
   isOpen: boolean
@@ -461,6 +768,8 @@ export default function SystemDictionary() {
   const [dataEditMode, setDataEditMode] = useState<'create' | 'edit'>('create')
   const [editingData, setEditingData] = useState<SysDictData | null>(null)
 
+  const [cachePanelOpen, setCachePanelOpen] = useState(false)
+
   const [searchKeyword, setSearchKeyword] = useState('')
 
   // ===== 6. 错误处理函数区域 =====
@@ -665,314 +974,324 @@ export default function SystemDictionary() {
   // ===== 8. UI渲染逻辑区域 =====
 
   return (
-    <div className="p-4 md:p-0 space-y-4 overflow-visible">
-      <Card className="overflow-visible">
-          <CardBody className="p-0 overflow-visible">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
-              <div className="flex items-center gap-2">
-                <BookOpen size={18} className="text-primary" />
-                <span className="font-semibold text-sm">字典类型</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Tooltip content="新增字典类型" size="sm">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={handleCreateDictType}
-                  >
-                    <Plus size={16} />
-                  </Button>
-                </Tooltip>
-                <Tooltip content="刷新" size="sm">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={fetchDictTypeList}
-                    isLoading={isLoading}
-                  >
-                    <RefreshCw size={16} />
-                  </Button>
-                </Tooltip>
-              </div>
+    <div className="flex flex-col gap-4 p-4 md:p-0 h-full">
+      <Card className="w-full flex-[2] overflow-hidden flex flex-col">
+        <CardBody className="p-0 overflow-visible flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+            <div className="flex items-center gap-2">
+              <BookOpen size={18} className="text-primary" />
+              <span className="font-semibold text-sm">字典类型</span>
             </div>
-
-            <div className="px-4 py-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Input
+            <div className="flex items-center gap-1">
+              <Tooltip content="缓存管理" size="sm">
+                <Button
+                  isIconOnly
                   size="sm"
-                  placeholder="搜索字典名称/编码"
-                  className="w-full sm:w-56"
-                  value={searchKeyword}
-                  onValueChange={setSearchKeyword}
-                  onKeyDown={handleSearchKeyDown}
-                  startContent={<Search size={14} className="text-default-400" />}
-                  isClearable
-                  onClear={() => {
-                    setSearchKeyword('')
-                    setQueryParams(prev => ({ ...prev, dictName: undefined }))
-                  }}
-                />
+                  variant="light"
+                  onPress={() => setCachePanelOpen(true)}
+                >
+                  <Database size={16} />
+                </Button>
+              </Tooltip>
+              <Tooltip content="新增字典类型" size="sm">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={handleCreateDictType}
+                >
+                  <Plus size={16} />
+                </Button>
+              </Tooltip>
+              <Tooltip content="刷新" size="sm">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={fetchDictTypeList}
+                  isLoading={isLoading}
+                >
+                  <RefreshCw size={16} />
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
+
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Input
+                size="sm"
+                placeholder="搜索字典名称/编码"
+                className="w-full sm:w-56"
+                value={searchKeyword}
+                onValueChange={setSearchKeyword}
+                onKeyDown={handleSearchKeyDown}
+                startContent={<Search size={14} className="text-default-400" />}
+                isClearable
+                onClear={() => {
+                  setSearchKeyword('')
+                  setQueryParams(prev => ({ ...prev, dictName: undefined }))
+                }}
+              />
+              <Select
+                size="sm"
+                placeholder="状态"
+                className="w-full sm:w-24"
+                aria-label="字典状态筛选"
+                selectedKeys={queryParams.status ? [queryParams.status] as const : []}
+                onSelectionChange={keys => {
+                  const value = Array.from(keys)[0] as DictStatus | undefined
+                  handleQueryChange('status', value)
+                }}
+              >
+                {DICT_STATUS_OPTIONS.map(option => (
+                  <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
+                ))}
+              </Select>
+              <Button size="sm" variant="flat" onPress={handleResetQuery}>
+                重置
+              </Button>
+              <div className="hidden sm:flex-1" />
+              {selectedTypeKeys.size > 0 && (
+                <Button
+                  size="sm"
+                  color="danger"
+                  variant="flat"
+                  startContent={<Trash2 size={14} />}
+                  onPress={handleBatchDeleteType}
+                >
+                  批量删除({selectedTypeKeys.size})
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="p-3 max-h-72 overflow-auto">
+            {isLoading ? (
+              <StatusState type="loading" scene="admin" />
+            ) : (
+              <Table
+                aria-label="字典类型列表"
+                selectionMode="multiple"
+                selectedKeys={selectedTypeKeys}
+                onSelectionChange={keys => setSelectedTypeKeys(keys as Set<string>)}
+                onRowAction={(key) => {
+                  const item = dictTypeList.find(t => t.id === String(key))
+                  if (item) handleTypeSelect(item)
+                }}
+                classNames={{
+                  wrapper: 'p-0',
+                  thead: '[&>tr]:first:shadow-none',
+                }}
+              >
+                <TableHeader>
+                  <TableColumn key="dictName">字典名称</TableColumn>
+                  <TableColumn key="dictType">字典编码</TableColumn>
+                  <TableColumn key="status">状态</TableColumn>
+                  <TableColumn key="actions">操作</TableColumn>
+                </TableHeader>
+                <TableBody
+                  items={dictTypeList.map(item => ({ ...item, key: `type-${item.id}` }))}
+                  emptyContent={<StatusState type="empty" scene="admin" />}
+                >
+                  {(item) => (
+                    <TableRow
+                      key={item.id}
+                      className={`cursor-pointer transition-colors ${
+                        selectedDictType?.id === item.id
+                          ? 'bg-primary/10'
+                          : 'hover:bg-default-100'
+                      }`}
+                    >
+                      <TableCell>
+                        <span className="font-medium text-sm">{item.dictName}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm font-mono">{item.dictType}</span>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          size="sm"
+                          color="primary"
+                          isSelected={String(item.status) === '0'}
+                          onValueChange={(isSelected) => handleTypeStatusChange(item.id, isSelected ? '0' : '1')}
+                          aria-label={getDictStatusLabel(item.status)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Tooltip content="编辑" size="sm">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="light"
+                              onPress={() => handleEditDictType(item)}
+                            >
+                              <Pencil size={14} />
+                            </Button>
+                          </Tooltip>
+                          <Tooltip content="删除" size="sm">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="light"
+                              color="danger"
+                              onPress={() => handleDeleteDictType([item.id])}
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          {total > 0 && (
+            <div className="flex items-center justify-between px-4 py-2">
+              <div className="flex items-center gap-2">
                 <Select
                   size="sm"
-                  placeholder="状态"
-                  className="w-full sm:w-24"
-                  aria-label="字典状态筛选"
-                  selectedKeys={queryParams.status ? [queryParams.status] as const : []}
-                  onSelectionChange={keys => {
-                    const value = Array.from(keys)[0] as DictStatus | undefined
-                    handleQueryChange('status', value)
-                  }}
+                  aria-label="每页条数"
+                  className="w-24"
+                  selectedKeys={[String(pageSize)]}
+                  onSelectionChange={handlePageSizeChange}
+                  renderValue={() => `${pageSize}条/页`}
                 >
-                  {DICT_STATUS_OPTIONS.map(option => (
-                    <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
+                  {PAGE_SIZE_OPTIONS.map(size => (
+                    <SelectItem key={String(size)} textValue={`${size}条/页`}>{size}条/页</SelectItem>
                   ))}
                 </Select>
-                <Button size="sm" variant="flat" onPress={handleResetQuery}>
-                  重置
-                </Button>
-                <div className="hidden sm:flex-1" />
-                {selectedTypeKeys.size > 0 && (
-                  <Button
-                    size="sm"
-                    color="danger"
-                    variant="flat"
-                    startContent={<Trash2 size={14} />}
-                    onPress={handleBatchDeleteType}
-                  >
-                    批量删除({selectedTypeKeys.size})
-                  </Button>
-                )}
+                <span className="text-xs text-default-400">
+                  共 {total} 条
+                </span>
               </div>
+              <Pagination
+                total={totalPages}
+                page={page}
+                onChange={setPage}
+                size="sm"
+                showControls
+              />
             </div>
+          )}
+        </CardBody>
+      </Card>
 
-            <div className="p-3">
-              {isLoading ? (
-                <StatusState type="loading" scene="admin" />
-              ) : (
-                <Table
-                  aria-label="字典类型列表"
-                  selectionMode="multiple"
-                  selectedKeys={selectedTypeKeys}
-                  onSelectionChange={keys => setSelectedTypeKeys(keys as Set<string>)}
-                  onRowAction={(key) => {
-                    const item = dictTypeList.find(t => t.id === String(key))
-                    if (item) handleTypeSelect(item)
-                  }}
-                  classNames={{
-                    wrapper: 'p-0',
-                    thead: '[&>tr]:first:shadow-none',
-                  }}
-                >
-                  <TableHeader>
-                    <TableColumn key="dictName">字典名称</TableColumn>
-                    <TableColumn key="dictType">字典编码</TableColumn>
-                    <TableColumn key="status">状态</TableColumn>
-                    <TableColumn key="actions">操作</TableColumn>
-                  </TableHeader>
-                  <TableBody
-                    items={dictTypeList.map(item => ({ ...item, key: item.id }))}
-                    emptyContent={<StatusState type="empty" scene="admin" />}
-                  >
-                    {(item) => (
-                      <TableRow
-                        key={item.id}
-                        className={`cursor-pointer transition-colors ${
-                          selectedDictType?.id === item.id
-                            ? 'bg-primary/10'
-                            : 'hover:bg-default-100'
-                        }`}
-                      >
-                        <TableCell>
-                          <span className="font-medium text-sm">{item.dictName}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm font-mono">{item.dictType}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Switch
-                            size="sm"
-                            color="primary"
-                            isSelected={String(item.status) === '0'}
-                            onValueChange={(isSelected) => handleTypeStatusChange(item.id, isSelected ? '0' : '1')}
-                            aria-label={getDictStatusLabel(item.status)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Tooltip content="编辑" size="sm">
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                onPress={() => handleEditDictType(item)}
-                              >
-                                <Pencil size={14} />
-                              </Button>
-                            </Tooltip>
-                            <Tooltip content="删除" size="sm">
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                color="danger"
-                                onPress={() => handleDeleteDictType([item.id])}
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            </Tooltip>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-
-            {total > 0 && (
-              <div className="flex items-center justify-between px-4 py-2">
-                <div className="flex items-center gap-2">
-                  <Select
-                    size="sm"
-                    aria-label="每页条数"
-                    className="w-24"
-                    selectedKeys={[String(pageSize)]}
-                    onSelectionChange={handlePageSizeChange}
-                    renderValue={() => `${pageSize}条/页`}
-                  >
-                    {PAGE_SIZE_OPTIONS.map(size => (
-                      <SelectItem key={String(size)} textValue={`${size}条/页`}>{size}条/页</SelectItem>
-                    ))}
-                  </Select>
-                  <span className="text-xs text-default-400">
-                    共 {total} 条
-                  </span>
-                </div>
-                <Pagination
-                  total={totalPages}
-                  page={page}
-                  onChange={setPage}
-                  size="sm"
-                  showControls
-                />
-              </div>
+      <Card className="w-full flex-1 overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-divider flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <BookOpen size={18} className="text-primary" />
+            <span className="font-semibold text-sm">字典数据</span>
+            {selectedDictType && (
+              <span className="text-sm text-default-400">- {selectedDictType.dictName}</span>
             )}
-          </CardBody>
-        </Card>
+          </div>
+          <div className="flex items-center gap-1">
+            <Tooltip content="新增字典数据" size="sm">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                onPress={handleCreateDictData}
+                isDisabled={!selectedDictType}
+              >
+                <Plus size={16} />
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
 
-        <Card className="overflow-visible max-h-none flex-shrink-0">
-          <CardBody className="p-0 overflow-visible max-h-none">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
-              <div className="flex items-center gap-2">
-                <BookOpen size={18} className="text-primary" />
-                <span className="font-semibold text-sm">字典数据</span>
-                {selectedDictType && (
-                  <span className="text-sm text-default-400">- {selectedDictType.dictName}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <Tooltip content="新增字典数据" size="sm">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={handleCreateDictData}
-                    isDisabled={!selectedDictType}
-                  >
-                    <Plus size={16} />
-                  </Button>
-                </Tooltip>
-              </div>
+        <div className="flex-1 min-h-0 overflow-auto p-3">
+          {!selectedDictType ? (
+            <div className="flex items-center justify-center h-full">
+              <StatusState type="empty" scene="admin" description="请先选择一个字典类型" />
             </div>
-
-            <div className="p-3">
-              {!selectedDictType ? (
-                <StatusState type="empty" scene="admin" description="请先选择一个字典类型" />
-              ) : (
-                <Table
-                  aria-label="字典数据列表"
-                  selectionMode="multiple"
-                  selectedKeys={selectedDataKeys}
-                  onSelectionChange={keys => setSelectedDataKeys(keys as Set<string>)}
-                  classNames={{
-                    wrapper: 'p-0',
-                    thead: '[&>tr]:first:shadow-none',
-                  }}
-                >
-                  <TableHeader>
-                    <TableColumn key="dictLabel">字典标签</TableColumn>
-                    <TableColumn key="dictValue">字典值</TableColumn>
-                    <TableColumn key="dictSort" className="hidden md:table-cell">排序</TableColumn>
-                    <TableColumn key="status">状态</TableColumn>
-                    <TableColumn key="remark" className="hidden lg:table-cell">备注</TableColumn>
-                    <TableColumn key="actions">操作</TableColumn>
-                  </TableHeader>
-                  <TableBody
-                    items={dictDataList.map(d => ({ ...d, key: d.id }))}
-                    emptyContent={
-                      <div className="text-center py-4 text-sm text-default-400">
-                        暂无字典数据
-                      </div>
-                    }
-                  >
-                    {(dataItem) => (
-                      <TableRow key={dataItem.id}>
-                        <TableCell>
-                          <span className="text-sm">{dataItem.dictLabel}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm font-mono">{dataItem.dictValue}</span>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <span className="text-sm">{dataItem.dictSort}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Switch
+          ) : (
+            <Table
+              aria-label="字典数据列表"
+              selectionMode="multiple"
+              selectedKeys={selectedDataKeys}
+              onSelectionChange={keys => setSelectedDataKeys(keys as Set<string>)}
+              classNames={{
+                wrapper: 'p-0',
+                thead: '[&>tr]:first:shadow-none',
+              }}
+            >
+              <TableHeader>
+                <TableColumn key="dictLabel">字典标签</TableColumn>
+                <TableColumn key="dictValue">字典值</TableColumn>
+                <TableColumn key="dictSort" className="hidden md:table-cell">排序</TableColumn>
+                <TableColumn key="status">状态</TableColumn>
+                <TableColumn key="remark" className="hidden lg:table-cell">备注</TableColumn>
+                <TableColumn key="actions">操作</TableColumn>
+              </TableHeader>
+              <TableBody
+                items={dictDataList.map(d => ({ ...d, key: `data-${d.id}` }))}
+                emptyContent={
+                  <div className="text-center py-4 text-sm text-default-400">
+                    暂无字典数据
+                  </div>
+                }
+              >
+                {(dataItem) => (
+                  <TableRow key={dataItem.id}>
+                    <TableCell>
+                      <span className="text-sm">{dataItem.dictLabel}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-mono">{dataItem.dictValue}</span>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className="text-sm">{dataItem.dictSort}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        size="sm"
+                        color="primary"
+                        isSelected={String(dataItem.status) === '0'}
+                        onValueChange={(isSelected) => handleDataStatusChange(dataItem.id, isSelected ? '0' : '1')}
+                        aria-label={getDictStatusLabel(dataItem.status)}
+                      />
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <span className="text-sm">{dataItem.remark || '-'}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Tooltip content="编辑" size="sm">
+                          <Button
+                            isIconOnly
                             size="sm"
-                            color="primary"
-                            isSelected={String(dataItem.status) === '0'}
-                            onValueChange={(isSelected) => handleDataStatusChange(dataItem.id, isSelected ? '0' : '1')}
-                            aria-label={getDictStatusLabel(dataItem.status)}
-                          />
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          <span className="text-sm">{dataItem.remark || '-'}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Tooltip content="编辑" size="sm">
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                onPress={() => handleEditDictData(dataItem)}
-                              >
-                                <Pencil size={14} />
-                              </Button>
-                            </Tooltip>
-                            <Tooltip content="删除" size="sm">
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                color="danger"
-                                onPress={() => handleDeleteDictData([dataItem.id])}
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            </Tooltip>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          </CardBody>
-        </Card>
+                            variant="light"
+                            onPress={() => handleEditDictData(dataItem)}
+                          >
+                            <Pencil size={14} />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip content="删除" size="sm">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            color="danger"
+                            onPress={() => handleDeleteDictData([dataItem.id])}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      </Card>
 
       <DictTypeEditModal
         isOpen={typeEditModal.isOpen}
@@ -989,6 +1308,11 @@ export default function SystemDictionary() {
         dictType={selectedDictType?.dictType || ''}
         mode={dataEditMode}
         onSuccess={() => selectedDictType && fetchDictDataList(selectedDictType.dictType)}
+      />
+
+      <DictCachePanel
+        isOpen={cachePanelOpen}
+        onClose={() => setCachePanelOpen(false)}
       />
     </div>
   )
