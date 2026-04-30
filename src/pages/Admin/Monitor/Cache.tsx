@@ -625,8 +625,8 @@ export default function CachePage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-0 h-full">
-      <Card className="h-full overflow-hidden">
-        <CardBody className="p-0 flex flex-col overflow-hidden">
+      <Card className="w-full flex-[3] overflow-hidden">
+        <CardBody className="p-0 flex flex-col">
           {/* 顶部标题栏 */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
             <div className="flex items-center gap-2">
@@ -893,7 +893,7 @@ export default function CachePage() {
                     selectedKeys={selectedKeys}
                     onSelectionChange={keys => setSelectedKeys(keys as Set<string>)}
                     classNames={{
-                      wrapper: 'p-0',
+                      wrapper: 'overflow-auto p-0',
                       thead: '[&>tr]:first:shadow-none',
                     }}
                   >
@@ -1053,7 +1053,7 @@ export default function CachePage() {
       />
 
       {/* 缓存操作日志卡片 */}
-      <Card className="h-auto">
+      <Card className="w-full flex-1">
         <CardBody className="p-0">
           <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
             <div className="flex items-center gap-2">

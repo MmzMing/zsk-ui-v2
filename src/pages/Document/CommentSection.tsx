@@ -396,6 +396,8 @@ export default function CommentSection({ noteId }: CommentSectionProps) {
                   onValueChange={setInputText}
                   minRows={2}
                   size="sm"
+                  variant="bordered"
+                  isClearable
                   isDisabled={!isLoggedIn}
                 />
                 {isLoggedIn && (

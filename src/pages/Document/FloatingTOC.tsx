@@ -113,7 +113,7 @@ export default memo(function FloatingTOC({ items }: FloatingTOCProps) {
   return (
     <nav className="hidden md:block w-48 shrink-0">
       <div className="sticky top-20">
-        <h4 className="text-xs font-semibold text-default-400 uppercase tracking-wider mb-3">
+        <h4 className="text-sm font-semibold text-default-600 uppercase tracking-wider mb-3">
           目录
         </h4>
         <ul className="space-y-1 border-l border-default-200">
@@ -121,7 +121,7 @@ export default memo(function FloatingTOC({ items }: FloatingTOCProps) {
             <li key={item.id}>
               <button
                 className={cn(
-                  'block w-full text-left text-xs leading-relaxed py-1 transition-colors',
+                  'block w-full text-left text-sm leading-relaxed py-1.5 transition-colors',
                   item.level === 1 && 'pl-3',
                   item.level === 2 && 'pl-5',
                   item.level === 3 && 'pl-7',

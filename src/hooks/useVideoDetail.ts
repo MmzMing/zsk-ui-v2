@@ -100,6 +100,11 @@ export function useVideoDetail(videoId: string) {
     try {
       const res = await toggleHomeVideoLike(videoId)
       handleInteractionUpdate({ isLiked: res.status, likeCount: res.count })
+      if (res.status) {
+        toast.success('已点赞')
+      } else {
+        toast.success('已取消点赞')
+      }
     } catch {
       handleInteractionUpdate({ isLiked: prev?.isLiked, likeCount: prev?.likeCount })
       toast.error('操作失败，请重试')
@@ -123,6 +128,11 @@ export function useVideoDetail(videoId: string) {
     try {
       const res = await toggleHomeVideoFavorite(videoId)
       handleInteractionUpdate({ isFavorited: res.status, favoriteCount: res.count })
+      if (res.status) {
+        toast.success('已收藏')
+      } else {
+        toast.success('已取消收藏')
+      }
     } catch {
       handleInteractionUpdate({ isFavorited: prev?.isFavorited, favoriteCount: prev?.favoriteCount })
       toast.error('操作失败，请重试')
@@ -153,6 +163,11 @@ export function useVideoDetail(videoId: string) {
       handleInteractionUpdate({
         author: { ...author, isFollowing: res.status, fans: res.count },
       })
+      if (res.status) {
+        toast.success('关注成功')
+      } else {
+        toast.success('已取消关注')
+      }
     } catch (e: unknown) {
       const err = e as Error
       handleInteractionUpdate({

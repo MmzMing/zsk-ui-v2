@@ -4,14 +4,28 @@
 
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Play, Eye, Heart, FileText, Clock } from 'lucide-react'
+import { Play, FileText, Eye, Heart, Clock, Calendar, User } from 'lucide-react'
 import { HighlightText } from './HighlightText'
-import { formatDateTime } from '@/utils/format'
 import type { SearchItem } from '@/types/search.types'
 
 interface ResultRowProps {
   item: SearchItem
   keyword: string
+}
+
+/**
+ * 格式化日期显示：本年只显示"月日"（如 4月30日），非本年显示"年月日"（如 2025年4月30日）
+ */
+function formatDisplayDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const currentYear = new Date().getFullYear()
+  if (year === currentYear) {
+    return `${month}月${day}日`
+  }
+  return `${year}年${month}月${day}日`
 }
 
 export function ResultRow({ item, keyword }: ResultRowProps) {
@@ -47,38 +61,35 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
           </div>
         )}
         {isVideo && item.duration && (
-          <span className="absolute bottom-1 right-1 inline-flex items-center gap-1 rounded bg-black/70 px-1 py-0.5 text-[10px] text-white">
-            <Clock className="h-3 w-3" />
+          <span className="absolute bottom-1 right-1 inline-flex items-center gap-1 text-xs text-white">
+            <Clock className="h-3.5 w-3.5" />
             {item.duration}
           </span>
         )}
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
-        {/* 第一层：类型 + 标题 */}
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-default-800 text-white dark:bg-default-100 dark:text-default-900`}
-          >
-            {isVideo ? <Play className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
-            {isVideo ? '视频' : '文档'}
-          </span>
+        {/* 第一层：类型图标 + 标题 */}
+        <div className="flex items-center gap-1.5">
+          {isVideo ? (
+            <Play className="h-3.5 w-3.5 shrink-0 text-primary" />
+          ) : (
+            <FileText className="h-3.5 w-3.5 shrink-0 text-red-500" />
+          )}
           <h3 className="truncate text-sm font-semibold text-default-900 transition-colors group-hover:text-primary">
             <HighlightText text={item.title} keyword={keyword} />
           </h3>
         </div>
 
-        {/* 第二层：作者 + 日期时间 */}
-        <div className="flex items-center gap-2 text-[11px] text-default-500">
-          <span className="truncate">{item.author || '匿名作者'}</span>
-          {item.updateTime && (
-            <span className="flex-shrink-0 text-default-400">
-              {formatDateTime(item.updateTime, 'YYYY-MM-DD HH:mm')}
-            </span>
-          )}
+        {/* 第二层：作者 */}
+        <div className="flex items-center text-[11px] text-default-500">
+          <span className="truncate flex items-center gap-1">
+            <User className="h-3.5 w-3.5" />
+            {item.author || '匿名作者'}
+          </span>
         </div>
 
-        {/* 第三层：浏览量 + 点赞量 */}
+        {/* 第三层：浏览量 + 点赞量 + 日期 */}
         <div className="flex items-center gap-3 text-[11px] text-default-500">
           <span className="flex items-center gap-1">
             <Eye className="h-3.5 w-3.5" />
@@ -88,13 +99,19 @@ export function ResultRow({ item, keyword }: ResultRowProps) {
             <Heart className="h-3.5 w-3.5" />
             {item.likeCount}
           </span>
+          {item.updateTime && (
+            <span className="shrink-0 flex items-center gap-1 text-default-400">
+              <Calendar className="h-3.5 w-3.5" />
+              {formatDisplayDate(item.updateTime)}
+            </span>
+          )}
         </div>
 
         {/* 第四层：标签 */}
         {item.tags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
             {item.tags.slice(0, 4).map((tag) => (
-              <span key={tag} className="rounded-md bg-default-100 px-1.5 py-0.5 text-[11px] text-default-600">
+              <span key={tag} className="text-[11px] text-default-500">
                 #{tag}
               </span>
             ))}

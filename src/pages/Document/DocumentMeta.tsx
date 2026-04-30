@@ -40,9 +40,9 @@ export default function DocumentMeta({ detail, loading }: DocumentMetaProps) {
     )
   }
 
-  // 解析标签列表
+  // 解析标签列表并去重
   const tagList = detail.tags
-    ? detail.tags.split(',').filter(Boolean)
+    ? Array.from(new Set(detail.tags.split(',').filter(Boolean).map((t) => t.trim())))
     : []
 
   return (
@@ -60,23 +60,26 @@ export default function DocumentMeta({ detail, loading }: DocumentMetaProps) {
 
       {/* 分类 + 标签 */}
       {(detail.category || tagList.length > 0) && (
-        <div className="flex gap-2 mt-3 flex-wrap">
+        <div className="flex gap-2 mt-3 flex-wrap items-center">
           {detail.category && (
             <Chip size="sm" variant="flat" color="default">
               {detail.category}
             </Chip>
           )}
           {tagList.map((tag) => (
-            <Chip key={tag} size="sm" variant="flat">
-              {tag.trim()}
-            </Chip>
+            <span key={tag} className="text-sm text-default-500">
+              #{tag.trim()}
+            </span>
           ))}
         </div>
       )}
 
       {/* 简介 */}
       {detail.description && (
-        <p className="text-3xl text-default-500 mt-3 leading-relaxed">{detail.description}</p>
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold text-foreground mb-2">简介</h3>
+          <p className="text-xl text-default-500 leading-relaxed">{detail.description}</p>
+        </div>
       )}
     </section>
   )

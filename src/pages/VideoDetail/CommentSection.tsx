@@ -357,6 +357,8 @@ export default function CommentSection({ videoId }: Props) {
                   onValueChange={setInputText}
                   minRows={2}
                   size="sm"
+                  variant="bordered"
+                  isClearable
                   isDisabled={!isLoggedIn}
                 />
                 {isLoggedIn && (

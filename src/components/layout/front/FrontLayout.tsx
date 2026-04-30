@@ -3,6 +3,7 @@
  * 包含 Header、Footer 和内容区域
  */
 
+import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { ScrollShadow } from '@heroui/react'
 import FrontHeader from './FrontHeader'
@@ -43,6 +44,14 @@ export default function FrontLayout({
   const defaultSiteName = siteName === '知识库小破站' ? t('app.name') : siteName
   const defaultDescription = siteDescription === '分享知识，记录成长。一个专注于技术分享与学习的知识平台。' ? t('app.slogan') : siteDescription
 
+  // 前台默认允许选中文本
+  useEffect(() => {
+    document.body.style.userSelect = ''
+    return () => {
+      document.body.style.userSelect = ''
+    }
+  }, [])
+
   return (
     <ClickSpark sparkColor="#3b82f6" sparkSize={10} sparkRadius={15} duration={400}>
       <div className={cn('min-h-screen flex flex-col bg-background', className)}>
@@ -50,11 +59,9 @@ export default function FrontLayout({
         {showHeader && <FrontHeader logoText={defaultSiteName} />}
 
         {/* 主内容区域 */}
-        <ScrollShadow className="flex-1">
-          <main className="flex-1">
-            <Outlet />
-          </main>
-        </ScrollShadow>
+        <main className="flex-1">
+          <Outlet />
+        </main>
 
         {/* 底部 */}
         {showFooter && (

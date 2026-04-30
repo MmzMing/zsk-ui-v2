@@ -23,6 +23,7 @@ const VideoDetailPage = lazy(() => import('@/pages/VideoDetail'))
 const SearchPage = lazy(() => import('@/pages/Search'))
 const ProfilePage = lazy(() => import('@/pages/Profile'))
 const UserHomePage = lazy(() => import('@/pages/UserHome'))
+const CategoriesPage = lazy(() => import('@/pages/Categories'))
 const LoginPage = lazy(() => import('@/pages/Auth/Login'))
 const CallbackPage = lazy(() => import('@/pages/Auth/Callback'))
 const NotFoundPage = lazy(() => import('@/pages/NotFound'))
@@ -112,6 +113,10 @@ export const routes: RouteObject[] = [
           {
             path: 'search',
             element: withSuspense(SearchPage),
+          },
+          {
+            path: 'categories',
+            element: withSuspense(CategoriesPage),
           },
           {
             path: 'test',

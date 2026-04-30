@@ -97,10 +97,10 @@ export default function VideoDetailPage() {
             </Chip>
           )}
           {videoDetail.tags?.length > 0 &&
-            videoDetail.tags.map((tag) => (
-              <Chip key={tag} size="sm" variant="flat" className="text-xs">
-                {tag}
-              </Chip>
+            Array.from(new Set(videoDetail.tags)).map((tag) => (
+              <span key={tag} className="text-xs text-default-500">
+                #{tag}
+              </span>
             ))}
         </div>
 
