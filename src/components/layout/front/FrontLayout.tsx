@@ -5,7 +5,6 @@
 
 import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
-import { ScrollShadow } from '@heroui/react'
 import FrontHeader from './FrontHeader'
 import FrontFooter from './FrontFooter'
 import ClickSpark from '@/components/ui/reactbits/ClickSpark'

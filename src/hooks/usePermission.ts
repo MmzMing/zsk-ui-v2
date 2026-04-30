@@ -5,7 +5,8 @@
 
 import { useCallback, useMemo } from 'react'
 import { useUserStore } from '@/stores/user'
-import { getRoutePermission } from '@/config/permissions'
+import { getRoutePermission } from '@/constants/menu'
+import type { UserRole } from '@/types'
 
 /**
  * 权限判断 Hook
@@ -37,7 +38,7 @@ export function usePermission() {
       if (permission.requireAuth && !isLoggedIn) return false
 
       // 检查角色权限
-      if (permission.roles && !hasRole(permission.roles)) return false
+      if (permission.roles && !hasRole(permission.roles as UserRole[])) return false
 
       // 检查功能权限
       if (permission.permissions && !hasPermission(permission.permissions)) return false

@@ -100,7 +100,7 @@ export default function DockMenu({ className }: DockMenuProps) {
    */
   const handleLogout = useCallback(() => {
     logout()
-    navigate('/login')
+    navigate('/')
   }, [logout, navigate])
 
   /**

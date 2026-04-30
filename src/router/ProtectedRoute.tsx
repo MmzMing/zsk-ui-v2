@@ -5,7 +5,8 @@
 
 import { Outlet, Navigate, useLocation } from 'react-router-dom'
 import { useUserStore } from '@/stores/user'
-import { getRoutePermission } from '@/config/permissions'
+import { getRoutePermission } from '@/constants/menu'
+import type { UserRole } from '@/types'
 import NoPermission from '@/pages/NoPermission'
 
 /**
@@ -34,7 +35,7 @@ export function ProtectedRoute() {
   const permission = getRoutePermission(location.pathname)
 
   // 检查角色权限
-  if (permission.roles && !hasRole(permission.roles)) {
+  if (permission.roles && !hasRole(permission.roles as UserRole[])) {
     return <NoPermission />
   }
 

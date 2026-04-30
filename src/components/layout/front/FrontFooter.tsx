@@ -105,9 +105,9 @@ export default function FrontFooter({
 
   // 默认社交链接
   const defaultSocialLinks = useMemo<SocialLink[]>(() => [
-    { icon: <Github className="w-5 h-5" />, href: 'https://github.com', label: 'GitHub' },
-    { icon: <Twitter className="w-5 h-5" />, href: 'https://twitter.com', label: 'Twitter' },
-    { icon: <Mail className="w-5 h-5" />, href: 'mailto:contact@example.com', label: 'Email' }
+    { icon: <Github className="w-5 h-5" />, href: import.meta.env.VITE_FOOTER_GITHUB || 'https://github.com', label: 'GitHub' },
+    { icon: <Twitter className="w-5 h-5" />, href: import.meta.env.VITE_FOOTER_TWITTER || 'https://twitter.com', label: 'Twitter' },
+    { icon: <Mail className="w-5 h-5" />, href: `mailto:${import.meta.env.VITE_FOOTER_EMAIL || 'contact@example.com'}`, label: 'Email' }
   ], [])
 
   const currentSections = sections || defaultSections
@@ -197,11 +197,11 @@ export default function FrontFooter({
               {/* 联系信息 */}
               <div className="flex flex-col gap-3">
                 <a
-                  href="mailto:contact@example.com"
+                  href={`mailto:${import.meta.env.VITE_FOOTER_EMAIL || 'contact@example.com'}`}
                   className="flex items-center gap-3 text-sm !text-default-600 hover:!text-default-900 transition-colors group !no-underline"
                 >
                   <Mail className="w-5 h-5 !text-default-400 group-hover:!text-default-900 transition-colors" />
-                  <span className="text-inherit">contact@example.com</span>
+                  <span className="text-inherit">{import.meta.env.VITE_FOOTER_EMAIL || 'contact@example.com'}</span>
                 </a>
                 <div className="flex items-center gap-3 text-sm text-default-600">
                   <MapPin className="w-5 h-5 !text-default-400" />
@@ -261,7 +261,7 @@ export default function FrontFooter({
             <div className="flex items-center gap-4 text-sm text-default-500">
               {icp && (
                 <a
-                  href="https://beian.miit.gov.cn/"
+                  href={import.meta.env.VITE_FOOTER_ICP_LINK || 'https://beian.miit.gov.cn/'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:!text-default-900 transition-colors !no-underline !text-default-500"
@@ -290,7 +290,7 @@ export default function FrontFooter({
             <div className="flex items-center justify-center gap-2 flex-wrap text-xs text-default-400">
               {icp && (
                 <a
-                  href="https://beian.miit.gov.cn/"
+                  href={import.meta.env.VITE_FOOTER_ICP_LINK || 'https://beian.miit.gov.cn/'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:!text-default-900 transition-colors !no-underline !text-default-400"
@@ -301,7 +301,7 @@ export default function FrontFooter({
               {icp && policeIcp && <span>·</span>}
               {policeIcp && (
                 <a
-                  href="https://www.gov.cn/"
+                  href={import.meta.env.VITE_FOOTER_POLICE_LINK || 'https://www.gov.cn/'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:!text-default-900 transition-colors !no-underline !text-default-400"

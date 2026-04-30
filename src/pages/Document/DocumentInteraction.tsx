@@ -19,6 +19,7 @@ import type { DocHomeInteraction } from '@/types/document.types'
 
 // ===== 2. Props 类型定义 =====
 interface DocumentInteractionProps {
+  docId?: string
   interaction?: DocHomeInteraction | null
   likeLoading: boolean
   favLoading: boolean

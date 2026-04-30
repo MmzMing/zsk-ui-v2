@@ -38,6 +38,11 @@ export interface RequestConfig extends InternalAxiosRequestConfig {
 declare global {
   interface ImportMetaEnv {
     readonly VITE_API_BASE_URL: string
+    readonly VITE_FOOTER_EMAIL: string
+    readonly VITE_FOOTER_GITHUB: string
+    readonly VITE_FOOTER_TWITTER: string
+    readonly VITE_FOOTER_ICP_LINK: string
+    readonly VITE_FOOTER_POLICE_LINK: string
   }
   interface ImportMeta {
     readonly env: ImportMetaEnv

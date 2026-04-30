@@ -22,7 +22,6 @@ import {
   HiOutlineHome,
   HiOutlineDocumentText,
   HiOutlineTag,
-  HiOutlineBeaker,
   HiOutlineUserCircle
 } from 'react-icons/hi'
 import { cn } from '@/utils'
@@ -158,7 +157,6 @@ export default function FrontHeader({
     { label: t('menu.home'), href: '/', icon: HiOutlineHome },
     { label: t('menu.documents', '文档'), href: '/search', icon: HiOutlineDocumentText },
     { label: t('menu.categories', '分类'), href: '/categories', icon: HiOutlineTag },
-    { label: t('menu.test', '测试'), href: '/test', icon: HiOutlineBeaker },
     { label: t('menu.about'), href: '/about', icon: HiOutlineUserCircle }
   ], [t])
 

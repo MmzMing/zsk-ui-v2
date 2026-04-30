@@ -189,7 +189,7 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
   // 处理登出
   const handleLogout = useCallback(() => {
     logout()
-    navigate('/login')
+    navigate('/')
   }, [logout, navigate])
 
   // 获取排序后的菜单

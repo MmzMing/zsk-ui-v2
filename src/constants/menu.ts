@@ -1,7 +1,6 @@
 /**
- * 后台管理菜单配置
- * 支持动态菜单管理，菜单名称、图标、顺序可通过后台API配置
- * 主要由后端API权限控制显示
+ * 后台管理菜单与路由权限配置
+ * 菜单数据作为权限映射的唯一数据源，新增菜单项自动生成对应路由权限
  */
 
 import type { LucideIcon } from 'lucide-react'
@@ -27,9 +26,8 @@ import {
   Cog
 } from 'lucide-react'
 
-/**
- * 菜单项接口定义
- */
+// ===== 类型定义区域 =====
+
 export interface MenuItem {
   /** 菜单唯一标识 */
   key: string
@@ -55,9 +53,6 @@ export interface MenuItem {
   iconName?: string
 }
 
-/**
- * 菜单配置接口
- */
 export interface MenuConfig {
   /** 菜单列表 */
   menus: MenuItem[]
@@ -66,6 +61,19 @@ export interface MenuConfig {
   /** 版本号 */
   version: string
 }
+
+export interface RoutePermission {
+  /** 允许访问的角色列表 */
+  roles?: string[]
+  /** 允许访问的权限列表（满足任一即可） */
+  permissions?: string[]
+  /** 是否需要登录 */
+  requireAuth?: boolean
+  /** 无权限时重定向路径 */
+  redirectTo?: string
+}
+
+// ===== 数据常量区域 =====
 
 /**
  * 后台管理系统默认菜单配置
@@ -298,6 +306,8 @@ export const ADMIN_MENUS: MenuItem[] = [
   }
 ]
 
+// ===== 菜单工具函数区域 =====
+
 /**
  * 对菜单列表按order字段排序
  * @param menus - 菜单列表
@@ -395,4 +405,59 @@ export const getBreadcrumb = (menus: MenuItem[], path: string): MenuItem[] => {
   }
   findPath(menus, path)
   return breadcrumb
+}
+
+// ===== 路由权限区域 =====
+
+/**
+ * 额外路由权限配置
+ * 仅配置菜单中不存在但需要权限控制的路由（如动态路由 /admin/document/editor/:id）
+ */
+const EXTRA_ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
+  '/admin/document/editor': {
+    requireAuth: true,
+    permissions: ['document:edit:view'],
+  },
+}
+
+/**
+ * 从菜单配置动态生成路由权限映射
+ * 菜单项的 permission 字段即为该路由所需权限
+ */
+function buildRoutePermissions(): Record<string, RoutePermission> {
+  const flatMenus = flattenMenus(ADMIN_MENUS)
+  const permissions: Record<string, RoutePermission> = {}
+
+  for (const menu of flatMenus) {
+    if (menu.path && menu.permission) {
+      permissions[menu.path] = {
+        requireAuth: true,
+        permissions: [menu.permission],
+      }
+    } else if (menu.path) {
+      permissions[menu.path] = {
+        requireAuth: true,
+      }
+    }
+  }
+
+  return { ...permissions, ...EXTRA_ROUTE_PERMISSIONS }
+}
+
+const ADMIN_ROUTE_PERMISSIONS = buildRoutePermissions()
+
+/**
+ * 默认权限配置
+ */
+export const DEFAULT_PERMISSION: RoutePermission = {
+  requireAuth: true,
+}
+
+/**
+ * 获取路由权限配置
+ * @param path - 路由路径
+ * @returns 权限配置
+ */
+export function getRoutePermission(path: string): RoutePermission {
+  return ADMIN_ROUTE_PERMISSIONS[path] || DEFAULT_PERMISSION
 }

@@ -975,7 +975,7 @@ export default function SystemDictionary() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-0 h-full">
-      <Card className="w-full flex-[2] overflow-hidden flex flex-col">
+      <Card className="w-full flex-1 overflow-hidden flex flex-col">
         <CardBody className="p-0 overflow-visible flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
             <div className="flex items-center gap-2">

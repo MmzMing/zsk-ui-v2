@@ -43,7 +43,11 @@ request.interceptors.request.use(
   }
 )
 
-function handleAuthError(message?: string): void {
+/**
+ * 处理登录过期
+ * 仅在确认登录过期时调用（如 Token 失效），清除缓存并跳转登录页
+ */
+function handleLoginExpired(message?: string): void {
   removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
   removeStorage(STORAGE_KEYS.USER_INFO)
   removeStorage(STORAGE_KEYS.USER_STATS)
@@ -71,13 +75,15 @@ request.interceptors.response.use(
     const isSuccess = data.code === 0 || (data.code === 200 && data.success !== false)
     
     if (!isSuccess) {
-      // 检查业务层鉴权错误：业务码为 401 或错误信息包含鉴权相关关键词
-      const isAuthError = data.code === 401 || 
-                         (data.msg && data.msg.includes('鉴权')) ||
-                         (data.msg && data.msg.includes('登录'))
-      
-      if (isAuthError) {
-        handleAuthError(data.msg)
+      // 检查业务层登录过期：仅 Token 失效（code=401 且含过期关键词）时跳转登录页
+      const isLoginExpired = data.code === 401 &&
+        data.msg && (data.msg.includes('过期') || data.msg.includes('失效') || data.msg.includes('expired'))
+
+      if (isLoginExpired) {
+        handleLoginExpired(data.msg)
+      } else if (data.code === 401) {
+        // 鉴权失败（如权限不足），仅提示不跳转
+        toast.error(data.msg || '无访问权限')
       }
       
       const error = new Error(data.msg || '请求失败')
@@ -93,7 +99,8 @@ request.interceptors.response.use(
 
       switch (status) {
         case 401:
-          handleAuthError()
+          // HTTP 401 视为登录过期，清除缓存并跳转
+          handleLoginExpired()
           break
         case 403:
           toast.error('没有权限访问该资源')
