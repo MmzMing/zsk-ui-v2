@@ -3,7 +3,6 @@
  * 自动对接 useDict Hook，使用缓存数据渲染选项
  */
 
-import { useEffect } from 'react'
 import { Select, SelectItem, Spinner } from '@heroui/react'
 import { useDict } from '@/hooks/useDict'
 import type { SelectProps } from '@heroui/react'
@@ -55,14 +54,7 @@ export function DictSelect({
   placeholder,
   ...restProps
 }: DictSelectProps) {
-  const { data, loading, refresh } = useDict(dictType)
-
-  // 下拉框展开时检查版本更新
-  useEffect(() => {
-    if (data.length === 0) {
-      refresh()
-    }
-  }, [data.length, refresh])
+  const { data, loading } = useDict(dictType)
 
   // 默认过滤：仅显示正常状态
   const defaultFilter = (item: SysDictDataCache) => item.status === '0'
@@ -118,13 +110,7 @@ interface DictLabelProps {
 }
 
 export function DictLabel({ dictType, value, fallback = '-', className }: DictLabelProps) {
-  const { data, refresh } = useDict(dictType)
-
-  useEffect(() => {
-    if (data.length === 0) {
-      refresh()
-    }
-  }, [data.length, refresh])
+  const { data } = useDict(dictType)
 
   const item = data.find((d) => d.dictValue === value)
 
