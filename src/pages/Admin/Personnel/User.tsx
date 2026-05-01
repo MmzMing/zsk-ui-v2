@@ -67,6 +67,7 @@ import {
 // 工具函数
 import { toast } from '@/utils/toast'
 import { formatDateTime } from '@/utils/format'
+import { DictSelect } from '@/components/ui/dict/DictSelect'
 
 // 通用状态组件
 import { StatusState } from '@/components/ui/StatusState'
@@ -97,7 +98,6 @@ import type {
   UserSexValue,
   SysUserPageData
 } from '@/types/sysuser.types'
-import { USER_STATUS_OPTIONS, USER_SEX_OPTIONS } from '@/types/sysuser.types'
 import type { SysRole } from '@/types/role.types'
 
 // ===== 2. TODO待处理导入区域 =====
@@ -117,8 +117,11 @@ const PAGE_SIZE_OPTIONS = [...PAGINATION.PAGE_SIZE_OPTIONS] as number[]
  * @returns 对应的中文标签
  */
 function getUserStatusLabel(status: UserStatus): string {
-  const option = USER_STATUS_OPTIONS.find(o => o.value === status)
-  return option?.label ?? status
+  const labelMap: Record<UserStatus, string> = {
+    '0': '正常',
+    '1': '停用'
+  }
+  return labelMap[status] ?? status
 }
 
 /**
@@ -348,19 +351,16 @@ function UserEditModal({ isOpen, onOpenChange, userData, mode, onSuccess }: User
               value={formData.phonenumber ?? ''}
               onValueChange={v => handleFieldChange('phonenumber', v)}
             />
-            <Select
+            <DictSelect
               label="性别"
               placeholder="请选择性别"
+              dictType="sys_user_sex"
               selectedKeys={[formData.sex ?? '2']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as UserSexValue
                 handleFieldChange('sex', value)
               }}
-            >
-              {USER_SEX_OPTIONS.map((option) => (
-                <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
-              ))}
-            </Select>
+            />
             <Input
               label="年龄"
               type="number"
@@ -368,19 +368,16 @@ function UserEditModal({ isOpen, onOpenChange, userData, mode, onSuccess }: User
               value={formData.age?.toString() ?? ''}
               onValueChange={v => handleFieldChange('age', v ? Number(v) : undefined)}
             />
-            <Select
+            <DictSelect
               label="用户状态"
               placeholder="请选择用户状态"
+              dictType="sys_common_status"
               selectedKeys={[formData.status ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as UserStatus
                 handleFieldChange('status', value)
               }}
-            >
-              {USER_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
-              ))}
-            </Select>
+            />
             <Input
               label="头像URL"
               placeholder="请输入头像URL"
@@ -944,21 +941,18 @@ export default function PersonnelUser() {
                   setQueryParams(prev => ({ ...prev, userName: undefined }))
                 }}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 placeholder="状态"
                 className="w-full sm:w-24"
                 aria-label="用户状态筛选"
+                dictType="sys_common_status"
                 selectedKeys={queryParams.status ? [queryParams.status] : []}
                 onSelectionChange={keys => {
                   const value = Array.from(keys)[0] as UserStatus | undefined
                   handleQueryChange('status', value)
                 }}
-              >
-                {USER_STATUS_OPTIONS.map(option => (
-                  <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
-                ))}
-              </Select>
+              />
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>

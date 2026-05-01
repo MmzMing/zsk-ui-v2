@@ -14,8 +14,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Button,
   Input,
-  Select,
-  SelectItem,
   Modal,
   ModalContent,
   ModalHeader,
@@ -34,6 +32,7 @@ import { toast } from '@/utils/toast'
 
 import ImageCropModal from '@/components/ui/image-crop/ImageCropModal'
 import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
+import { DictSelect } from '@/components/ui/dict/DictSelect'
 
 import { createDocVideo, updateDocVideo, saveDocVideoDraft } from '@/api/admin/video'
 import { uploadDocFile } from '@/api/admin/file'
@@ -47,10 +46,6 @@ import type {
   DocVideoStatus,
   DocVideoAuditStatus,
   DocVideoDraftInput,
-} from '@/types/video.types'
-import {
-  DOC_VIDEO_STATUS_OPTIONS,
-  DOC_VIDEO_AUDIT_STATUS_OPTIONS,
 } from '@/types/video.types'
 
 // ===== 2. TODO待处理导入区域 =====
@@ -824,38 +819,28 @@ export function VideoMetaFormModal({
 
                 {/* 状态控制 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
+                  <DictSelect
                     label="发布状态"
                     placeholder="请选择状态"
                     isDisabled={!videoData}
+                    dictType="doc_video_status"
                     selectedKeys={formData.status ? [String(formData.status)] : []}
                     onSelectionChange={(keys) => {
                       const value = Array.from(keys)[0] as string
                       handleFieldChange('status', Number(value) as DocVideoStatus)
                     }}
-                  >
-                    {DOC_VIDEO_STATUS_OPTIONS.map((option) => (
-                      <SelectItem key={String(option.value)} textValue={option.label}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                  <Select
+                  />
+                  <DictSelect
                     label="审核状态"
                     placeholder="请选择审核状态"
                     isDisabled
+                    dictType="doc_audit_status"
                     selectedKeys={formData.auditStatus !== undefined ? [String(formData.auditStatus)] : []}
                     onSelectionChange={(keys) => {
                       const value = Array.from(keys)[0] as string
                       handleFieldChange('auditStatus', Number(value) as DocVideoAuditStatus)
                     }}
-                  >
-                    {DOC_VIDEO_AUDIT_STATUS_OPTIONS.map((option) => (
-                      <SelectItem key={String(option.value)} textValue={option.label}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </Select>
+                  />
                 </div>
 
                 <div className="flex items-center gap-6">

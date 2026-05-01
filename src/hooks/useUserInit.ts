@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react'
 import { useUserStore } from '@/stores/user'
 import { useMenuStore } from '@/stores/menu'
+import { useDictAll } from '@/hooks/useDict'
 import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
 import { getStorageValue, removeStorage, STORAGE_KEYS } from '@/utils/storage'
@@ -64,6 +65,7 @@ export function useUserInit(): UseUserInitReturn {
   const setPermissions = useUserStore(state => state.setPermissions)
   const setLoading = useUserStore(state => state.setLoading)
   const refreshMenus = useMenuStore(state => state.refreshMenus)
+  const { loadAll: loadAllDicts } = useDictAll()
   const [isInit, setIsInit] = useState(false)
 
   useEffect(() => {
@@ -87,6 +89,9 @@ export function useUserInit(): UseUserInitReturn {
 
           // ===== 菜单数据初始化 =====
           await refreshMenus()
+
+          // ===== 字典缓存初始化 =====
+          await loadAllDicts()
         }
       } finally {
         // 无论成功与否，都标记初始化完成

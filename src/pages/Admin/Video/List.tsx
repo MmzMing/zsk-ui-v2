@@ -35,14 +35,14 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  useDisclosure,
+  Pagination,
+  Image,
   Card,
   CardBody,
-  useDisclosure,
   Tooltip,
-  Pagination,
   Avatar,
   Switch,
-  Image,
 } from '@heroui/react'
 
 // 图标
@@ -63,10 +63,12 @@ import {
 import { toast } from '@/utils/toast'
 import { formatDateTime } from '@/utils/format'
 
+// 字典组件
+import { DictSelect } from '@/components/ui/dict/DictSelect'
+
 // 通用组件
 import { StatusState } from '@/components/ui/StatusState'
 
-// 复用组件
 import { VideoMetaFormModal } from './components/VideoMetaFormModal'
 import { VideoCommentModal } from './components/VideoCommentModal'
 
@@ -570,11 +572,12 @@ export default function VideoList() {
                   setQueryParams((prev) => ({ ...prev, videoTitle: undefined }))
                 }}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 placeholder="视频状态"
                 className="w-full sm:w-28"
                 aria-label="视频状态筛选"
+                dictType="doc_video_status"
                 selectedKeys={queryParams.status ? [String(queryParams.status)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string | undefined
@@ -583,18 +586,13 @@ export default function VideoList() {
                     value ? (Number(value) as DocVideoStatus) : undefined
                   )
                 }}
-              >
-                {DOC_VIDEO_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
-              <Select
+              />
+              <DictSelect
                 size="sm"
                 placeholder="审核状态"
                 className="w-full sm:w-28"
                 aria-label="审核状态筛选"
+                dictType="doc_audit_status"
                 selectedKeys={
                   queryParams.auditStatus !== undefined ? [String(queryParams.auditStatus)] : []
                 }
@@ -605,13 +603,7 @@ export default function VideoList() {
                     value !== undefined ? (Number(value) as DocVideoAuditStatus) : undefined
                   )
                 }}
-              >
-                {DOC_VIDEO_AUDIT_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
+              />
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>

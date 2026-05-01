@@ -21,8 +21,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Button,
   Input,
-  Select,
-  SelectItem,
   Table,
   TableHeader,
   TableColumn,
@@ -66,8 +64,7 @@ import type { TreeProps, DataNode } from 'antd/es/tree'
 import { toast } from '@/utils/toast'
 import { cn } from '@/utils'
 import { AVAILABLE_ICONS, getLucideIcon, renderIcon } from '@/utils/icons'
-
-// 通用状态组件
+import { DictSelect } from '@/components/ui/dict/DictSelect'
 import { StatusState } from '@/components/ui/StatusState'
 import ConfirmPopover from '@/components/ui/ConfirmPopover'
 
@@ -91,8 +88,7 @@ import type {
   MenuStatus
 } from '@/types/menu.types'
 import {
-  MENU_TYPE_OPTIONS,
-  MENU_STATUS_OPTIONS
+  MENU_TYPE_OPTIONS
 } from '@/types/menu.types'
 
 // ===== 2. TODO待处理导入区域 =====
@@ -500,23 +496,18 @@ const MenuEditModal = React.memo(function MenuEditModal({
               value={formData.menuName}
               onValueChange={v => handleFieldChange('menuName', v)}
             />
-            <Select
+            <DictSelect
               label="菜单类型"
               placeholder="请选择菜单类型"
               isRequired
+              dictType="sys_menu_type"
               selectedKeys={[formData.menuType]}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as MenuType
                 handleFieldChange('menuType', value)
               }}
               aria-label="菜单类型"
-            >
-              {MENU_TYPE_OPTIONS.map(option => (
-                <SelectItem key={option.value} description={option.description}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </Select>
+            />
             <Input
               label="路由路径"
               placeholder="请输入路由路径"
@@ -542,61 +533,54 @@ const MenuEditModal = React.memo(function MenuEditModal({
               value={String(formData.orderNum ?? 0)}
               onValueChange={v => handleFieldChange('orderNum', Number(v))}
             />
-            <Select
+            <DictSelect
               label="菜单状态"
               placeholder="请选择菜单状态"
+              dictType="sys_common_status"
               selectedKeys={[formData.status ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as MenuStatus
                 handleFieldChange('status', value)
               }}
               aria-label="菜单状态"
-            >
-              {MENU_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </Select>
-            <Select
+            />
+            <DictSelect
               label="是否显示"
               placeholder="请选择"
+              dictType="sys_menu_visible"
               selectedKeys={[formData.visible ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as '0' | '1'
                 handleFieldChange('visible', value)
               }}
               aria-label="是否显示"
-            >
-              <SelectItem key="0">显示</SelectItem>
-              <SelectItem key="1">隐藏</SelectItem>
-            </Select>
-            <Select
+            />
+            <DictSelect
               label="是否外链"
               placeholder="请选择"
+              dictType="sys_yes_no"
+              valueField="dictValue"
+              labelField="dictLabel"
               selectedKeys={[String(formData.isFrame ?? 1)]}
               onSelectionChange={keys => {
                 const value = Number(Array.from(keys)[0])
                 handleFieldChange('isFrame', value)
               }}
               aria-label="是否外链"
-            >
-              <SelectItem key="0">是</SelectItem>
-              <SelectItem key="1">否</SelectItem>
-            </Select>
-            <Select
+            />
+            <DictSelect
               label="是否缓存"
               placeholder="请选择"
+              dictType="sys_yes_no"
+              valueField="dictValue"
+              labelField="dictLabel"
               selectedKeys={[String(formData.isCache ?? 0)]}
               onSelectionChange={keys => {
                 const value = Number(Array.from(keys)[0])
                 handleFieldChange('isCache', value)
               }}
               aria-label="是否缓存"
-            >
-              <SelectItem key="0">缓存</SelectItem>
-              <SelectItem key="1">不缓存</SelectItem>
-            </Select>
+            />
             <div className="flex flex-col gap-1">
               <span className="text-sm text-foreground">菜单图标</span>
               <IconSelect
@@ -1138,36 +1122,30 @@ export default function PersonnelMenu() {
                 isClearable
                 onClear={() => handleQueryChange('menuName', undefined)}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 placeholder="菜单状态"
                 className="w-full sm:w-28"
                 aria-label="菜单状态筛选"
+                dictType="sys_common_status"
                 selectedKeys={queryParams.status ? [queryParams.status] : []}
                 onSelectionChange={keys => {
                   const value = Array.from(keys)[0] as MenuStatus | undefined
                   handleQueryChange('status', value)
                 }}
-              >
-                {MENU_STATUS_OPTIONS.map(option => (
-                  <SelectItem key={option.value}>{option.label}</SelectItem>
-                ))}
-              </Select>
-              <Select
+              />
+              <DictSelect
                 size="sm"
                 placeholder="菜单类型"
                 className="w-full sm:w-28"
                 aria-label="菜单类型筛选"
+                dictType="sys_menu_type"
                 selectedKeys={queryParams.menuType ? [queryParams.menuType] : []}
                 onSelectionChange={keys => {
                   const value = Array.from(keys)[0] as MenuType | undefined
                   handleQueryChange('menuType', value)
                 }}
-              >
-                {MENU_TYPE_OPTIONS.map(option => (
-                  <SelectItem key={option.value}>{option.label}</SelectItem>
-                ))}
-              </Select>
+              />
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>

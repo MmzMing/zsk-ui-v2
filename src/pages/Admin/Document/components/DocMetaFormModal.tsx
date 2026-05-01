@@ -17,8 +17,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Button,
   Input,
-  Select,
-  SelectItem,
   Modal,
   ModalContent,
   ModalHeader,
@@ -37,6 +35,9 @@ import { Pencil, Upload } from 'lucide-react'
 // 工具
 import { toast } from '@/utils/toast'
 
+// 字典组件
+import { DictSelect } from '@/components/ui/dict/DictSelect'
+
 // 图片裁剪
 import ImageCropModal from '@/components/ui/image-crop/ImageCropModal'
 
@@ -51,10 +52,6 @@ import type {
   DocNoteStatus,
   DocAuditStatus,
   DocNoteAggregateMeta,
-} from '@/types/document.types'
-import {
-  DOC_NOTE_STATUS_OPTIONS,
-  DOC_AUDIT_STATUS_OPTIONS,
 } from '@/types/document.types'
 
 // ===== 常量 =====
@@ -568,38 +565,28 @@ export function DocMetaFormModal({
                 value={formData.noteGrade?.toString() ?? ''}
                 onValueChange={(v) => handleFieldChange('noteGrade', v ? Number(v) : undefined)}
               />
-              <Select
+              <DictSelect
                 label="文档状态"
                 placeholder="请选择状态"
                 isDisabled={!docData}
+                dictType="doc_note_status"
                 selectedKeys={formData.status ? [String(formData.status)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string
                   handleFieldChange('status', Number(value) as DocNoteStatus)
                 }}
-              >
-                {DOC_NOTE_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
-              <Select
+              />
+              <DictSelect
                 label="审核状态"
                 placeholder="请选择审核状态"
                 isDisabled
+                dictType="doc_audit_status"
                 selectedKeys={formData.auditStatus !== undefined ? [String(formData.auditStatus)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string
                   handleFieldChange('auditStatus', Number(value) as DocAuditStatus)
                 }}
-              >
-                {DOC_AUDIT_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
+              />
               <Input
                 label="SEO标题"
                 placeholder="请输入SEO标题"

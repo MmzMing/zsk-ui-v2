@@ -15,8 +15,6 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Button,
   Input,
-  Select,
-  SelectItem,
   Table,
   TableHeader,
   TableColumn,
@@ -52,6 +50,9 @@ import { toast } from '@/utils/toast'
 import { formatDateTime } from '@/utils/format'
 import { StatusState } from '@/components/ui/StatusState'
 
+// 字典组件
+import { DictSelect } from '@/components/ui/dict/DictSelect'
+
 import {
   getNoticeList,
   createNotice,
@@ -66,11 +67,6 @@ import type {
   SysNoticeUpdateInput,
   NoticeType,
   NoticeStatus,
-} from '@/types/notice.types'
-
-import {
-  NOTICE_TYPE_OPTIONS,
-  NOTICE_STATUS_OPTIONS,
 } from '@/types/notice.types'
 
 // ===== 2. 常量 =====
@@ -181,33 +177,27 @@ function NoticeEditModal({ isOpen, onOpenChange, noticeData, mode, onSuccess }: 
               onValueChange={v => handleFieldChange('noticeTitle', v)}
               className="md:col-span-2"
             />
-            <Select
+            <DictSelect
               label="公告类型"
               placeholder="请选择公告类型"
               isRequired
+              dictType="sys_notice_type"
               selectedKeys={[formData.noticeType]}
               onSelectionChange={keys => {
                 const val = Array.from(keys)[0] as NoticeType
                 if (val) handleFieldChange('noticeType', val)
               }}
-            >
-              {NOTICE_TYPE_OPTIONS.map(opt => (
-                <SelectItem key={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </Select>
-            <Select
+            />
+            <DictSelect
               label="状态"
               placeholder="请选择状态"
+              dictType="sys_notice_status"
               selectedKeys={[formData.status || '0']}
               onSelectionChange={keys => {
                 const val = Array.from(keys)[0] as NoticeStatus
                 if (val) handleFieldChange('status', val)
               }}
-            >
-              {NOTICE_STATUS_OPTIONS.map(opt => (
-                <SelectItem key={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </Select>
+            />
             <Textarea
               label="公告内容"
               placeholder="请输入公告内容"
@@ -431,18 +421,15 @@ export default function MonitorNotice() {
                   setQueryParams(prev => ({ ...prev, noticeTitle: undefined }))
                 }}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 aria-label="按状态筛选"
                 placeholder="状态"
                 className="w-24"
+                dictType="sys_notice_status"
                 selectedKeys={queryParams.status ? [queryParams.status] : []}
                 onSelectionChange={handleStatusFilter}
-              >
-                {NOTICE_STATUS_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </Select>
+              />
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>

@@ -75,6 +75,9 @@ import { DocCommentModal } from './components/DocCommentModal'
 // 常量
 import { PAGINATION } from '@/constants'
 
+// 字典组件
+import { DictSelect } from '@/components/ui/dict/DictSelect'
+
 // API
 import {
   getDocNotePage,
@@ -567,11 +570,12 @@ export default function DocumentList() {
                   setQueryParams((prev) => ({ ...prev, noteName: undefined }))
                 }}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 placeholder="文档状态"
                 className="w-full sm:w-28"
                 aria-label="文档状态筛选"
+                dictType="doc_note_status"
                 selectedKeys={queryParams.status ? [String(queryParams.status)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string | undefined
@@ -580,18 +584,13 @@ export default function DocumentList() {
                     value ? (Number(value) as DocNoteStatus) : undefined
                   )
                 }}
-              >
-                {DOC_NOTE_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
-              <Select
+              />
+              <DictSelect
                 size="sm"
                 placeholder="审核状态"
                 className="w-full sm:w-28"
                 aria-label="审核状态筛选"
+                dictType="doc_audit_status"
                 selectedKeys={
                   queryParams.auditStatus !== undefined ? [String(queryParams.auditStatus)] : []
                 }
@@ -602,13 +601,7 @@ export default function DocumentList() {
                     value !== undefined ? (Number(value) as DocAuditStatus) : undefined
                   )
                 }}
-              >
-                {DOC_AUDIT_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
+              />
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>

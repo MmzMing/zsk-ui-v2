@@ -53,6 +53,7 @@ import {
 
 import { toast } from '@/utils/toast'
 import { StatusState } from '@/components/ui/StatusState'
+import { DictSelect } from '@/components/ui/dict/DictSelect'
 import { PAGINATION } from '@/constants'
 
 import {
@@ -516,19 +517,16 @@ function DictTypeEditModal({ isOpen, onOpenChange, dictTypeData, mode, onSuccess
               onValueChange={v => handleFieldChange('dictType', v)}
               description={mode === 'edit' ? '字典编码不可修改' : '建议使用小写字母和下划线'}
             />
-            <Select
+            <DictSelect
               label="状态"
               placeholder="请选择状态"
+              dictType="sys_common_status"
               selectedKeys={[formData.status as string]}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as DictStatus
                 handleFieldChange('status', value)
               }}
-            >
-              {DICT_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
-              ))}
-            </Select>
+            />
             <div className="hidden md:block" />
             <Textarea
               label="备注"
@@ -702,19 +700,16 @@ function DictDataEditModal({ isOpen, onOpenChange, dictData, dictType, mode, onS
               value={(formData.dictSort ?? 0).toString()}
               onValueChange={v => handleFieldChange('dictSort', Number(v) || 0)}
             />
-            <Select
+            <DictSelect
               label="状态"
               placeholder="请选择状态"
+              dictType="sys_common_status"
               selectedKeys={[formData.status as string]}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as DictStatus
                 handleFieldChange('status', value)
               }}
-            >
-              {DICT_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
-              ))}
-            </Select>
+            />
             <Input
               label="样式类"
               placeholder="CSS样式类"
@@ -1038,21 +1033,18 @@ export default function SystemDictionary() {
                   setQueryParams(prev => ({ ...prev, dictName: undefined }))
                 }}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 placeholder="状态"
                 className="w-full sm:w-24"
                 aria-label="字典状态筛选"
+                dictType="sys_common_status"
                 selectedKeys={queryParams.status ? [queryParams.status] as const : []}
                 onSelectionChange={keys => {
                   const value = Array.from(keys)[0] as DictStatus | undefined
                   handleQueryChange('status', value)
                 }}
-              >
-                {DICT_STATUS_OPTIONS.map(option => (
-                  <SelectItem key={option.value} textValue={option.label}>{option.label}</SelectItem>
-                ))}
-              </Select>
+              />
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>

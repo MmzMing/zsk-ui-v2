@@ -24,8 +24,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Button,
   Input,
-  Select,
-  SelectItem,
   Table,
   TableHeader,
   TableColumn,
@@ -72,8 +70,7 @@ import type { TreeProps, DataNode } from 'antd/es/tree'
 import { toast } from '@/utils/toast'
 import { cn } from '@/utils'
 import { formatDateTime } from '@/utils/format'
-
-// 通用状态组件
+import { DictSelect } from '@/components/ui/dict/DictSelect'
 import { StatusState } from '@/components/ui/StatusState'
 
 // API 接口
@@ -389,19 +386,16 @@ function RoleEditModal({ isOpen, onOpenChange, roleData, mode, onSuccess }: Role
               value={String(formData.roleSort ?? 0)}
               onValueChange={v => handleFieldChange('roleSort', Number(v))}
             />
-            <Select
+            <DictSelect
               label="角色状态"
               placeholder="请选择角色状态"
+              dictType="sys_common_status"
               selectedKeys={[formData.status ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as RoleStatus
                 handleFieldChange('status', value)
               }}
-            >
-              {ROLE_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value}>{option.label}</SelectItem>
-              ))}
-            </Select>
+            />
           </div>
           <Textarea
             label="备注"
@@ -976,21 +970,18 @@ export default function PersonnelRole() {
                 isClearable
                 onClear={() => handleQueryChange('roleName', undefined)}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 placeholder="状态"
                 className="w-full sm:w-24"
                 aria-label="角色状态筛选"
+                dictType="sys_common_status"
                 selectedKeys={queryParams.status ? [queryParams.status] : []}
                 onSelectionChange={keys => {
                   const value = Array.from(keys)[0] as RoleStatus | undefined
                   handleQueryChange('status', value)
                 }}
-              >
-                {ROLE_STATUS_OPTIONS.map(option => (
-                  <SelectItem key={option.value}>{option.label}</SelectItem>
-                ))}
-              </Select>
+              />
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置
               </Button>
