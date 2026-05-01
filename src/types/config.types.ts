@@ -54,13 +54,3 @@ export interface SysConfigPageData {
   hasNext: boolean
   hasPrevious: boolean
 }
-
-export interface ConfigStatusOption {
-  value: ConfigStatus
-  label: string
-}
-
-export const CONFIG_STATUS_OPTIONS: ConfigStatusOption[] = [
-  { value: '0', label: '正常' },
-  { value: '1', label: '停用' }
-]

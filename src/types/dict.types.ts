@@ -137,13 +137,3 @@ export type DictCacheTags = string[]
  * 全部字典缓存数据（带版本号）
  */
 export type DictCacheAllData = Record<string, DictCacheVO>
-
-export interface DictStatusOption {
-  value: DictStatus
-  label: string
-}
-
-export const DICT_STATUS_OPTIONS: DictStatusOption[] = [
-  { value: '0', label: '正常' },
-  { value: '1', label: '停用' }
-]

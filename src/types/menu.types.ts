@@ -181,46 +181,7 @@ export interface MenuTreeNode {
 }
 
 /**
- * 菜单类型选项
- */
-export interface MenuTypeOption {
-  /** 类型值 */
-  value: MenuType
-  /** 显示标签 */
-  label: string
-  /** 类型描述 */
-  description: string
-}
-
-/**
- * 菜单状态选项
- */
-export interface MenuStatusOption {
-  /** 状态值 */
-  value: MenuStatus
-  label: string
-}
-
-/**
- * 菜单类型选项列表
- */
-export const MENU_TYPE_OPTIONS: MenuTypeOption[] = [
-  { value: 'M', label: '目录', description: '对应菜单目录分组' },
-  { value: 'C', label: '菜单', description: '对应具体页面路由' },
-  { value: 'F', label: '按钮', description: '对应功能按钮权限' }
-]
-
-/**
- * 菜单状态选项列表
- */
-export const MENU_STATUS_OPTIONS: MenuStatusOption[] = [
-  { value: '0', label: '正常' },
-  { value: '1', label: '停用' }
-]
-
-/**
  * antd Tree 树节点数据结构
- * 兼容 antd Tree 组件的 DataNode 格式
  */
 export interface MenuNodeData {
   /** 节点key（antd Tree 必需字段） */

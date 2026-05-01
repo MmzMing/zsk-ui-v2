@@ -52,6 +52,7 @@ import { StatusState } from '@/components/ui/StatusState'
 
 // 字典组件
 import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { DICT_NOTICE_TYPE, DICT_NOTICE_STATUS } from '@/constants/dict'
 
 import {
   getNoticeList,
@@ -181,7 +182,7 @@ function NoticeEditModal({ isOpen, onOpenChange, noticeData, mode, onSuccess }: 
               label="公告类型"
               placeholder="请选择公告类型"
               isRequired
-              dictType="sys_notice_type"
+              dictType={DICT_NOTICE_TYPE}
               selectedKeys={[formData.noticeType]}
               onSelectionChange={keys => {
                 const val = Array.from(keys)[0] as NoticeType
@@ -191,7 +192,7 @@ function NoticeEditModal({ isOpen, onOpenChange, noticeData, mode, onSuccess }: 
             <DictSelect
               label="状态"
               placeholder="请选择状态"
-              dictType="sys_notice_status"
+              dictType={DICT_NOTICE_STATUS}
               selectedKeys={[formData.status || '0']}
               onSelectionChange={keys => {
                 const val = Array.from(keys)[0] as NoticeStatus

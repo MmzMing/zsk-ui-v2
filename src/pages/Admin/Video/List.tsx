@@ -65,6 +65,8 @@ import { formatDateTime } from '@/utils/format'
 
 // 字典组件
 import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { getDictLabel, getDictColor } from '@/stores/dict'
+import { DICT_VIDEO_STATUS, DICT_AUDIT_STATUS } from '@/constants/dict'
 
 // 通用组件
 import { StatusState } from '@/components/ui/StatusState'
@@ -92,12 +94,6 @@ import type {
   DocVideoStatus,
   DocVideoAuditStatus,
 } from '@/types/video.types'
-import {
-  DOC_VIDEO_STATUS_OPTIONS,
-  DOC_VIDEO_AUDIT_STATUS_OPTIONS,
-} from '@/types/video.types'
-
-// ===== 2. TODO待处理导入区域 =====
 
 // ===== 3. 状态控制逻辑区域 =====
 
@@ -107,43 +103,17 @@ const PAGE_SIZE_OPTIONS = [...PAGINATION.PAGE_SIZE_OPTIONS] as number[]
 // ===== 4. 通用工具函数区域 =====
 
 /**
- * 获取视频状态的显示标签
- */
-function getVideoStatusLabel(status: DocVideoStatus): string {
-  const option = DOC_VIDEO_STATUS_OPTIONS.find((o) => o.value === status)
-  return option?.label ?? String(status)
-}
-
-/**
- * 获取视频状态对应的 Chip 颜色
- */
-function getVideoStatusColor(status: DocVideoStatus): 'success' | 'warning' | 'danger' {
-  const colorMap: Record<number, 'success' | 'warning' | 'danger'> = {
-    1: 'success',
-    2: 'danger',
-    3: 'warning',
-  }
-  return colorMap[status] ?? 'default'
-}
-
-/**
  * 获取审核状态的显示标签
  */
 function getAuditStatusLabel(auditStatus: DocVideoAuditStatus): string {
-  const option = DOC_VIDEO_AUDIT_STATUS_OPTIONS.find((o) => o.value === auditStatus)
-  return option?.label ?? String(auditStatus)
+  return getDictLabel(DICT_AUDIT_STATUS, auditStatus)
 }
 
 /**
  * 获取审核状态对应的 Chip 颜色
  */
 function getAuditStatusColor(auditStatus: DocVideoAuditStatus): 'warning' | 'success' | 'danger' {
-  const colorMap: Record<number, 'warning' | 'success' | 'danger'> = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger',
-  }
-  return colorMap[auditStatus] ?? 'default'
+  return getDictColor(DICT_AUDIT_STATUS, auditStatus, 'warning') as 'warning' | 'success' | 'danger'
 }
 
 // ===== 5. 注释代码函数区 =====
@@ -253,20 +223,15 @@ function BatchStatusModal({ isOpen, onOpenChange, ids, onConfirm }: BatchStatusM
           <p className="text-sm text-default-600 mb-3">
             选中视频数量：<span className="font-bold">{ids.length}</span>
           </p>
-          <Select
+          <DictSelect
             label="目标状态"
+            dictType={DICT_VIDEO_STATUS}
             selectedKeys={[String(targetStatus)]}
             onSelectionChange={(keys) => {
               const value = Array.from(keys)[0] as string
               setTargetStatus(Number(value) as DocVideoStatus)
             }}
-          >
-            {DOC_VIDEO_STATUS_OPTIONS.map((option) => (
-              <SelectItem key={String(option.value)} textValue={option.label}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
+          />
         </ModalBody>
         <ModalFooter>
           <Button variant="flat" onPress={() => onOpenChange(false)}>
@@ -592,7 +557,7 @@ export default function VideoList() {
                 placeholder="审核状态"
                 className="w-full sm:w-28"
                 aria-label="审核状态筛选"
-                dictType="doc_audit_status"
+                dictType={DICT_AUDIT_STATUS}
                 selectedKeys={
                   queryParams.auditStatus !== undefined ? [String(queryParams.auditStatus)] : []
                 }
@@ -745,8 +710,8 @@ export default function VideoList() {
 
                       {/* 状态 */}
                       <TableCell>
-                        <Chip size="sm" variant="flat" color={getVideoStatusColor(item.status)}>
-                          {getVideoStatusLabel(item.status)}
+                        <Chip size="sm" variant="flat" color={getDictColor(DICT_VIDEO_STATUS, item.status)}>
+                          {getDictLabel(DICT_VIDEO_STATUS, item.status)}
                         </Chip>
                       </TableCell>
 

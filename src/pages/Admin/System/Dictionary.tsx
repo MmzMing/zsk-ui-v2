@@ -52,7 +52,9 @@ import {
 } from 'lucide-react'
 
 import { toast } from '@/utils/toast'
+import { getDictLabel } from '@/stores/dict'
 import { StatusState } from '@/components/ui/StatusState'
+import { DICT_COMMON_STATUS } from '@/constants/dict'
 import { DictSelect } from '@/components/ui/dict/DictSelect'
 import { PAGINATION } from '@/constants'
 
@@ -87,19 +89,11 @@ import type {
   SysDictDataPageData,
   DictCacheVO
 } from '@/types/dict.types'
-import { DICT_STATUS_OPTIONS } from '@/types/dict.types'
 
 // ===== 3. 常量定义区域 =====
 
 const DEFAULT_PAGE_SIZE = PAGINATION.DEFAULT_PAGE_SIZE as number
 const PAGE_SIZE_OPTIONS = [...PAGINATION.PAGE_SIZE_OPTIONS] as number[]
-
-// ===== 4. 通用工具函数区域 =====
-
-function getDictStatusLabel(status: DictStatus): string {
-  const option = DICT_STATUS_OPTIONS.find(o => o.value === status)
-  return option?.label ?? status
-}
 
 // ===== 5. 子组件区域 =====
 
@@ -520,7 +514,7 @@ function DictTypeEditModal({ isOpen, onOpenChange, dictTypeData, mode, onSuccess
             <DictSelect
               label="状态"
               placeholder="请选择状态"
-              dictType="sys_common_status"
+              dictType={DICT_COMMON_STATUS}
               selectedKeys={[formData.status as string]}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as DictStatus
@@ -1112,7 +1106,7 @@ export default function SystemDictionary() {
                           color="primary"
                           isSelected={String(item.status) === '0'}
                           onValueChange={(isSelected) => handleTypeStatusChange(item.id, isSelected ? '0' : '1')}
-                          aria-label={getDictStatusLabel(item.status)}
+                          aria-label={getDictLabel(DICT_COMMON_STATUS, item.status)}
                         />
                       </TableCell>
                       <TableCell>
@@ -1251,7 +1245,7 @@ export default function SystemDictionary() {
                         color="primary"
                         isSelected={String(dataItem.status) === '0'}
                         onValueChange={(isSelected) => handleDataStatusChange(dataItem.id, isSelected ? '0' : '1')}
-                        aria-label={getDictStatusLabel(dataItem.status)}
+                        aria-label={getDictLabel(DICT_COMMON_STATUS, dataItem.status)}
                       />
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">

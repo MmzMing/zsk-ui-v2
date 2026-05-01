@@ -63,10 +63,17 @@ import type { TreeProps, DataNode } from 'antd/es/tree'
 // 工具函数
 import { toast } from '@/utils/toast'
 import { cn } from '@/utils'
+import { getDictLabel, getDictColor } from '@/stores/dict'
 import { AVAILABLE_ICONS, getLucideIcon, renderIcon } from '@/utils/icons'
 import { DictSelect } from '@/components/ui/dict/DictSelect'
 import { StatusState } from '@/components/ui/StatusState'
 import ConfirmPopover from '@/components/ui/ConfirmPopover'
+import {
+  DICT_MENU_TYPE,
+  DICT_COMMON_STATUS,
+  DICT_MENU_VISIBLE,
+  DICT_YES_NO,
+} from '@/constants/dict'
 
 // API 接口
 import {
@@ -87,9 +94,6 @@ import type {
   MenuType,
   MenuStatus
 } from '@/types/menu.types'
-import {
-  MENU_TYPE_OPTIONS
-} from '@/types/menu.types'
 
 // ===== 2. TODO待处理导入区域 =====
 
@@ -99,32 +103,6 @@ import {
 const MAX_MENU_DEPTH = 2
 
 // ===== 4. 通用工具函数区域 =====
-
-/**
- * 获取菜单类型的显示标签
- *
- * @param type - 菜单类型枚举值
- * @returns 对应的中文标签，未匹配时返回原始值
- */
-function getMenuTypeLabel(type: MenuType): string {
-  const option = MENU_TYPE_OPTIONS.find(o => o.value === type)
-  return option?.label ?? type
-}
-
-/**
- * 获取菜单类型对应的 Chip 颜色
- *
- * @param type - 菜单类型枚举值
- * @returns HeroUI Chip 组件的 color 属性值
- */
-function getMenuTypeColor(type: MenuType): 'primary' | 'secondary' | 'warning' {
-  const colorMap: Record<MenuType, 'primary' | 'secondary' | 'warning'> = {
-    M: 'primary',
-    C: 'secondary',
-    F: 'warning'
-  }
-  return colorMap[type]
-}
 
 /**
  * 将扁平菜单数据转换为 antd Tree 树节点格式
@@ -500,7 +478,7 @@ const MenuEditModal = React.memo(function MenuEditModal({
               label="菜单类型"
               placeholder="请选择菜单类型"
               isRequired
-              dictType="sys_menu_type"
+              dictType={DICT_MENU_TYPE}
               selectedKeys={[formData.menuType]}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as MenuType
@@ -536,7 +514,7 @@ const MenuEditModal = React.memo(function MenuEditModal({
             <DictSelect
               label="菜单状态"
               placeholder="请选择菜单状态"
-              dictType="sys_common_status"
+              dictType={DICT_COMMON_STATUS}
               selectedKeys={[formData.status ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as MenuStatus
@@ -547,7 +525,7 @@ const MenuEditModal = React.memo(function MenuEditModal({
             <DictSelect
               label="是否显示"
               placeholder="请选择"
-              dictType="sys_menu_visible"
+              dictType={DICT_MENU_VISIBLE}
               selectedKeys={[formData.visible ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as '0' | '1'
@@ -558,7 +536,7 @@ const MenuEditModal = React.memo(function MenuEditModal({
             <DictSelect
               label="是否外链"
               placeholder="请选择"
-              dictType="sys_yes_no"
+              dictType={DICT_YES_NO}
               valueField="dictValue"
               labelField="dictLabel"
               selectedKeys={[String(formData.isFrame ?? 1)]}
@@ -647,10 +625,10 @@ const TreeTitle = React.memo(function TreeTitle({ menuType, status, title, icon 
       <Chip
         size="sm"
         variant="flat"
-        color={getMenuTypeColor(menuType)}
+        color={getDictColor(DICT_MENU_TYPE, menuType)}
         className="ml-auto flex-shrink-0 text-tiny"
       >
-        {getMenuTypeLabel(menuType)}
+        {getDictLabel(DICT_MENU_TYPE, menuType)}
       </Chip>
     </div>
   )
@@ -1193,8 +1171,8 @@ export default function PersonnelMenu() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Chip size="sm" variant="flat" color={getMenuTypeColor(item.menuType)}>
-                        {getMenuTypeLabel(item.menuType)}
+                      <Chip size="sm" variant="flat" color={getDictColor(DICT_MENU_TYPE, item.menuType)}>
+                        {getDictLabel(DICT_MENU_TYPE, item.menuType)}
                       </Chip>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">

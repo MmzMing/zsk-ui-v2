@@ -298,24 +298,3 @@ export const AUDIT_STATUS_NUMBER_MAP: Record<AuditStatus, AuditStatusValue> = {
   2: 'rejected',
   3: 'withdrawn'
 }
-
-/**
- * 风险等级选项
- */
-export interface RiskLevelOption {
-  /** 等级值 */
-  value: RiskLevel
-  /** 显示标签 */
-  label: string
-  /** Chip颜色 */
-  color: 'success' | 'warning' | 'danger'
-}
-
-/**
- * 风险等级选项列表
- */
-export const RISK_LEVEL_OPTIONS: RiskLevelOption[] = [
-  { value: 'low', label: '低风险', color: 'success' },
-  { value: 'medium', label: '中风险', color: 'warning' },
-  { value: 'high', label: '高风险', color: 'danger' }
-]

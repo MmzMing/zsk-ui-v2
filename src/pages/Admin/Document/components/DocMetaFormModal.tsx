@@ -37,6 +37,7 @@ import { toast } from '@/utils/toast'
 
 // 字典组件
 import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { DICT_NOTE_STATUS, DICT_AUDIT_STATUS } from '@/constants/dict'
 
 // 图片裁剪
 import ImageCropModal from '@/components/ui/image-crop/ImageCropModal'
@@ -569,7 +570,7 @@ export function DocMetaFormModal({
                 label="文档状态"
                 placeholder="请选择状态"
                 isDisabled={!docData}
-                dictType="doc_note_status"
+                dictType={DICT_NOTE_STATUS}
                 selectedKeys={formData.status ? [String(formData.status)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string
@@ -580,7 +581,7 @@ export function DocMetaFormModal({
                 label="审核状态"
                 placeholder="请选择审核状态"
                 isDisabled
-                dictType="doc_audit_status"
+                dictType={DICT_AUDIT_STATUS}
                 selectedKeys={formData.auditStatus !== undefined ? [String(formData.auditStatus)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string

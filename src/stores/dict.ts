@@ -117,3 +117,51 @@ export const useDictStore = create<DictStoreState>((set, get) => ({
     set({ cache: {} })
   },
 }))
+
+/**
+ * 根据字典值获取标签文本（纯函数，供表格渲染使用）
+ *
+ * @param dictType - 字典类型编码
+ * @param value - 字典值（对应 dictValue）
+ * @param fallback - 未找到时的默认值
+ * @returns 字典标签文本
+ *
+ * @example
+ * getDictLabel('sys_user_sex', '0') // '男'
+ */
+export function getDictLabel(dictType: string, value: string | number, fallback = '-'): string {
+  const data = useDictStore.getState().getDictData(dictType)
+  const strValue = String(value)
+  const item = data.find((d) => String(d.dictValue) === strValue)
+  return item?.dictLabel ?? fallback
+}
+
+/**
+ * 根据字典值获取颜色样式（纯函数，供表格 Chip 使用）
+ *
+ * @param dictType - 字典类型编码
+ * @param value - 字典值
+ * @param fallback - 未找到时的默认颜色
+ * @returns HeroUI Chip 颜色
+ */
+export function getDictColor(
+  dictType: string,
+  value: string | number,
+  fallback: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' = 'default'
+): 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' {
+  const data = useDictStore.getState().getDictData(dictType)
+  const strValue = String(value)
+  const item = data.find((d) => String(d.dictValue) === strValue)
+  if (!item?.listClass) return fallback
+  const validColors: ('default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger')[] = [
+    'default',
+    'primary',
+    'secondary',
+    'success',
+    'warning',
+    'danger',
+  ]
+  return validColors.includes(item.listClass as never)
+    ? (item.listClass as 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger')
+    : fallback
+}

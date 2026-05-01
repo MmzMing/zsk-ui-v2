@@ -77,6 +77,11 @@ import ImageCropModal from '@/components/ui/image-crop/ImageCropModal'
 // 常量
 import { PAGINATION } from '@/constants'
 
+// 字典组件
+import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { getDictLabel, getDictColor } from '@/stores/dict'
+import { DICT_COLLECTION_STATUS } from '@/constants/dict'
+
 // API
 import {
   getDocVideoCollectionPage,
@@ -100,10 +105,6 @@ import type {
   DocVideoCollectionCreateInput,
   DocVideoCollectionUpdateInput,
 } from '@/types/videoCollection.types'
-import {
-  DOC_VIDEO_COLLECTION_STATUS_OPTIONS,
-  DOC_VIDEO_COLLECTION_DELETED_OPTIONS,
-} from '@/types/videoCollection.types'
 import type { DocVideo, DocVideoQueryParams } from '@/types/video.types'
 
 // 状态管理
@@ -122,19 +123,14 @@ const PAGE_SIZE_OPTIONS = [...PAGINATION.PAGE_SIZE_OPTIONS] as number[]
  * 获取合集状态的显示标签
  */
 function getCollectionStatusLabel(status: DocVideoCollectionStatus): string {
-  const option = DOC_VIDEO_COLLECTION_STATUS_OPTIONS.find((o) => o.value === status)
-  return option?.label ?? String(status)
+  return getDictLabel(DICT_COLLECTION_STATUS, status)
 }
 
 /**
  * 获取合集状态对应的 Chip 颜色
  */
-function getCollectionStatusColor(status: DocVideoCollectionStatus): 'success' | 'danger' {
-  const colorMap: Record<number, 'success' | 'danger'> = {
-    1: 'success',
-    2: 'danger',
-  }
-  return colorMap[status] ?? 'default'
+function getCollectionStatusColor(status: DocVideoCollectionStatus): 'success' | 'danger' | 'default' {
+  return getDictColor(DICT_COLLECTION_STATUS, status, 'default') as 'success' | 'danger' | 'default'
 }
 
 // ===== 5. 注释代码函数区 =====
@@ -1382,11 +1378,12 @@ export default function VideoCollection() {
                   setQueryParams((prev) => ({ ...prev, collectionName: undefined }))
                 }}
               />
-              <Select
+              <DictSelect
                 size="sm"
                 placeholder="合集状态"
                 className="w-full sm:w-28"
                 aria-label="合集状态筛选"
+                dictType={DICT_COLLECTION_STATUS}
                 selectedKeys={queryParams.status ? [String(queryParams.status)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string | undefined
@@ -1395,13 +1392,7 @@ export default function VideoCollection() {
                     value ? (Number(value) as DocVideoCollectionStatus) : undefined
                   )
                 }}
-              >
-                {DOC_VIDEO_COLLECTION_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
+              />
               <Select
                 size="sm"
                 placeholder="删除状态"
@@ -1416,11 +1407,8 @@ export default function VideoCollection() {
                   )
                 }}
               >
-                {DOC_VIDEO_COLLECTION_DELETED_OPTIONS.map((option) => (
-                  <SelectItem key={String(option.value)} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
+                <SelectItem key="0" textValue="未删除">未删除</SelectItem>
+                <SelectItem key="1" textValue="已删除">已删除</SelectItem>
               </Select>
               <Button size="sm" variant="flat" onPress={handleResetQuery}>
                 重置

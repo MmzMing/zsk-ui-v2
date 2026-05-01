@@ -153,32 +153,6 @@ export interface DocVideoInteraction {
   hasCollected: boolean | null
 }
 
-/** 状态选项 */
-export interface DocVideoStatusOption {
-  value: DocVideoStatus
-  label: string
-}
-
-/** 审核状态选项 */
-export interface DocVideoAuditStatusOption {
-  value: DocVideoAuditStatus
-  label: string
-}
-
-/** 视频状态选项列表 */
-export const DOC_VIDEO_STATUS_OPTIONS: DocVideoStatusOption[] = [
-  { value: 1, label: '正常' },
-  { value: 2, label: '下架' },
-  { value: 3, label: '草稿' }
-]
-
-/** 审核状态选项列表 */
-export const DOC_VIDEO_AUDIT_STATUS_OPTIONS: DocVideoAuditStatusOption[] = [
-  { value: 0, label: '待审核' },
-  { value: 1, label: '已通过' },
-  { value: 2, label: '已驳回' }
-]
-
 // ===== 视频评论管理类型 =====
 
 /** 评论状态：1-正常，2-隐藏，3-删除 */

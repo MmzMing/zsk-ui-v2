@@ -87,26 +87,3 @@ export interface DocVideoCollectionSortVideosInput {
   videoIds: string[]
 }
 
-/** 合集状态选项 */
-export interface DocVideoCollectionStatusOption {
-  value: DocVideoCollectionStatus
-  label: string
-}
-
-/** 删除状态选项 */
-export interface DocVideoCollectionDeletedOption {
-  value: DocVideoCollectionDeleted
-  label: string
-}
-
-/** 合集状态选项列表 */
-export const DOC_VIDEO_COLLECTION_STATUS_OPTIONS: DocVideoCollectionStatusOption[] = [
-  { value: 1, label: '公开' },
-  { value: 2, label: '私密' },
-]
-
-/** 删除状态选项列表 */
-export const DOC_VIDEO_COLLECTION_DELETED_OPTIONS: DocVideoCollectionDeletedOption[] = [
-  { value: 0, label: '未删除' },
-  { value: 1, label: '已删除' },
-]

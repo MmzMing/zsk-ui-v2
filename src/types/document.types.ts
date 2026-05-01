@@ -186,32 +186,6 @@ export interface DocNoteFull extends DocNote {
   content: string
 }
 
-/** 状态选项 */
-export interface DocNoteStatusOption {
-  value: DocNoteStatus
-  label: string
-}
-
-/** 审核状态选项 */
-export interface DocAuditStatusOption {
-  value: DocAuditStatus
-  label: string
-}
-
-/** 文档状态选项列表 */
-export const DOC_NOTE_STATUS_OPTIONS: DocNoteStatusOption[] = [
-  { value: 1, label: '发布' },
-  { value: 2, label: '下架' },
-  { value: 3, label: '草稿' }
-]
-
-/** 审核状态选项列表 */
-export const DOC_AUDIT_STATUS_OPTIONS: DocAuditStatusOption[] = [
-  { value: 0, label: '待审核' },
-  { value: 1, label: '已通过' },
-  { value: 2, label: '已拒绝' }
-]
-
 // ===== 笔记评论管理类型 =====
 
 /** 评论状态：1-正常，2-隐藏，3-删除 */

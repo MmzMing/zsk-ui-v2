@@ -68,6 +68,8 @@ import {
 import { toast } from '@/utils/toast'
 import { formatDateTime } from '@/utils/format'
 import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { getDictLabel, getDictColor } from '@/stores/dict'
+import { DICT_USER_SEX, DICT_COMMON_STATUS } from '@/constants/dict'
 
 // 通用状态组件
 import { StatusState } from '@/components/ui/StatusState'
@@ -94,7 +96,6 @@ import type {
   SysUserCreateInput,
   SysUserUpdateInput,
   UserStatus,
-  UserSex,
   UserSexValue,
   SysUserPageData
 } from '@/types/sysuser.types'
@@ -109,61 +110,6 @@ const DEFAULT_PAGE_SIZE = PAGINATION.DEFAULT_PAGE_SIZE as number
 const PAGE_SIZE_OPTIONS = [...PAGINATION.PAGE_SIZE_OPTIONS] as number[]
 
 // ===== 4. 通用工具函数区域 =====
-
-/**
- * 获取用户状态的显示标签
- *
- * @param status - 用户状态枚举值
- * @returns 对应的中文标签
- */
-function getUserStatusLabel(status: UserStatus): string {
-  const labelMap: Record<UserStatus, string> = {
-    '0': '正常',
-    '1': '停用'
-  }
-  return labelMap[status] ?? status
-}
-
-/**
- * 获取用户状态对应的 Chip 颜色
- *
- * @param status - 用户状态枚举值
- * @returns 'success' 表示正常，'danger' 表示停用
- */
-function getUserStatusColor(status: UserStatus): 'success' | 'danger' {
-  return status === '0' ? 'success' : 'danger'
-}
-
-/**
- * 将性别数字值转换为显示标签
- * 后端返回：0-男，1-女，2-未知
- *
- * @param sex - 性别数字值
- * @returns 中文显示标签
- */
-function getUserSexLabel(sex?: UserSexValue): UserSex {
-  const labelMap: Record<UserSexValue, UserSex> = {
-    '0': '男',
-    '1': '女',
-    '2': '未知'
-  }
-  return labelMap[sex || '2'] || '未知'
-}
-
-/**
- * 获取用户性别对应的 Chip 颜色
- *
- * @param sex - 性别数字值或显示值
- * @returns Chip 颜色
- */
-function getUserSexColor(sex?: UserSexValue): 'primary' | 'secondary' | 'default' {
-  const colorMap: Record<UserSexValue, 'primary' | 'secondary' | 'default'> = {
-    '0': 'primary',
-    '1': 'secondary',
-    '2': 'default'
-  }
-  return colorMap[sex || '2'] ?? 'default'
-}
 
 // ===== 5. 子组件区域 =====
 
@@ -354,7 +300,7 @@ function UserEditModal({ isOpen, onOpenChange, userData, mode, onSuccess }: User
             <DictSelect
               label="性别"
               placeholder="请选择性别"
-              dictType="sys_user_sex"
+              dictType={DICT_USER_SEX}
               selectedKeys={[formData.sex ?? '2']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as UserSexValue
@@ -371,7 +317,7 @@ function UserEditModal({ isOpen, onOpenChange, userData, mode, onSuccess }: User
             <DictSelect
               label="用户状态"
               placeholder="请选择用户状态"
-              dictType="sys_common_status"
+              dictType={DICT_COMMON_STATUS}
               selectedKeys={[formData.status ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as UserStatus
@@ -454,10 +400,10 @@ function UserDetailModal({ isOpen, onOpenChange, userData, onEdit }: UserDetailM
             />
             <div className="space-y-1">
               <h3 className="text-lg font-semibold">{userData.nickName}</h3>
-              <p className="text-sm text-default-400">@{userData.userName}</p>
-              <Chip size="sm" variant="dot" color={getUserStatusColor(userData.status)}>
-                {getUserStatusLabel(userData.status)}
-              </Chip>
+                <p className="text-sm text-default-400">@{userData.userName}</p>
+                <Chip size="sm" variant="dot" color={userData.status ? getDictColor(DICT_COMMON_STATUS, userData.status) : 'default'}>
+                  {getDictLabel(DICT_COMMON_STATUS, userData.status ?? '')}
+                </Chip>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -479,14 +425,14 @@ function UserDetailModal({ isOpen, onOpenChange, userData, onEdit }: UserDetailM
             </div>
             <div className="space-y-1">
               <label className="text-xs text-default-400">性别</label>
-              <Chip size="sm" variant="flat" color={getUserSexColor(userData.sex)}>
-                {getUserSexLabel(userData.sex)}
+              <Chip size="sm" variant="flat" color={userData.sex ? getDictColor(DICT_USER_SEX, userData.sex) : 'default'}>
+                {getDictLabel(DICT_USER_SEX, userData.sex ?? '')}
               </Chip>
             </div>
             <div className="space-y-1">
               <label className="text-xs text-default-400">状态</label>
-              <Chip size="sm" variant="dot" color={getUserStatusColor(userData.status)}>
-                {getUserStatusLabel(userData.status)}
+              <Chip size="sm" variant="dot" color={userData.status ? getDictColor(DICT_COMMON_STATUS, userData.status) : 'default'}>
+                {getDictLabel(DICT_COMMON_STATUS, userData.status ?? '')}
               </Chip>
             </div>
             <div className="space-y-1">
@@ -782,16 +728,31 @@ export default function PersonnelUser() {
    * @param status - 目标状态
    */
   const handleToggleUserStatus = useCallback(async (id: string, status: UserStatus) => {
+    // 先获取旧状态以便回滚
+    const targetUser = userList.find(u => u.id === id)
+    if (!targetUser) return
+
+    const oldStatus = targetUser.status
+
+    // 乐观更新：立即切换 UI 状态
+    setUserList(prev =>
+      prev.map(u => u.id === id ? { ...u, status } : u)
+    )
+
     try {
       await toggleUserStatus(id, { status })
-      toast.success('状态切换成功')
-      fetchUserList()
+      const newLabel = getDictLabel(DICT_COMMON_STATUS, status)
+      toast.success(`状态已切换为「${newLabel}」`)
     } catch (error) {
+      // 失败回滚
+      setUserList(prev =>
+        prev.map(u => u.id === id ? { ...u, status: oldStatus } : u)
+      )
       const message = error instanceof Error ? error.message : '状态切换失败'
       toast.error(message)
       console.error('切换用户状态失败：', error)
     }
-  }, [fetchUserList])
+  }, [userList])
 
   // ===== 9. 页面初始化与事件绑定 =====
 
@@ -1025,8 +986,8 @@ export default function PersonnelUser() {
                         <span className="text-sm">{item.phonenumber || '-'}</span>
                       </TableCell>
                       <TableCell>
-                        <Chip size="sm" variant="flat" color={getUserSexColor(item.sex)}>
-                          {getUserSexLabel(item.sex)}
+                        <Chip size="sm" variant="flat" color={item.sex ? getDictColor(DICT_USER_SEX, item.sex) : 'default'}>
+                          {getDictLabel(DICT_USER_SEX, item.sex ?? '')}
                         </Chip>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
@@ -1041,7 +1002,7 @@ export default function PersonnelUser() {
                         color="primary"
                         isSelected={String(item.status) === '0'}
                         onValueChange={(isSelected) => handleToggleUserStatus(item.id, isSelected ? '0' : '1')}
-                        aria-label={getUserStatusLabel(item.status)}
+                        aria-label={getDictLabel(DICT_COMMON_STATUS, item.status ?? '')}
                       />
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">

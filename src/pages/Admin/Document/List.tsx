@@ -77,6 +77,8 @@ import { PAGINATION } from '@/constants'
 
 // 字典组件
 import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { getDictLabel, getDictColor } from '@/stores/dict'
+import { DICT_NOTE_STATUS, DICT_AUDIT_STATUS } from '@/constants/dict'
 
 // API
 import {
@@ -95,56 +97,26 @@ import type {
   DocNoteStatus,
   DocAuditStatus,
 } from '@/types/document.types'
-import {
-  DOC_NOTE_STATUS_OPTIONS,
-  DOC_AUDIT_STATUS_OPTIONS,
-} from '@/types/document.types'
 
-// ===== 常量 =====
+// ===== 3. 常量 =====
 
 const DEFAULT_PAGE_SIZE = PAGINATION.DEFAULT_PAGE_SIZE as number
 const PAGE_SIZE_OPTIONS = [...PAGINATION.PAGE_SIZE_OPTIONS] as number[]
 
-// ===== 工具函数 =====
-
-/**
- * 获取文档状态的显示标签
- */
-function getDocStatusLabel(status: DocNoteStatus): string {
-  const option = DOC_NOTE_STATUS_OPTIONS.find((o) => o.value === status)
-  return option?.label ?? String(status)
-}
-
-/**
- * 获取文档状态对应的 Chip 颜色
- */
-function getDocStatusColor(status: DocNoteStatus): 'success' | 'warning' | 'danger' {
-  const colorMap: Record<number, 'success' | 'warning' | 'danger'> = {
-    1: 'success',
-    2: 'danger',
-    3: 'warning',
-  }
-  return colorMap[status] ?? 'default'
-}
+// ===== 4. 数据处理函数区域 =====
 
 /**
  * 获取审核状态的显示标签
  */
 function getAuditStatusLabel(auditStatus: DocAuditStatus): string {
-  const option = DOC_AUDIT_STATUS_OPTIONS.find((o) => o.value === auditStatus)
-  return option?.label ?? String(auditStatus)
+  return getDictLabel(DICT_AUDIT_STATUS, auditStatus)
 }
 
 /**
  * 获取审核状态对应的 Chip 颜色
  */
 function getAuditStatusColor(auditStatus: DocAuditStatus): 'warning' | 'success' | 'danger' {
-  const colorMap: Record<number, 'warning' | 'success' | 'danger'> = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger',
-  }
-  return colorMap[auditStatus] ?? 'default'
+  return getDictColor(DICT_AUDIT_STATUS, auditStatus, 'warning') as 'warning' | 'success' | 'danger'
 }
 
 // ===== 子组件 =====
@@ -575,7 +547,7 @@ export default function DocumentList() {
                 placeholder="文档状态"
                 className="w-full sm:w-28"
                 aria-label="文档状态筛选"
-                dictType="doc_note_status"
+                dictType={DICT_NOTE_STATUS}
                 selectedKeys={queryParams.status ? [String(queryParams.status)] : []}
                 onSelectionChange={(keys) => {
                   const value = Array.from(keys)[0] as string | undefined
@@ -590,7 +562,7 @@ export default function DocumentList() {
                 placeholder="审核状态"
                 className="w-full sm:w-28"
                 aria-label="审核状态筛选"
-                dictType="doc_audit_status"
+                dictType={DICT_AUDIT_STATUS}
                 selectedKeys={
                   queryParams.auditStatus !== undefined ? [String(queryParams.auditStatus)] : []
                 }
@@ -756,8 +728,8 @@ export default function DocumentList() {
                       </TableCell>
 
                       <TableCell>
-                        <Chip size="sm" variant="flat" color={getDocStatusColor(item.status)}>
-                          {getDocStatusLabel(item.status)}
+                        <Chip size="sm" variant="flat" color={getDictColor(DICT_NOTE_STATUS, item.status)}>
+                          {getDictLabel(DICT_NOTE_STATUS, item.status)}
                         </Chip>
                       </TableCell>
 

@@ -100,24 +100,6 @@ export interface RoleCopyInput {
 }
 
 /**
- * 角色状态选项
- */
-export interface RoleStatusOption {
-  /** 状态值 */
-  value: RoleStatus
-  /** 显示标签 */
-  label: string
-}
-
-/**
- * 角色状态选项列表
- */
-export const ROLE_STATUS_OPTIONS: RoleStatusOption[] = [
-  { value: '0', label: '正常' },
-  { value: '1', label: '停用' }
-]
-
-/**
  * 本地分页参数
  */
 export interface LocalPaginationParams {

@@ -33,6 +33,7 @@ import { toast } from '@/utils/toast'
 import ImageCropModal from '@/components/ui/image-crop/ImageCropModal'
 import { VideoPlayer } from '@/components/ui/video/VideoPlayer'
 import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { DICT_VIDEO_STATUS, DICT_AUDIT_STATUS } from '@/constants/dict'
 
 import { createDocVideo, updateDocVideo, saveDocVideoDraft } from '@/api/admin/video'
 import { uploadDocFile } from '@/api/admin/file'
@@ -823,7 +824,7 @@ export function VideoMetaFormModal({
                     label="发布状态"
                     placeholder="请选择状态"
                     isDisabled={!videoData}
-                    dictType="doc_video_status"
+                    dictType={DICT_VIDEO_STATUS}
                     selectedKeys={formData.status ? [String(formData.status)] : []}
                     onSelectionChange={(keys) => {
                       const value = Array.from(keys)[0] as string
@@ -834,7 +835,7 @@ export function VideoMetaFormModal({
                     label="审核状态"
                     placeholder="请选择审核状态"
                     isDisabled
-                    dictType="doc_audit_status"
+                    dictType={DICT_AUDIT_STATUS}
                     selectedKeys={formData.auditStatus !== undefined ? [String(formData.auditStatus)] : []}
                     onSelectionChange={(keys) => {
                       const value = Array.from(keys)[0] as string

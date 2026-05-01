@@ -70,7 +70,9 @@ import type { TreeProps, DataNode } from 'antd/es/tree'
 import { toast } from '@/utils/toast'
 import { cn } from '@/utils'
 import { formatDateTime } from '@/utils/format'
+import { getDictLabel, getDictColor } from '@/stores/dict'
 import { DictSelect } from '@/components/ui/dict/DictSelect'
+import { DICT_MENU_TYPE, DICT_COMMON_STATUS } from '@/constants/dict'
 import { StatusState } from '@/components/ui/StatusState'
 
 // API 接口
@@ -94,7 +96,6 @@ import type {
   SysRoleUpdateInput,
   RoleStatus
 } from '@/types/role.types'
-import { ROLE_STATUS_OPTIONS } from '@/types/role.types'
 import type { SysMenu } from '@/types/menu.types'
 
 // ===== 2. TODO待处理导入区域 =====
@@ -104,27 +105,6 @@ import type { SysMenu } from '@/types/menu.types'
 
 
 // ===== 4. 通用工具函数区域 =====
-
-/**
- * 获取角色状态的显示标签
- *
- * @param status - 角色状态枚举值
- * @returns 对应的中文标签
- */
-function getRoleStatusLabel(status: RoleStatus): string {
-  const option = ROLE_STATUS_OPTIONS.find(o => o.value === status)
-  return option?.label ?? status
-}
-
-/**
- * 获取角色状态对应的 Chip 颜色
- *
- * @param status - 角色状态枚举值
- * @returns 'success' 表示正常，'danger' 表示停用
- */
-function getRoleStatusColor(status: RoleStatus): 'success' | 'danger' {
-  return status === '0' ? 'success' : 'danger'
-}
 
 /**
  * 将扁平菜单数据转换为 antd Tree 树节点格式
@@ -190,29 +170,7 @@ function collectAllKeys(treeData: MenuTreeNodeData[]): string[] {
   return keys
 }
 
-/**
- * 菜单类型对应的 Chip 颜色
- */
-function getMenuTypeColor(type: string): 'primary' | 'secondary' | 'warning' {
-  const colorMap: Record<string, 'primary' | 'secondary' | 'warning'> = {
-    M: 'primary',
-    C: 'secondary',
-    F: 'warning'
-  }
-  return colorMap[type] ?? 'default'
-}
-
-/**
- * 菜单类型对应的显示标签
- */
-function getMenuTypeLabel(type: string): string {
-  const labelMap: Record<string, string> = {
-    M: '目录',
-    C: '菜单',
-    F: '按钮'
-  }
-  return labelMap[type] ?? type
-}
+// ===== 6. 注释代码函数区 =====
 
 /** 菜单树节点数据结构（兼容 antd Tree） */
 interface MenuTreeNodeData {
@@ -389,7 +347,7 @@ function RoleEditModal({ isOpen, onOpenChange, roleData, mode, onSuccess }: Role
             <DictSelect
               label="角色状态"
               placeholder="请选择角色状态"
-              dictType="sys_common_status"
+              dictType={DICT_COMMON_STATUS}
               selectedKeys={[formData.status ?? '0']}
               onSelectionChange={keys => {
                 const value = Array.from(keys)[0] as RoleStatus
@@ -899,10 +857,10 @@ export default function PersonnelRole() {
         <Chip
           size="sm"
           variant="flat"
-          color={getMenuTypeColor(data.menuType)}
+          color={getDictColor(DICT_MENU_TYPE, data.menuType)}
           className="ml-auto flex-shrink-0 text-tiny"
         >
-          {getMenuTypeLabel(data.menuType)}
+          {getDictLabel(DICT_MENU_TYPE, data.menuType)}
         </Chip>
       </div>
     )
@@ -975,7 +933,7 @@ export default function PersonnelRole() {
                 placeholder="状态"
                 className="w-full sm:w-24"
                 aria-label="角色状态筛选"
-                dictType="sys_common_status"
+                dictType={DICT_COMMON_STATUS}
                 selectedKeys={queryParams.status ? [queryParams.status] : []}
                 onSelectionChange={keys => {
                   const value = Array.from(keys)[0] as RoleStatus | undefined
@@ -1034,8 +992,8 @@ export default function PersonnelRole() {
                         <span className="text-sm">{item.roleSort}</span>
                       </TableCell>
                       <TableCell>
-                        <Chip size="sm" variant="dot" color={getRoleStatusColor(item.status)}>
-                          {getRoleStatusLabel(item.status)}
+                        <Chip size="sm" variant="dot" color={getDictColor(DICT_COMMON_STATUS, item.status)}>
+                          {getDictLabel(DICT_COMMON_STATUS, item.status)}
                         </Chip>
                       </TableCell>
                     </TableRow>
@@ -1058,8 +1016,8 @@ export default function PersonnelRole() {
                 <div className="flex items-center gap-2">
                   <Shield size={18} className="text-primary" />
                   <span className="font-semibold text-sm">{selectedRole.roleName}</span>
-                  <Chip size="sm" variant="dot" color={getRoleStatusColor(selectedRole.status)}>
-                    {getRoleStatusLabel(selectedRole.status)}
+                  <Chip size="sm" variant="dot" color={getDictColor(DICT_COMMON_STATUS, selectedRole.status)}>
+                    {getDictLabel(DICT_COMMON_STATUS, selectedRole.status)}
                   </Chip>
                 </div>
                 <div className="flex items-center gap-1">
@@ -1126,7 +1084,7 @@ export default function PersonnelRole() {
                           label="状态"
                           size="sm"
                           isDisabled
-                          value={getRoleStatusLabel(selectedRole.status)}
+                          value={getDictLabel(DICT_COMMON_STATUS, selectedRole.status)}
                           placeholder="请选择状态"
                         />
                         <Textarea

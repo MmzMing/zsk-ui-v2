@@ -41,13 +41,3 @@ export interface SysNoticeUpdateInput {
   content?: string
   status?: NoticeStatus
 }
-
-export const NOTICE_TYPE_OPTIONS = [
-  { value: '1' as NoticeType, label: '通知' },
-  { value: '2' as NoticeType, label: '公告' },
-]
-
-export const NOTICE_STATUS_OPTIONS = [
-  { value: '0' as NoticeStatus, label: '正常' },
-  { value: '1' as NoticeStatus, label: '关闭' },
-]

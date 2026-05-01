@@ -59,6 +59,8 @@ import {
 // 工具函数
 import { toast } from '@/utils/toast'
 import { formatDateTime } from '@/utils/format'
+import { getDictLabel, getDictColor } from '@/stores/dict'
+import { DICT_AUDIT_TARGET_TYPE, DICT_RISK_LEVEL } from '@/constants/dict'
 
 // 通用状态组件
 import { StatusState } from '@/components/ui/StatusState'
@@ -93,7 +95,6 @@ import type {
 import {
   AUDIT_TARGET_TYPE_OPTIONS,
   AUDIT_STATUS_OPTIONS,
-  RISK_LEVEL_OPTIONS,
   AUDIT_STATUS_NUMBER_MAP
 } from '@/types/audit.types'
 
@@ -108,29 +109,16 @@ const PAGE_SIZE_OPTIONS = [...PAGINATION.PAGE_SIZE_OPTIONS] as number[]
 
 /**
  * 获取审核目标类型的显示标签
- *
- * @param targetType - 目标类型枚举值
- * @returns 对应的中文标签
  */
 function getTargetTypeLabel(targetType: AuditTargetType): string {
-  const option = AUDIT_TARGET_TYPE_OPTIONS.find(o => o.value === targetType)
-  return option?.label ?? String(targetType)
+  return getDictLabel(DICT_AUDIT_TARGET_TYPE, targetType)
 }
 
 /**
  * 获取审核目标类型对应的 Chip 颜色
- *
- * @param targetType - 目标类型枚举值
- * @returns Chip 颜色
  */
 function getTargetTypeColor(targetType: AuditTargetType): 'primary' | 'secondary' | 'success' | 'warning' {
-  const colorMap: Record<AuditTargetType, 'primary' | 'secondary' | 'success' | 'warning'> = {
-    1: 'primary',
-    2: 'secondary',
-    3: 'success',
-    4: 'warning'
-  }
-  return colorMap[targetType] ?? 'primary'
+  return getDictColor(DICT_AUDIT_TARGET_TYPE, targetType, 'primary') as 'primary' | 'secondary' | 'success' | 'warning'
 }
 
 /**
@@ -197,24 +185,16 @@ function getAuditLogResultColor(result: AuditLogResult): 'success' | 'danger' | 
 
 /**
  * 获取风险等级的显示标签
- *
- * @param riskLevel - 风险等级
- * @returns 对应的中文标签
  */
 function getRiskLevelLabel(riskLevel: RiskLevel): string {
-  const option = RISK_LEVEL_OPTIONS.find(o => o.value === riskLevel)
-  return option?.label ?? riskLevel
+  return getDictLabel(DICT_RISK_LEVEL, riskLevel)
 }
 
 /**
  * 获取风险等级对应的 Chip 颜色
- *
- * @param riskLevel - 风险等级
- * @returns Chip 颜色
  */
 function getRiskLevelColor(riskLevel: RiskLevel): 'success' | 'warning' | 'danger' | 'default' {
-  const option = RISK_LEVEL_OPTIONS.find(o => o.value === riskLevel)
-  return option?.color ?? 'default'
+  return getDictColor(DICT_RISK_LEVEL, riskLevel, 'default') as 'success' | 'warning' | 'danger' | 'default'
 }
 
 // ===== 5. 子组件区域 =====
