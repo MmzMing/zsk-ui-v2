@@ -16,9 +16,9 @@ import type {
   SysDictTypePageData,
   SysDictDataPageData,
   DictStatus,
-  SysDictDataCache,
   DictCacheTags,
-  DictCacheAllData
+  DictCacheAllData,
+  DictCacheVO
 } from '@/types/dict.types'
 
 // ===== 字典类型管理接口 =====
@@ -154,6 +154,16 @@ export async function batchToggleDictDataStatus(ids: string[], status: DictStatu
 // ===== 字典缓存管理接口 =====
 
 /**
+ * 获取指定字典类型的缓存版本号
+ *
+ * @param dictType - 字典类型编码
+ * @returns 缓存版本号（时间戳）
+ */
+export async function getDictCacheVersion(dictType: string): Promise<number> {
+  return get(`/system/dict/type/version/${dictType}`)
+}
+
+/**
  * 预热字典缓存
  * 将数据库中的字典数据加载到缓存中
  */
@@ -171,17 +181,17 @@ export async function getDictCacheTags(): Promise<DictCacheTags> {
 }
 
 /**
- * 根据标签获取字典缓存数据
+ * 根据标签获取字典缓存数据（带版本号）
  *
  * @param tag - 缓存标签
- * @returns 该标签下的字典数据缓存列表
+ * @returns 带版本号的字典缓存数据
  */
-export async function getDictCacheByTag(tag: string): Promise<SysDictDataCache[]> {
+export async function getDictCacheByTag(tag: string): Promise<DictCacheVO> {
   return get(`/system/dict/type/cache/tag/${tag}`)
 }
 
 /**
- * 获取全部字典缓存数据
+ * 获取全部字典缓存数据（带版本号）
  *
  * @returns 全部字典缓存数据
  */

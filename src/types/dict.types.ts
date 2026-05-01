@@ -116,11 +116,27 @@ export interface SysDictDataCache {
   listClass: string
   isDefault: number
   status: DictStatus
+  cssClass?: string
+  remark?: string
 }
 
+/**
+ * 带版本号的字典缓存数据（对应后端 DictCacheVO）
+ */
+export interface DictCacheVO {
+  version: number
+  data: SysDictDataCache[]
+}
+
+/**
+ * 字典缓存标签列表
+ */
 export type DictCacheTags = string[]
 
-export type DictCacheAllData = Record<string, SysDictDataCache[]>
+/**
+ * 全部字典缓存数据（带版本号）
+ */
+export type DictCacheAllData = Record<string, DictCacheVO>
 
 export interface DictStatusOption {
   value: DictStatus

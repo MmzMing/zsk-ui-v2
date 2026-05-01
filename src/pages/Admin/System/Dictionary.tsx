@@ -84,7 +84,7 @@ import type {
   DictStatus,
   SysDictTypePageData,
   SysDictDataPageData,
-  SysDictDataCache
+  DictCacheVO
 } from '@/types/dict.types'
 import { DICT_STATUS_OPTIONS } from '@/types/dict.types'
 
@@ -110,7 +110,7 @@ interface DictCachePanelProps {
 function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
   const [cacheTags, setCacheTags] = useState<string[]>([])
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
-  const [cacheData, setCacheData] = useState<SysDictDataCache[]>([])
+  const [cacheData, setCacheData] = useState<DictCacheVO | null>(null)
   const [isLoadingTags, setIsLoadingTags] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [isWarmingUp, setIsWarmingUp] = useState(false)
@@ -133,11 +133,11 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
     setIsLoadingData(true)
     try {
       const data = await getDictCacheByTag(tag)
-      setCacheData(data ?? [])
+      setCacheData(data ?? null)
     } catch (error) {
       console.error('获取缓存数据失败：', error)
       toast.error('获取缓存数据失败')
-      setCacheData([])
+      setCacheData(null)
     } finally {
       setIsLoadingData(false)
     }
@@ -147,7 +147,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
     if (isOpen) {
       fetchCacheTags()
       setSelectedTag(null)
-      setCacheData([])
+      setCacheData(null)
     }
   }, [isOpen, fetchCacheTags])
 
@@ -155,7 +155,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
     if (selectedTag) {
       fetchCacheData(selectedTag)
     } else {
-      setCacheData([])
+      setCacheData(null)
     }
   }, [selectedTag, fetchCacheData])
 
@@ -195,7 +195,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
       fetchCacheTags()
       if (selectedTag === tag) {
         setSelectedTag(null)
-        setCacheData([])
+        setCacheData(null)
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : '删除缓存失败'
@@ -210,7 +210,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
       toast.success('所有缓存已清空')
       setCacheTags([])
       setSelectedTag(null)
-      setCacheData([])
+      setCacheData(null)
     } catch (error) {
       const message = error instanceof Error ? error.message : '清空缓存失败'
       toast.error(message)
@@ -328,8 +328,13 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
             </div>
 
             <div className="md:col-span-2">
-              <div className="text-xs text-default-400 mb-2">
-                缓存数据 {selectedTag ? `- ${selectedTag}` : ''}
+              <div className="text-xs text-default-400 mb-2 flex items-center gap-2">
+                <span>缓存数据 {selectedTag ? `- ${selectedTag}` : ''}</span>
+                {cacheData && (
+                  <span className="text-xs text-default-500 font-mono">
+                    版本: {cacheData.version}
+                  </span>
+                )}
               </div>
               {!selectedTag ? (
                 <div className="border border-divider rounded-lg p-6 text-center text-xs text-default-400">
@@ -339,7 +344,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
                 <div className="border border-divider rounded-lg p-6 text-center">
                   <StatusState type="loading" scene="admin" />
                 </div>
-              ) : cacheData.length === 0 ? (
+              ) : !cacheData || cacheData.data.length === 0 ? (
                 <div className="border border-divider rounded-lg p-6 text-center text-xs text-default-400">
                   暂无缓存数据
                 </div>
@@ -360,7 +365,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
                       <TableColumn key="isDefault">默认</TableColumn>
                     </TableHeader>
                     <TableBody
-                      items={cacheData.map(d => ({ ...d, key: String(d.id) }))}
+                      items={cacheData.data.map(d => ({ ...d, key: String(d.id) }))}
                     >
                       {(item) => (
                         <TableRow key={item.key}>
