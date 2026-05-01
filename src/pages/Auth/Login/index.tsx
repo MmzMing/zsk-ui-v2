@@ -256,20 +256,20 @@ export default function LoginPage() {
         ) : (
           /* 发送成功提示 */
           <div className="space-y-4 text-center">
-            <div className="bg-success/10 border border-success/20 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <svg className="w-6 h-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <div className="border border-default-200 rounded-lg p-6">
+              <div className="flex items-center justify-center mb-4">
+                <svg className="w-10 h-10 text-default-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span className="font-semibold text-success">{t('login.emailSent')}</span>
               </div>
+              <h3 className="text-lg font-semibold text-default-900 mb-1">{t('login.emailSent')}</h3>
               <p className="text-sm text-default-500">{t('login.checkEmail')}</p>
             </div>
             
             <Button
-              variant="light"
-              color="primary"
-              className="w-full"
+              variant="bordered"
+              color="default"
+              className="w-full border-default-200"
               onPress={() => {
                 setEmailSent(false)
                 setTurnstileToken('')

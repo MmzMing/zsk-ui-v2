@@ -136,104 +136,6 @@ export interface WorksQuery extends PaginationParams {
   status?: 'draft' | 'published' | 'archived'
 }
 
-/**
- * 获取用户作品列表
- * @param params - 查询参数
- * @returns 用户作品列表
- */
-export async function getUserWorks(params?: WorksQuery): Promise<PaginationData<UserWork>> {
-  return get('/api/profile/works', params as unknown as Record<string, unknown>)
-}
-
-/**
- * 删除用户作品
- * @param id - 作品ID
- */
-export async function deleteUserWork(id: string): Promise<void> {
-  return del(`/api/profile/works/${id}`)
-}
-
-/**
- * 取消收藏
- * @param id - 收藏ID
- */
-export async function deleteFavorite(id: string): Promise<void> {
-  return del(`/api/profile/favorites/${id}`)
-}
-
-
-/**
- * 关注用户
- * @param userId - 用户ID
- */
-export async function followUser(userId: string): Promise<void> {
-  return post(`/api/profile/follow/${userId}`)
-}
-
-/**
- * 取消关注
- * @param userId - 用户ID
- */
-export async function unfollowUser(userId: string): Promise<void> {
-  return del(`/api/profile/follow/${userId}`)
-}
-
-/**
- * 获取消息列表
- * @param params - 查询参数
- * @returns 消息列表
- */
-export async function getMessages(params?: PaginationParams): Promise<PaginationData<Message>> {
-  return get('/api/profile/messages', params as unknown as Record<string, unknown>)
-}
-
-/**
- * 获取未读消息数量
- * @returns 未读消息数量
- */
-export async function getUnreadMessageCount(): Promise<{ count: number }> {
-  return get('/api/profile/messages/unread/count')
-}
-
-/**
- * 标记消息为已读
- * @param id - 消息ID
- */
-export async function markMessageAsRead(id: string): Promise<void> {
-  return put(`/api/profile/messages/${id}/read`)
-}
-
-/**
- * 标记所有消息为已读
- */
-export async function markAllMessagesAsRead(): Promise<void> {
-  return put('/api/profile/messages/read/all')
-}
-
-/**
- * 删除消息
- * @param id - 消息ID
- */
-export async function deleteMessage(id: string): Promise<void> {
-  return del(`/api/profile/messages/${id}`)
-}
-
-/**
- * 获取通知设置
- * @returns 通知设置
- */
-export async function getNotificationSettings(): Promise<NotificationSettings> {
-  return get('/api/profile/settings/notifications')
-}
-
-/**
- * 更新通知设置
- * @param settings - 通知设置
- * @returns 更新后的通知设置
- */
-export async function updateNotificationSettings(settings: Partial<NotificationSettings>): Promise<NotificationSettings> {
-  return put('/api/profile/settings/notifications', settings as unknown as Record<string, unknown>)
-}
 //--已对齐后端接口
 
 /**
@@ -241,7 +143,7 @@ export async function updateNotificationSettings(settings: Partial<NotificationS
  * @returns 用户统计数据
  */
 export async function getUserStats(): Promise<UserStatsResponse> {
-  return get('/document/content/user/stats')
+  return get('/document/docAllContent/user/stats')
 }
 
 /**

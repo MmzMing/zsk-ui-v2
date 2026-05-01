@@ -142,7 +142,7 @@ export const routes: RouteObject[] = [
                 element: withSuspense(LoginPage),
               },
               {
-                path: '/auth/callback',
+                path: '/auth/:platform/callback',
                 element: withSuspense(CallbackPage),
               },
             ],

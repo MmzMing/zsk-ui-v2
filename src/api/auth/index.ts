@@ -84,6 +84,21 @@ export function thirdPartyCallback(params: { loginType: string; code: string; st
   return post<LoginResult>('/auth/third-party/callback', undefined, { params })
 }
 
+/** GitHub 登录回调 */
+export function githubCallback(code: string, state: string) {
+  return post<LoginResult>('/auth/github/callback', undefined, { params: { code, state } })
+}
+
+/** 微信登录回调 */
+export function wechatCallback(code: string, state: string) {
+  return post<LoginResult>('/auth/wechat/callback', undefined, { params: { code, state } })
+}
+
+/** QQ 登录回调 */
+export function qqCallback(code: string, state: string) {
+  return post<LoginResult>('/auth/qq/callback', undefined, { params: { code, state } })
+}
+
 /** 发送魔法链接 */
 export function sendMagicLink(data: MagicLinkRequest) {
   return post<string>('/auth/magic-link/send', data as unknown as Record<string, unknown>)
