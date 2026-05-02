@@ -106,6 +106,8 @@ const defaultSettings: AppSettings = {
 const defaultAdminSettings: AppSettings = {
   ...defaultSettings,
   menuLayout: 'vertical', // 后台默认垂直布局
+  multiTab: true, // 后台默认开启多标签页
+  showBreadcrumb: true, // 后台默认开启面包屑导航
 }
 
 /**

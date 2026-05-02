@@ -29,6 +29,16 @@ export const MarkdownPreview = memo(function MarkdownPreview({
   className,
   components,
 }: MarkdownPreviewProps) {
+  // 过滤空 src 图片，避免浏览器重新下载整个页面
+  const defaultImgComponent: Components['img'] = ({ src, alt, ...props }) => {
+    if (!src) return null
+    return <img src={src} alt={alt} {...props} />
+  }
+
+  const mergedComponents = components
+    ? { img: defaultImgComponent, ...components }
+    : { img: defaultImgComponent }
+
   return (
     <div
       className={
@@ -38,7 +48,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
         (className ?? '')
       }
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={mergedComponents}>
         {value}
       </ReactMarkdown>
     </div>
