@@ -495,7 +495,7 @@ export default function VideoList() {
       <Card className="h-full">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 顶部标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Film size={18} className="text-primary" />
               <span className="font-semibold text-sm">视频管理</span>

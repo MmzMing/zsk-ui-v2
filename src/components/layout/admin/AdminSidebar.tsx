@@ -324,14 +324,14 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
       variants={sidebarVariants}
       transition={{ duration: 0.2, ease: 'easeInOut' }}
       className={cn(
-        'h-screen bg-content1 border-r-[var(--admin-border-width)] border-divider flex flex-col',
+        'h-screen bg-content1 border-r-[var(--admin-border-width)] border-default-800 flex flex-col',
         className
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
       {/* Logo 区域 */}
-      <div className="h-14 flex items-center justify-center px-4 border-b-[var(--admin-border-width)] border-divider">
+      <div className="h-14 flex items-center justify-center px-4 border-b-[var(--admin-border-width)] border-default-800">
         <SiteLogo size="sm" />
       </div>
 

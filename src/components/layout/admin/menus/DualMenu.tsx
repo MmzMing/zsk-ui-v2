@@ -145,7 +145,7 @@ export default function DualMenu({ className, logo, extra, children }: DualMenuP
       className={cn('flex flex-col h-screen', className)}
     >
       {/* 顶部导航栏 */}
-      <header className="h-14 bg-content1 border-b border-divider flex items-center justify-between px-4">
+      <header className="h-14 bg-content1 border-b border-default-800 flex items-center justify-between px-4">
         <div className="flex items-center">
           <div className="flex-shrink-0 mr-4">
             {logo || defaultLogo}
@@ -163,10 +163,10 @@ export default function DualMenu({ className, logo, extra, children }: DualMenuP
           initial={false}
           animate={{ width: menuWidth }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
-          className="h-screen bg-content1 border-r border-divider flex"
+          className="h-screen bg-content1 border-r border-default-800 flex"
         >
           {/* 第一列：核心功能入口 */}
-          <div className="w-16 border-r border-divider flex flex-col py-2">
+          <div className="w-16 border-r border-default-800 flex flex-col py-2">
             <div className="flex flex-col gap-1 px-2">
               {coreMenus.map((menu) => {
                 const isActive = activeModule === menu.key

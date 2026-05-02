@@ -388,12 +388,12 @@ export default function VerticalMenu({ className, logo, menus }: VerticalMenuPro
       animate={{ width: collapsed ? 64 : menuWidth }}
       transition={{ duration: 0.2, ease: 'easeInOut' }}
       className={cn(
-        'h-screen bg-content1 border-r border-divider flex flex-col',
+        'h-screen bg-content1 border-r border-default-800 flex flex-col',
         className
       )}
     >
       {/* Logo 区域 */}
-      <div className="h-14 flex items-center justify-between px-4 border-b border-divider">
+      <div className="h-14 flex items-center justify-between px-4 border-b border-default-800">
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.div

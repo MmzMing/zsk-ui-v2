@@ -391,7 +391,7 @@ function UserDetailModal({ isOpen, onOpenChange, userData, onEdit }: UserDetailM
       <ModalContent>
         <ModalHeader>用户详情</ModalHeader>
         <ModalBody className="gap-4">
-          <div className="flex items-center gap-4 pb-4 border-b border-divider">
+          <div className="flex items-center gap-4 pb-4 border-b border-default-800">
             <Avatar
               src={userData.avatar}
               name={userData.nickName}
@@ -855,7 +855,7 @@ export default function PersonnelUser() {
       <Card className="h-full">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 顶部标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Users size={18} className="text-primary" />
               <span className="font-semibold text-sm">用户管理</span>

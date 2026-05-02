@@ -52,7 +52,7 @@ export default function UserInfoCard({
   // 加载态骨架屏
   if (!author) {
     return (
-      <section className="flex items-center gap-4 py-6 border-b border-default-200">
+      <section className="flex items-center gap-4 py-6 border-b border-default-800">
         <div className="w-16 h-16 rounded-full bg-default-100 animate-pulse shrink-0" />
         <div className="flex-1 space-y-2">
           <div className="h-6 w-32 rounded-full bg-default-100 animate-pulse" />
@@ -64,7 +64,7 @@ export default function UserInfoCard({
   }
 
   return (
-    <section className="flex items-center gap-4 py-6 border-b border-default-200">
+    <section className="flex items-center gap-4 py-6 border-b border-default-800">
       {/* 用户头像 */}
       <Avatar
         src={author.avatar}

@@ -47,7 +47,7 @@ const STATS_CONFIG = [
  */
 export default function UserStatsBar({ stats, loading }: UserStatsBarProps) {
   return (
-    <section className="py-5 border-b border-default-200">
+    <section className="py-5 border-b border-default-800">
       <div className="grid grid-cols-5 gap-2">
         {STATS_CONFIG.map(({ key, label, icon: Icon }) => (
           <div key={key} className="flex flex-col items-center gap-1">

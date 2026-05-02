@@ -12,7 +12,7 @@ export default function UserHomeSkeleton() {
   return (
     <div className="animate-pulse">
       {/* 用户信息区骨架 */}
-      <div className="flex items-center gap-4 py-6 border-b border-default-200">
+      <div className="flex items-center gap-4 py-6 border-b border-default-800">
         <div className="w-16 h-16 rounded-full bg-default-100 shrink-0" />
         <div className="flex-1 space-y-2">
           <div className="h-6 w-32 rounded-full bg-default-100" />
@@ -22,7 +22,7 @@ export default function UserHomeSkeleton() {
       </div>
 
       {/* 统计条骨架 */}
-      <div className="py-5 border-b border-default-200">
+      <div className="py-5 border-b border-default-800">
         <div className="grid grid-cols-5 gap-2">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i.toString()} className="flex flex-col items-center gap-1">

@@ -201,7 +201,7 @@ export default function GanttCard() {
 
   return (
     <Card className="admin-card h-full">
-      <CardHeader className="px-5 py-4 border-b border-divider flex items-center justify-between">
+      <CardHeader className="px-5 py-4 border-b border-default-800 flex items-center justify-between">
         <h3 className="text-lg font-semibold">任务管理</h3>
         <Button
           variant="light"

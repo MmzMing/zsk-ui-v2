@@ -222,7 +222,7 @@ interface RootCommentProps {
 
 function RootComment({ comment, onToggleStatus, onDelete }: RootCommentProps) {
   return (
-    <div className="py-3 border-b border-divider last:border-b-0">
+    <div className="py-3 border-b border-default-800 last:border-b-0">
       {/* 根评论 */}
       <CommentItem
         id={comment.id}
@@ -424,7 +424,7 @@ export function DocCommentModal({ isOpen, onOpenChange, docId, docTitle }: DocCo
 
               {/* 分页控件 */}
               {!isLoading && total > 0 && (
-                <div className="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-divider">
+                <div className="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-default-800">
                   <span className="text-xs text-default-400">共 {total} 条</span>
                   <Pagination
                     total={totalPages}

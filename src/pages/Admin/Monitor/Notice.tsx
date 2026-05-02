@@ -352,7 +352,7 @@ export default function MonitorNotice() {
       <Card className="h-full">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Bell size={18} className="text-primary" />
               <span className="font-semibold text-sm">通知公告</span>

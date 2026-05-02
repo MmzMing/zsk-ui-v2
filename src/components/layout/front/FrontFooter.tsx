@@ -173,7 +173,7 @@ export default function FrontFooter({
   return (
     <footer
       className={cn(
-        'w-full bg-background border-t border-divider/50',
+        'w-full bg-background border-t border-default-800/50',
         className
       )}
     >
@@ -237,7 +237,7 @@ export default function FrontFooter({
           </div>
 
           {/* 社交链接和订阅 */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pt-8 border-t border-divider/50">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pt-8 border-t border-default-800/50">
             {/* 社交链接 */}
             <div className="flex items-center gap-3">
               <span className="text-sm text-default-500 mr-2">{t('common:footer.followUs')}</span>

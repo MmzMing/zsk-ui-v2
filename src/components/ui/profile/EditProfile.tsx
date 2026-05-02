@@ -301,6 +301,9 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                 disabled={!isEditing}
                 placeholder={t('edit.placeholderName')}
                 className="bg-transparent transition-all duration-300"
+                classNames={{
+                  inputWrapper: 'border-default-800 data-[hover=true]:border-default-800 group-data-[focus=true]:border-default-800'
+                }}
               />
             </div>
 
@@ -317,6 +320,9 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                 placeholder={t('edit.placeholderAvatarUrl')}
                 disabled={!isEditing}
                 className="bg-transparent transition-all duration-300"
+                classNames={{
+                  inputWrapper: 'border-default-800 data-[hover=true]:border-default-800 group-data-[focus=true]:border-default-800'
+                }}
               />
             </div>
 
@@ -332,6 +338,9 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                 placeholder={t('edit.placeholderBio')}
                 rows={4}
                 className="transition-all duration-300"
+                classNames={{
+                  inputWrapper: 'border-default-800 data-[hover=true]:border-default-800 group-data-[focus=true]:border-default-800'
+                }}
               />
             </div>
 
@@ -356,6 +365,9 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                 disabled={!isEditing}
                 placeholder={t('edit.placeholderPhone')}
                 className="bg-transparent transition-all duration-300"
+                classNames={{
+                  inputWrapper: 'border-default-800 data-[hover=true]:border-default-800 group-data-[focus=true]:border-default-800'
+                }}
               />
             </div>
 
@@ -376,6 +388,9 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                   min="1"
                   max="120"
                   className="bg-transparent transition-all duration-300"
+                  classNames={{
+                    inputWrapper: 'border-default-800 data-[hover=true]:border-default-800 group-data-[focus=true]:border-default-800'
+                  }}
                 />
               ) : (
                 <Input
@@ -383,6 +398,9 @@ export function EditProfile({ userInfo }: EditProfileProps) {
                   value={displayAge?.toString() || t('card.notSet')}
                   disabled
                   className="bg-transparent transition-all duration-300"
+                  classNames={{
+                    inputWrapper: 'border-default-800'
+                  }}
                 />
               )}
             </div>

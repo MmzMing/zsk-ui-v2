@@ -696,7 +696,7 @@ export default function BehaviorPage() {
       <Card className="overflow-hidden">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Users size={18} className="text-primary" />
               <span className="font-semibold text-sm">在线用户</span>
@@ -719,7 +719,7 @@ export default function BehaviorPage() {
           </div>
 
           {/* 工具栏 */}
-          <div className="px-4 py-3 border-b border-divider">
+          <div className="px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2 flex-wrap">
               <Input
                 size="sm"
@@ -871,7 +871,7 @@ export default function BehaviorPage() {
 
           {/* 分页 */}
           {onlineTotal > 0 && (
-            <div className="flex items-center justify-between px-4 py-2 border-t border-divider">
+            <div className="flex items-center justify-between px-4 py-2 border-t border-default-800">
               <div className="flex items-center gap-2">
                 <Select
                   size="sm"
@@ -905,7 +905,7 @@ export default function BehaviorPage() {
       <Card className="overflow-hidden">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 标题栏：展示选中的用户名 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Activity size={18} className="text-primary" />
               <span className="font-semibold text-sm">用户行为</span>
@@ -942,7 +942,7 @@ export default function BehaviorPage() {
 
           {/* 查询工具栏（仅在已选中用户时展示） */}
           {selectedUser && (
-          <div className="px-4 py-3 border-b border-divider">
+          <div className="px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2 flex-wrap">
               <Input
                 size="sm"
@@ -1157,7 +1157,7 @@ export default function BehaviorPage() {
 
           {/* 分页（仅选中用户且有数据时展示） */}
           {selectedUser && behaviorTotal > 0 && (
-            <div className="flex items-center justify-between px-4 py-2 border-t border-divider">
+            <div className="flex items-center justify-between px-4 py-2 border-t border-default-800">
               <div className="flex items-center gap-2">
                 <Select
                   size="sm"

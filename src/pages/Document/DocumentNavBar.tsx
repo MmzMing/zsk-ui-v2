@@ -18,7 +18,7 @@ interface DocumentNavBarProps {
  */
 export default function DocumentNavBar({ title }: DocumentNavBarProps) {
   return (
-    <nav className="flex items-center gap-3 h-14 border-b border-default-200">
+    <nav className="flex items-center gap-3 h-14 border-b border-default-800">
       <Link
         to="/"
         className="text-sm text-default-500 hover:text-primary transition-colors"

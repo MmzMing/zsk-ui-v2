@@ -73,7 +73,7 @@ export default function DocumentInteraction({
   // 加载态骨架屏
   if (!interaction) {
     return (
-      <section className="py-4 border-b border-default-200">
+      <section className="py-4 border-b border-default-800">
         <div className="flex items-center gap-6 animate-pulse">
           <div className="h-8 w-16 rounded-full bg-default-100" />
           <div className="h-8 w-16 rounded-full bg-default-100" />
@@ -84,7 +84,7 @@ export default function DocumentInteraction({
   }
 
   return (
-    <section className="py-4 border-b border-default-200">
+    <section className="py-4 border-b border-default-800">
       <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
         {/* 浏览量 */}
         <div className="flex items-center gap-1 text-default-500">

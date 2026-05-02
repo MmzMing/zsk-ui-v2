@@ -340,7 +340,7 @@ export default function CommentSection({ noteId }: CommentSectionProps) {
   const hasMore = data ? data.total > data.list.length : false
 
   return (
-    <section className="py-6 border-t border-default-200">
+    <section className="py-6 border-t border-default-800">
       <div ref={sentinelRef} />
 
       {!visible && (
@@ -399,6 +399,9 @@ export default function CommentSection({ noteId }: CommentSectionProps) {
                   variant="bordered"
                   isClearable
                   isDisabled={!isLoggedIn}
+                  classNames={{
+                    inputWrapper: 'border-default-800 data-[hover=true]:border-default-800 group-data-[focus=true]:border-default-800'
+                  }}
                 />
                 {isLoggedIn && (
                   <div className="flex justify-end">

@@ -89,7 +89,7 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
           )
         })}
 
-        <div className="border-b border-default-200" />
+        <div className="border-b border-default-800" />
 
         <div className="py-4">
           <div className="flex items-start gap-3">
@@ -104,14 +104,14 @@ export function SecurityPanel({ email }: SecurityPanelProps) {
         </div>
       </div>
 
-      <div className="border-b border-default-200" />
+      <div className="border-b border-default-800" />
 
       <div>
         <h3 className="text-lg font-semibold text-default-900 mb-4">
           {t('security.notifications')}
         </h3>
 
-        <div className="divide-y divide-default-200">
+        <div className="divide-y divide-default-800">
           {[
             { key: 'email' as const, label: t('security.emailNotify'), desc: t('security.emailNotifyDesc') },
             { key: 'comment' as const, label: t('security.commentNotify'), desc: t('security.commentNotifyDesc') },

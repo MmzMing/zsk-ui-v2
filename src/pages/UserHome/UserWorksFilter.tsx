@@ -40,7 +40,7 @@ export default function UserWorksFilter({
         variant="underlined"
         classNames={{
           tabList:
-            'gap-4 w-full relative rounded-none p-0 border-b border-default-200',
+            'gap-4 w-full relative rounded-none p-0 border-b border-default-800',
           cursor: 'w-full bg-foreground',
           tab: 'max-w-fit px-0 h-10',
           tabContent: 'group-data-[selected=true]:text-foreground',

@@ -262,7 +262,7 @@ function AuditDetailModal({ isOpen, onOpenChange, targetType, targetId }: AuditD
             <>
               {/* 基本信息 */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2 pb-3 border-b border-divider">
+                <div className="flex items-center gap-2 pb-3 border-b border-default-800">
                   <h3 className="text-lg font-semibold">{detail.targetTitle}</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -889,7 +889,7 @@ export default function FrontAudit() {
       <Card className="h-full">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 顶部标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <ClipboardCheck size={18} className="text-primary" />
               <span className="font-semibold text-sm">前台审批</span>

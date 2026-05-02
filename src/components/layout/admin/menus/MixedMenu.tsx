@@ -185,7 +185,7 @@ export default function MixedMenu({ className, logo, extra, children }: MixedMen
       initial={false}
       animate={{ width: menuWidth }}
       transition={{ duration: 0.2, ease: 'easeInOut' }}
-      className="h-screen bg-content1 border-r border-divider flex flex-col"
+      className="h-screen bg-content1 border-r border-default-800 flex flex-col"
     >
       {/* 子菜单区域 */}
       <ScrollShadow className="flex-1 py-2">
@@ -221,7 +221,7 @@ export default function MixedMenu({ className, logo, extra, children }: MixedMen
       className={cn('flex flex-col h-screen', className)}
     >
       {/* 顶部导航栏 */}
-      <header className="h-14 bg-content1 border-b border-divider flex items-center justify-between px-4">
+      <header className="h-14 bg-content1 border-b border-default-800 flex items-center justify-between px-4">
         <div className="flex items-center">
           <div className="flex-shrink-0 mr-4">
             {logo || defaultLogo}

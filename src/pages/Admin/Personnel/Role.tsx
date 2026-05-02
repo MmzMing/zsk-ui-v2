@@ -872,7 +872,7 @@ export default function PersonnelRole() {
       <Card className="w-full md:w-[35%] md:min-w-[320px] md:flex-shrink-0 max-h-[40vh] md:max-h-full">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 顶部标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Shield size={18} className="text-primary" />
               <span className="font-semibold text-sm">角色列表</span>
@@ -1012,7 +1012,7 @@ export default function PersonnelRole() {
           {selectedRole ? (
             <>
               {/* 右侧顶部标题 */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
                 <div className="flex items-center gap-2">
                   <Shield size={18} className="text-primary" />
                   <span className="font-semibold text-sm">{selectedRole.roleName}</span>
@@ -1104,7 +1104,7 @@ export default function PersonnelRole() {
                       </div>
 
                       {/* 操作按钮 */}
-                      <div className="flex items-center justify-end gap-2 pt-4 border-t border-divider">
+                      <div className="flex items-center justify-end gap-2 pt-4 border-t border-default-800">
                         <Button
                           size="sm"
                           color="primary"

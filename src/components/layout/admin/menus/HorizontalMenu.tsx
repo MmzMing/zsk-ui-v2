@@ -154,7 +154,7 @@ export default function HorizontalMenu({ className, logo, extra }: HorizontalMen
   return (
     <header
       className={cn(
-        'h-16 bg-content1 border-b border-divider flex items-center justify-between px-4',
+        'h-16 bg-content1 border-b border-default-800 flex items-center justify-between px-4',
         className
       )}
     >

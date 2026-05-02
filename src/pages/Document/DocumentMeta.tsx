@@ -30,7 +30,7 @@ export default function DocumentMeta({ detail, loading }: DocumentMetaProps) {
   // 加载态骨架屏
   if (loading || !detail) {
     return (
-      <section className="py-6 border-b border-default-200 animate-pulse space-y-3">
+      <section className="py-6 border-b border-default-800 animate-pulse space-y-3">
         <div className="h-7 w-3/4 rounded-full bg-default-100" />
         <div className="flex items-center gap-3">
           <div className="h-7 w-7 rounded-full bg-default-100" />
@@ -46,7 +46,7 @@ export default function DocumentMeta({ detail, loading }: DocumentMetaProps) {
     : []
 
   return (
-    <section className="py-6 border-b border-default-200">
+    <section className="py-6 border-b border-default-800">
       {/* 标题 */}
       <h1 className="text-5xl font-bold text-foreground leading-tight">{detail.title}</h1>
 

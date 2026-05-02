@@ -320,7 +320,7 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
             <motion.div
               initial={{ scale: 0.8, x: -20 }}
               animate={{ scale: 1, x: 0 }}
-              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-background/90 backdrop-blur-xl border border-divider/50 shadow-lg cursor-pointer"
+              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-background/90 backdrop-blur-xl border border-default-800/50 shadow-lg cursor-pointer"
               onMouseEnter={() => setLogoHovered(true)}
               onMouseLeave={() => setLogoHovered(false)}
             >
@@ -347,7 +347,7 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
             <motion.div
               initial={{ scale: 0.8, x: 20 }}
               animate={{ scale: 1, x: 0 }}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-background/90 backdrop-blur-xl border border-divider/50 shadow-lg"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-background/90 backdrop-blur-xl border border-default-800/50 shadow-lg"
             >
               {/* 搜索按钮 */}
               <Button
@@ -420,7 +420,7 @@ export default function AdminHeader({ breadcrumbs = [], className }: AdminHeader
             exit={{ opacity: 0 }}
           >
             <Navbar
-              className={cn('h-14 px-4 border-b-[var(--admin-border-width)] border-divider bg-content1', className)}
+              className={cn('h-14 px-4 border-b-[var(--admin-border-width)] border-default-800 bg-content1', className)}
               maxWidth="full"
             >
               {/* 左侧：面包屑 */}

@@ -180,9 +180,9 @@ export function MessagesPanel({ initialMessages }: MessagesPanelProps) {
         </div>
       </div>
 
-      <div className="border-b border-default-200" />
+      <div className="border-b border-default-800" />
 
-      <div className="divide-y divide-default-200">
+      <div className="divide-y divide-default-800">
         {filteredMessages.length === 0 ? (
           <div className="p-12 text-center">
             <Bell className="w-12 h-12 text-default-300 mx-auto mb-4" />

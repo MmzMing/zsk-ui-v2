@@ -215,7 +215,7 @@ function DocumentEditor() {
       <Card className="h-full">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 顶部标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Tooltip content="返回" size="sm">
                 <Button isIconOnly size="sm" variant="light" onPress={handleBack}>

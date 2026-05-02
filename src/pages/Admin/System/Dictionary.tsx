@@ -268,7 +268,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
               <div className="text-xs text-default-400 mb-2">
                 缓存标签 ({cacheTags.length})
               </div>
-              <div className="border border-divider rounded-lg max-h-64 overflow-y-auto">
+              <div className="border border-default-800 rounded-lg max-h-64 overflow-y-auto">
                 {cacheTags.length === 0 ? (
                   <div className="p-3 text-center text-xs text-default-400">
                     暂无缓存标签
@@ -277,7 +277,7 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
                   cacheTags.map(tag => (
                     <div
                       key={tag}
-                      className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors border-b border-divider last:border-b-0 ${
+                      className={`flex items-center justify-between px-3 py-2 cursor-pointer transition-colors border-b border-default-800 last:border-b-0 ${
                         selectedTag === tag
                           ? 'bg-primary/10'
                           : 'hover:bg-default-100'
@@ -332,19 +332,19 @@ function DictCachePanel({ isOpen, onClose }: DictCachePanelProps) {
                 )}
               </div>
               {!selectedTag ? (
-                <div className="border border-divider rounded-lg p-6 text-center text-xs text-default-400">
+                <div className="border border-default-800 rounded-lg p-6 text-center text-xs text-default-400">
                   请选择左侧标签查看缓存数据
                 </div>
               ) : isLoadingData ? (
-                <div className="border border-divider rounded-lg p-6 text-center">
+                <div className="border border-default-800 rounded-lg p-6 text-center">
                   <StatusState type="loading" scene="admin" />
                 </div>
               ) : !cacheData || cacheData.data.length === 0 ? (
-                <div className="border border-divider rounded-lg p-6 text-center text-xs text-default-400">
+                <div className="border border-default-800 rounded-lg p-6 text-center text-xs text-default-400">
                   暂无缓存数据
                 </div>
               ) : (
-                <div className="border border-divider rounded-lg max-h-64 overflow-y-auto">
+                <div className="border border-default-800 rounded-lg max-h-64 overflow-y-auto">
                   <Table
                     aria-label="缓存数据列表"
                     classNames={{
@@ -971,7 +971,7 @@ export default function SystemDictionary() {
     <div className="flex flex-col gap-4 p-4 md:p-0 h-full">
       <Card className="w-full flex-1 overflow-hidden flex flex-col">
         <CardBody className="p-0 overflow-visible flex flex-col">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <BookOpen size={18} className="text-primary" />
               <span className="font-semibold text-sm">字典类型</span>
@@ -1173,7 +1173,7 @@ export default function SystemDictionary() {
       </Card>
 
       <Card className="w-full flex-1 overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-divider flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-default-800 flex-shrink-0">
           <div className="flex items-center gap-2">
             <BookOpen size={18} className="text-primary" />
             <span className="font-semibold text-sm">字典数据</span>

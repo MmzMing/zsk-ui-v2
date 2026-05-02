@@ -589,7 +589,7 @@ export default function SysLogPage() {
       <Card className="h-full overflow-hidden">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 顶部标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <FileText size={18} className="text-primary" />
               <span className="font-semibold text-sm">系统日志</span>
@@ -609,7 +609,7 @@ export default function SysLogPage() {
           </div>
 
           {/* 查询工具栏 */}
-          <div className="px-4 py-3 border-b border-divider">
+          <div className="px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2 flex-wrap">
               {/* 操作人搜索 */}
               <Input
@@ -888,7 +888,7 @@ export default function SysLogPage() {
 
           {/* 底部分页控件 */}
           {total > 0 && (
-            <div className="flex items-center justify-between px-4 py-2 border-t border-divider">
+            <div className="flex items-center justify-between px-4 py-2 border-t border-default-800">
               <div className="flex items-center gap-2">
                 <Select
                   size="sm"

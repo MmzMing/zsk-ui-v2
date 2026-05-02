@@ -973,7 +973,7 @@ export default function PersonnelMenu() {
       {/* 左侧菜单树 */}
       <Card className="w-full md:w-[35%] md:min-w-[280px] md:flex-shrink-0 max-h-[40vh] md:max-h-full">
         <CardBody className="p-0 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <FolderTree size={18} className="text-primary" />
               <span className="font-semibold text-sm">菜单结构</span>
@@ -1031,7 +1031,7 @@ export default function PersonnelMenu() {
       <Card className="flex-1 min-w-0">
         <CardBody className="p-0 flex flex-col overflow-hidden">
           {/* 标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <MenuIcon size={18} className="text-primary" />
               <span className="font-semibold text-sm">菜单详情</span>
@@ -1088,7 +1088,7 @@ export default function PersonnelMenu() {
           </div>
 
           {/* 筛选工具栏 */}
-          <div className="px-4 py-3 border-b border-divider">
+          <div className="px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2 flex-wrap">
               <Input
                 size="sm"

@@ -628,7 +628,7 @@ export default function CachePage() {
       <Card className="w-full flex-[3] overflow-hidden">
         <CardBody className="p-0 flex flex-col">
           {/* 顶部标题栏 */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Database size={18} className="text-primary" />
               <span className="font-semibold text-sm">缓存管理</span>
@@ -820,7 +820,7 @@ export default function CachePage() {
               <Divider />
               <div className="flex-1 flex flex-col overflow-hidden">
               {/* 查询工具栏 */}
-              <div className="px-4 py-3 border-b border-divider">
+              <div className="px-4 py-3 border-b border-default-800">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Input
                     size="sm"
@@ -1001,7 +1001,7 @@ export default function CachePage() {
 
               {/* 底部分页控件 */}
               {total > 0 && (
-                <div className="flex items-center justify-between px-4 py-2 border-t border-divider">
+                <div className="flex items-center justify-between px-4 py-2 border-t border-default-800">
                   <div className="flex items-center gap-2">
                     <Select
                       size="sm"
@@ -1055,7 +1055,7 @@ export default function CachePage() {
       {/* 缓存操作日志卡片 */}
       <Card className="w-full flex-1">
         <CardBody className="p-0">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-divider">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-default-800">
             <div className="flex items-center gap-2">
               <Clock size={18} className="text-primary" />
               <span className="font-semibold text-sm">缓存操作日志</span>

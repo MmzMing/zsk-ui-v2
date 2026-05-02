@@ -360,6 +360,9 @@ export default function CommentSection({ videoId }: Props) {
                   variant="bordered"
                   isClearable
                   isDisabled={!isLoggedIn}
+                  classNames={{
+                    inputWrapper: 'border-default-800 data-[hover=true]:border-default-800 group-data-[focus=true]:border-default-800'
+                  }}
                 />
                 {isLoggedIn && (
                   <div className="flex justify-end">

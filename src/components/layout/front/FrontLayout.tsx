@@ -3,14 +3,21 @@
  * 包含 Header、Footer 和内容区域
  */
 
+// ===== 1. 依赖导入区域 =====
+
+// React 核心
 import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
+
+// 组件
 import FrontHeader from './FrontHeader'
 import FrontFooter from './FrontFooter'
-import ClickSpark from '@/components/ui/reactbits/ClickSpark'
 import ScrollToTop from '@/components/ui/ScrollToTop'
+
+// 工具函数
 import { cn } from '@/utils'
 
+// 国际化
 import { useTranslation } from 'react-i18next'
 
 // 前台布局属性
@@ -52,29 +59,27 @@ export default function FrontLayout({
   }, [])
 
   return (
-    <ClickSpark sparkColor="#3b82f6" sparkSize={10} sparkRadius={15} duration={400}>
-      <div className={cn('min-h-screen flex flex-col bg-background', className)}>
-        {/* 顶部导航 */}
-        {showHeader && <FrontHeader logoText={defaultSiteName} />}
+    <div className={cn('min-h-screen flex flex-col bg-background', className)}>
+      {/* 顶部导航 */}
+      {showHeader && <FrontHeader logoText={defaultSiteName} />}
 
-        {/* 主内容区域 */}
-        <main className="flex-1">
-          <Outlet />
-        </main>
+      {/* 主内容区域 */}
+      <main className="flex-1">
+        <Outlet />
+      </main>
 
-        {/* 底部 */}
-        {showFooter && (
-          <FrontFooter
-            siteName={defaultSiteName}
-            siteDescription={defaultDescription}
-            icp={icp}
-            policeIcp={policeIcp}
-          />
-        )}
+      {/* 底部 */}
+      {showFooter && (
+        <FrontFooter
+          siteName={defaultSiteName}
+          siteDescription={defaultDescription}
+          icp={icp}
+          policeIcp={policeIcp}
+        />
+      )}
 
-        {/* 返回顶部 */}
-        <ScrollToTop />
-      </div>
-    </ClickSpark>
+      {/* 返回顶部 */}
+      <ScrollToTop />
+    </div>
   )
 }

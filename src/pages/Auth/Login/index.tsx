@@ -281,7 +281,7 @@ export default function LoginPage() {
         )}
 
         {/* 页脚隐私协议 */}
-        <div className="pt-6 border-t border-divider text-center text-xs text-default-400">
+        <div className="pt-6 border-t border-default-800 text-center text-xs text-default-400">
           {t('login.policyPrefix')}
           <Button
             variant="light"

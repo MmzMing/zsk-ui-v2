@@ -194,7 +194,7 @@ export default function UserDropdown({
             </div>
 
             {/* 退出登录 - 红色半透明，分割线分开 */}
-            <div className="border-t border-default-200/50 rounded-b-[20px]">
+            <div className="border-t border-default-800/50 rounded-b-[20px]">
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger/10 transition-colors"

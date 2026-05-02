@@ -311,7 +311,7 @@ export default function FrontHeader({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="absolute inset-0 w-full border-b border-divider bg-background/80 backdrop-blur-md"
+            className="absolute inset-0 w-full border-b border-default-800 bg-background/80 backdrop-blur-md"
           >
             <div className="container mx-auto px-4">
               <div className="flex h-16 items-center justify-between">
@@ -435,7 +435,7 @@ export default function FrontHeader({
               initial={{ scale: 0.8, x: -20 }}
               animate={{ scale: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-background/90 backdrop-blur-xl border border-divider/50 shadow-lg cursor-pointer"
+              className="relative flex items-center justify-center w-10 h-10 rounded-full bg-background/90 backdrop-blur-xl border border-default-800/50 shadow-lg cursor-pointer"
               onMouseEnter={() => setLogoCollapsedHovered(true)}
               onMouseLeave={() => setLogoCollapsedHovered(false)}
             >
@@ -464,7 +464,7 @@ export default function FrontHeader({
               initial={{ scale: 0.8, x: 20 }}
               animate={{ scale: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-background/90 backdrop-blur-xl border border-divider/50 shadow-lg"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-background/90 backdrop-blur-xl border border-default-800/50 shadow-lg"
             >
               {/* 导航图标 */}
               <div className="hidden md:flex items-center gap-0.5 mr-1">
