@@ -45,6 +45,7 @@ export const MarkdownPreview = memo(function MarkdownPreview({
         'zsk-markdown-preview prose prose-sm max-w-none dark:prose-invert ' +
         'prose-pre:bg-content2 prose-pre:text-foreground ' +
         'prose-code:before:content-none prose-code:after:content-none ' +
+        '[&_code]:font-mono [&_code]:text-sm ' +
         (className ?? '')
       }
     >

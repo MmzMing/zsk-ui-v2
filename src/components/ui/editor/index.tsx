@@ -6,6 +6,7 @@
  * - LazyMarkdownPreview: 懒加载 Markdown 预览（超长文档多段渐进渲染）
  * - WorkerMarkdownPreview: Worker 解析 Markdown 预览（超长文档 Worker 离线解析）
  * - VirtualMarkdownPreview: 一次性渲染 Markdown 预览（兼容保留）
+ * - ShikiCodeBlock: Shiki 代码高亮块（用于 react-markdown 的 code 组件覆盖）
  */
 
 export * from './Editor'
@@ -15,4 +16,5 @@ export * from './MarkdownPreview'
 export * from './LazyMarkdownPreview'
 export * from './WorkerMarkdownPreview'
 export * from './VirtualMarkdownPreview'
+export * from './ShikiCodeBlock'
 export { useMarkdownWorker } from './useMarkdownWorker'

@@ -17,7 +17,7 @@ import { useParams } from 'react-router-dom'
 
 // 组件
 import { StatusState } from '@/components/ui/StatusState'
-import { LazyMarkdownPreview } from '@/components/ui/editor'
+import { LazyMarkdownPreview, ShikiCodeBlock } from '@/components/ui/editor'
 
 // 工具函数
 import { downloadTextAsFile } from '@/utils/common'
@@ -87,12 +87,17 @@ function extractHeadings(md: string): TocItem[] {
   const cleanedMd = stripCodeBlocks(md)
   const headingRegex = /^(#{1,4})\s+(.+)$/gm
   const result: TocItem[] = []
+  const idCount = new Map<string, number>()
   let match: RegExpExecArray | null
 
   while ((match = headingRegex.exec(cleanedMd)) !== null) {
     const level = match[1].length
     const text = match[2].trim()
-    const id = headingTextToId(text)
+    const baseId = headingTextToId(text)
+    // 处理重复 id，添加递增后缀
+    const count = idCount.get(baseId) ?? 0
+    idCount.set(baseId, count + 1)
+    const id = count === 0 ? baseId : `${baseId}-${count}`
     result.push({ id, text, level })
   }
 
@@ -101,7 +106,9 @@ function extractHeadings(md: string): TocItem[] {
 
 const headingLevels = ['h1', 'h2', 'h3', 'h4'] as const
 
-const headingComponents: Components = {}
+const headingComponents: Components = {
+  code: ShikiCodeBlock,
+}
 
 headingLevels.forEach((level) => {
   headingComponents[level] = memo(

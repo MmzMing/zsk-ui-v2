@@ -1,18 +1,14 @@
 /**
- * 悬浮目录导航（折叠式）
- * 从 Markdown 渲染后的 DOM 中提取 h1-h4 标题
- * 支持折叠/展开、高亮当前阅读位置、点击跳转、自动展开当前路径
- * 已优化：缓存 DOM 引用避免每帧 getElementById，scroll + RAF 节流
+ * 悬浮目录导航（扁平列表 + 视口范围框）
+ * - 无折叠，所有标题始终可见，按层级缩进
+ * - 范围框起点锚定 activeId（scroll handler 驱动，实时可靠）
+ *   终点延伸至 activeId 之后仍在视口中的连续标题（IO 辅助）
+ * - 直接操作 DOM 更新范围框，零 React 重渲染
+ * - wheel 事件隔离：悬停 TOC 时滚 TOC，触顶/底后才透传给页面
  */
 
 // ===== 1. 依赖导入区域 =====
-// React 核心
-import { useEffect, useState, useCallback, useRef, memo, useMemo } from 'react'
-
-// 图标
-import { ChevronRight } from 'lucide-react'
-
-// 工具函数
+import { useEffect, useState, useCallback, useRef, memo } from 'react'
 import { cn } from '@/utils'
 
 // ===== 2. 类型定义区域 =====
@@ -26,85 +22,29 @@ interface FloatingTOCProps {
   items: TocItem[]
 }
 
-interface TocNode {
-  item: TocItem
-  children: TocNode[]
-}
-
 // ===== 3. 通用工具函数区域 =====
-/**
- * 将扁平目录列表转为树形结构
- * 根据标题层级构建父子关系：h1 > h2 > h3 > h4
- * @param items - 扁平目录项列表
- * @returns 树形节点列表
- */
-function buildTocTree(items: TocItem[]): TocNode[] {
-  const roots: TocNode[] = []
-  const stack: TocNode[] = []
-
-  for (const item of items) {
-    const node: TocNode = { item, children: [] }
-
-    while (stack.length > 0 && stack[stack.length - 1].item.level >= item.level) {
-      stack.pop()
-    }
-
-    if (stack.length > 0) {
-      stack[stack.length - 1].children.push(node)
-    } else {
-      roots.push(node)
-    }
-
-    stack.push(node)
-  }
-
-  return roots
-}
-
-/**
- * 查找目标 id 在树中的祖先路径
- * @param nodes - 树形节点列表
- * @param targetId - 目标标题 id
- * @returns 从根到目标的路径上的所有节点 id
- */
-function findAncestorIds(nodes: TocNode[], targetId: string): Set<string> {
-  const result = new Set<string>()
-
-  function dfs(nodeList: TocNode[]): boolean {
-    for (const node of nodeList) {
-      if (node.item.id === targetId) {
-        result.add(node.item.id)
-        return true
-      }
-      if (node.children.length > 0 && dfs(node.children)) {
-        result.add(node.item.id)
-        return true
-      }
-    }
-    return false
-  }
-
-  dfs(nodes)
-  return result
+const INDENT_MAP: Record<number, string> = {
+  1: 'pl-2',
+  2: 'pl-5',
+  3: 'pl-8',
+  4: 'pl-11',
 }
 
 // ===== 4. 导出区域 =====
-/**
- * 悬浮目录导航组件（折叠式）
- * 使用 scroll 事件 + RAF 节流计算当前阅读位置
- * 缓存 DOM 引用，避免每帧重复 getElementById 查询
- * 支持折叠/展开，自动展开当前阅读路径
- */
 export default memo(function FloatingTOC({ items }: FloatingTOCProps) {
   const [activeId, setActiveId] = useState<string>('')
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+
   const rafRef = useRef<number | null>(null)
+  // 用 ref 同步 activeId，供 scroll handler 闭包中直接读取
   const lastActiveRef = useRef<string>('')
   const elementCacheRef = useRef<Map<string, HTMLElement>>(new Map())
+  const tocListRef = useRef<HTMLUListElement>(null)
+  const rangeBoxRef = useRef<HTMLDivElement>(null)
+  const visibleSetRef = useRef<Set<string>>(new Set())
+  // 保存最新 recalcRange 供 scroll handler 同步调用，避免闭包捕获旧值
+  const recalcRangeRef = useRef<() => void>(() => {})
 
-  const tocTree = useMemo(() => buildTocTree(items), [items])
-
-  // 缓存标题 DOM 引用，避免每帧 getElementById
+  // ===== 缓存标题 DOM 引用 =====
   const getCachedElement = useCallback((id: string): HTMLElement | null => {
     const cache = elementCacheRef.current
     const cached = cache.get(id)
@@ -114,38 +54,114 @@ export default memo(function FloatingTOC({ items }: FloatingTOCProps) {
     return el
   }, [])
 
-  // items 变化时清空缓存与展开状态（文档内容切换）
-  useEffect(() => {
-    elementCacheRef.current.clear()
-    setExpandedIds(new Set())
+  /**
+   * 范围框计算
+   * 起点：lastActiveRef（activeId 对应的 TOC 条目）
+   * 终点：从 activeId 向后，连续在 visibleSet 中的最后一个条目
+   * scroll handler 更新 lastActiveRef 后立即调用此函数（通过 recalcRangeRef），
+   * 避免等待 React 重渲染，消除滞后
+   */
+  const recalcRange = useCallback(() => {
+    const rangeBox = rangeBoxRef.current
+    const tocList = tocListRef.current
+    const visible = visibleSetRef.current
+    const currentActiveId = lastActiveRef.current
+
+    const hide = () => { if (rangeBox) rangeBox.style.display = 'none' }
+
+    if (!rangeBox || !tocList || !currentActiveId) { hide(); return }
+
+    const activeIndex = items.findIndex((i) => i.id === currentActiveId)
+    if (activeIndex === -1) { hide(); return }
+
+    // 向后找连续可见标题的最后一项（遇到不可见立刻停止）
+    let lastVisibleIndex = activeIndex
+    for (let i = activeIndex + 1; i < items.length; i++) {
+      if (visible.has(items[i].id)) {
+        lastVisibleIndex = i
+      } else {
+        break
+      }
+    }
+
+    const firstEl = tocList.querySelector<HTMLElement>(`[data-toc-id="${items[activeIndex].id}"]`)
+    const lastEl = tocList.querySelector<HTMLElement>(`[data-toc-id="${items[lastVisibleIndex].id}"]`)
+    if (!firstEl || !lastEl) { hide(); return }
+
+    const listRect = tocList.getBoundingClientRect()
+    const firstRect = firstEl.getBoundingClientRect()
+    const lastRect = lastEl.getBoundingClientRect()
+
+    // 转为滚动空间坐标，范围框随 <ul> 内容一起滚动
+    const top = firstRect.top - listRect.top + tocList.scrollTop
+    const height = lastRect.bottom - firstRect.top
+    if (height <= 0) { hide(); return }
+
+    rangeBox.style.display = 'block'
+    rangeBox.style.top = `${top}px`
+    rangeBox.style.height = `${height}px`
   }, [items])
 
-  // 活跃标题变化时自动展开其祖先路径
+  // 保持 ref 最新，供 scroll handler 同步调用
   useEffect(() => {
-    if (!activeId || tocTree.length === 0) return
+    recalcRangeRef.current = recalcRange
+  }, [recalcRange])
 
-    setExpandedIds((prev) => {
-      const ancestors = findAncestorIds(tocTree, activeId)
-      if (ancestors.size === 0) return prev
+  // ===== items 变化时清空缓存与可见集合 =====
+  useEffect(() => {
+    elementCacheRef.current.clear()
+    visibleSetRef.current.clear()
+    lastActiveRef.current = ''
+    if (rangeBoxRef.current) rangeBoxRef.current.style.display = 'none'
+  }, [items])
 
-      const next = new Set(prev)
-      let changed = false
-      for (const id of ancestors) {
-        if (!next.has(id)) {
-          next.add(id)
-          changed = true
+  // ===== IntersectionObserver：辅助追踪 activeId 之后的可见标题 =====
+  useEffect(() => {
+    if (items.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            visibleSetRef.current.add(entry.target.id)
+          } else {
+            visibleSetRef.current.delete(entry.target.id)
+          }
         }
-      }
-      return changed ? next : prev
-    })
-  }, [activeId, tocTree])
+        recalcRangeRef.current()
+      },
+      { rootMargin: '-80px 0px 0px 0px', threshold: 0 }
+    )
 
-  // 监听滚动高亮当前标题
+    for (const item of items) {
+      const el = document.getElementById(item.id)
+      if (el) observer.observe(el)
+    }
+
+    return () => {
+      observer.disconnect()
+      visibleSetRef.current.clear()
+    }
+  }, [items])
+
+  // ===== TOC 内部滚动时同步更新范围框位置 =====
+  useEffect(() => {
+    const tocList = tocListRef.current
+    if (!tocList) return
+    const onScroll = () => recalcRangeRef.current()
+    tocList.addEventListener('scroll', onScroll, { passive: true })
+    return () => tocList.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // ===== 滚动隔离：由 data-lenis-prevent 属性交给 Lenis prevent 处理 =====
+
+  // ===== 监听页面滚动，高亮最靠近顶部的已过标题 =====
   useEffect(() => {
     if (items.length === 0) return
 
     const handleScroll = () => {
-      if (rafRef.current) return
+      // 取消旧帧排新帧，保证每次用最新位置，不漏帧
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null
 
@@ -156,27 +172,24 @@ export default memo(function FloatingTOC({ items }: FloatingTOCProps) {
         for (const item of items) {
           const el = getCachedElement(item.id)
           if (!el) continue
-          const rect = el.getBoundingClientRect()
-          const offset = rect.top - offsetTop
-          if (offset <= 0 && offset > bestOffset) {
-            bestOffset = offset
+          const top = el.getBoundingClientRect().top - offsetTop
+          if (top <= 0 && top > bestOffset) {
+            bestOffset = top
             bestId = item.id
           }
         }
 
-        if (!bestId && items.length > 0) {
+        if (!bestId) {
           for (const item of items) {
-            const el = getCachedElement(item.id)
-            if (el) {
-              bestId = item.id
-              break
-            }
+            if (getCachedElement(item.id)) { bestId = item.id; break }
           }
         }
 
         if (bestId && bestId !== lastActiveRef.current) {
           lastActiveRef.current = bestId
           setActiveId(bestId)
+          // activeId 变化后立即同步重算范围框，不等 React 重渲染
+          recalcRangeRef.current()
         }
       })
     }
@@ -190,151 +203,93 @@ export default memo(function FloatingTOC({ items }: FloatingTOCProps) {
     }
   }, [items, getCachedElement])
 
-  // 点击跳转
+  // ===== 活跃项变化时仅滚动 TOC 列表，不触发 window 滚动 =====
+  useEffect(() => {
+    if (!activeId || !tocListRef.current) return
+    const list = tocListRef.current
+    const el = list.querySelector<HTMLElement>(`[data-toc-id="${activeId}"]`)
+    if (!el) return
+
+    const listRect = list.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
+    if (elRect.top >= listRect.top && elRect.bottom <= listRect.bottom) return
+
+    list.scrollTo({
+      top: list.scrollTop + elRect.top - listRect.top - list.clientHeight / 2 + elRect.height / 2,
+      behavior: 'smooth',
+    })
+  }, [activeId])
+
+  // ===== 点击跳转 =====
   const handleClick = useCallback((id: string) => {
     const el = getCachedElement(id)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }
+    if (!el) return
+    const top = el.getBoundingClientRect().top + window.scrollY - 80
+    window.scrollTo({ top, behavior: 'smooth' })
   }, [getCachedElement])
-
-  // 切换折叠/展开
-  const handleToggle = useCallback((id: string) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }, [])
 
   if (items.length === 0) return null
 
   return (
-    <nav className="hidden md:block w-52 shrink-0">
+    <nav className="w-52 shrink-0">
       <div className="sticky top-20">
-        <h4 className="text-sm font-semibold text-default-600 uppercase tracking-wider mb-3">
-          目录
-        </h4>
-        <ul className="space-y-0.5">
-          {tocTree.map((node) => (
-            <TocTreeNode
-              key={node.item.id}
-              node={node}
-              activeId={activeId}
-              expandedIds={expandedIds}
-              depth={0}
-              onToggle={handleToggle}
-              onClick={handleClick}
-            />
+        {/* 目录标题 */}
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-default-100">
+          <div className="w-0.5 h-3.5 bg-primary rounded-full shrink-0" />
+          <h4 className="text-xs font-semibold text-default-500 uppercase tracking-widest">
+            目录
+          </h4>
+        </div>
+
+        {/* 目录列表，限高 50vh，范围框在 <ul> 内部随内容滚动 */}
+        <ul
+          ref={tocListRef}
+          data-lenis-prevent
+          className={cn(
+            'relative space-y-0.5',
+            'max-h-[50vh] overflow-y-auto overscroll-contain',
+            '[&::-webkit-scrollbar]:w-1',
+            '[&::-webkit-scrollbar-thumb]:rounded-full',
+            '[&::-webkit-scrollbar-thumb]:bg-default-200',
+            '[&::-webkit-scrollbar-track]:bg-transparent'
+          )}
+        >
+          {/*
+           * 范围框放在 <ul> 内部，用滚动空间坐标定位
+           * transition 让起止点变化时平滑过渡
+           */}
+          <div
+            ref={rangeBoxRef}
+            aria-hidden="true"
+            className="absolute left-0 right-1 z-0 rounded-md pointer-events-none border border-black/10 bg-black/5 dark:border-white/10 dark:bg-white/5"
+            style={{
+              display: 'none',
+              top: 0,
+              height: 0,
+              transition: 'top 0.3s cubic-bezier(0.4,0,0.2,1), height 0.3s cubic-bezier(0.4,0,0.2,1)',
+            }}
+          />
+
+          {items.map((item) => (
+            <li key={item.id}>
+              <button
+                data-toc-id={item.id}
+                className={cn(
+                  'relative z-10 w-full text-left text-xs leading-relaxed py-1.5 pr-2 rounded',
+                  'transition-colors duration-150 truncate',
+                  INDENT_MAP[item.level] ?? 'pl-2',
+                  activeId === item.id
+                    ? 'text-primary font-medium'
+                    : 'text-default-400 hover:text-default-600'
+                )}
+                onClick={() => handleClick(item.id)}
+              >
+                {item.text}
+              </button>
+            </li>
           ))}
         </ul>
       </div>
     </nav>
-  )
-})
-
-// ===== 5. 子组件区域 =====
-interface TocTreeNodeProps {
-  node: TocNode
-  activeId: string
-  expandedIds: Set<string>
-  depth: number
-  onToggle: (id: string) => void
-  onClick: (id: string) => void
-}
-
-/**
- * 目录树节点组件
- * 递归渲染目录树，支持折叠/展开
- */
-const TocTreeNode = memo(function TocTreeNode({
-  node,
-  activeId,
-  expandedIds,
-  depth,
-  onToggle,
-  onClick,
-}: TocTreeNodeProps) {
-  const { item, children } = node
-  const isActive = activeId === item.id
-  const hasChildren = children.length > 0
-  const isExpanded = expandedIds.has(item.id)
-
-  const paddingLeftMap: Record<number, string> = {
-    0: 'pl-2',
-    1: 'pl-5',
-    2: 'pl-8',
-    3: 'pl-11',
-  }
-
-  return (
-    <li>
-      <div
-        className={cn(
-          'group flex items-center gap-0.5 rounded-md transition-colors',
-          isActive && 'bg-primary/10'
-        )}
-      >
-        {hasChildren && (
-          <button
-            className="shrink-0 p-0.5 rounded hover:bg-default-100 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation()
-              onToggle(item.id)
-            }}
-            aria-label={isExpanded ? '折叠' : '展开'}
-          >
-            <ChevronRight
-              size={14}
-              className={cn(
-                'text-default-400 transition-transform duration-200',
-                isExpanded && 'rotate-90'
-              )}
-            />
-          </button>
-        )}
-        {!hasChildren && <span className="w-5 shrink-0" />}
-
-        <button
-          className={cn(
-            'flex-1 text-left text-sm leading-relaxed py-1.5 transition-colors truncate',
-            paddingLeftMap[depth] ?? 'pl-2',
-            isActive
-              ? 'text-primary font-medium'
-              : 'text-default-400 hover:text-default-600'
-          )}
-          onClick={() => onClick(item.id)}
-        >
-          {item.text}
-        </button>
-      </div>
-
-      {hasChildren && (
-        <div
-          className={cn(
-            'overflow-hidden transition-all duration-200',
-            isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-          )}
-        >
-          <ul className="space-y-0.5">
-            {children.map((child) => (
-              <TocTreeNode
-                key={child.item.id}
-                node={child}
-                activeId={activeId}
-                expandedIds={expandedIds}
-                depth={depth + 1}
-                onToggle={onToggle}
-                onClick={onClick}
-              />
-            ))}
-          </ul>
-        </div>
-      )}
-    </li>
   )
 })

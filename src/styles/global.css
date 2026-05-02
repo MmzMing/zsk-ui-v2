@@ -427,6 +427,34 @@ textarea,
   }
 }
 
+/* ===== Shiki 代码高亮双主题切换 =====
+ * 基于 Shiki 官方文档：https://shiki.style/guide/dual-themes
+ * 使用 CSS 变量实现亮色/暗黑主题自动切换
+ */
+
+/* 亮色模式下使用默认的 light-plus 主题颜色 */
+.shiki,
+.shiki span {
+  /* Shiki 会生成带有 --shiki-dark 变量的 style 属性 */
+  /* 这里不需要额外设置，因为 Shiki 已经生成了默认颜色 */
+}
+
+/* 暗黑模式下切换到 dark-plus 主题 */
+:root.dark .shiki,
+:root.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  /* 处理其他可能的 CSS 变量 */
+  caret-color: var(--shiki-dark) !important;
+}
+
+/* 处理 Shiki 生成的行号样式 */
+.shiki .line-numbers {
+  user-select: none;
+  text-align: right;
+  padding-right: 1rem;
+}
+
 /* ===== antd Tree 深色主题样式 ===== */
 .ant-tree {
   background-color: var(--color-card) !important;

@@ -63,7 +63,7 @@ export function useLenis(options?: LenisOptions) {
       wheelMultiplier: 1,
       touchMultiplier: 2,
       prevent: (node: HTMLElement) => {
-        return !!node.closest?.('[role="dialog"]')
+        return !!node.closest?.('[role="dialog"]') || !!node.closest?.('[data-lenis-prevent]')
       },
       ...options
     })

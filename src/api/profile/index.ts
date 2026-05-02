@@ -3,8 +3,8 @@
  * 包含用户信息、用户作品、收藏关注、消息通知等接口
  */
 
-import { get, post, put, del } from '../request'
-import type { PaginationParams, PaginationData } from '@/types/api.types'
+import { get, post } from '../request'
+import type { PaginationParams } from '@/types/api.types'
 import type { SysUser } from '../auth'
 
 /**
