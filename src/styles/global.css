@@ -455,6 +455,33 @@ textarea,
   padding-right: 1rem;
 }
 
+/* ===== 代码块滚动条样式 ===== */
+/* 代码块容器隐藏垂直滚动条，保留横向滚动条 */
+.shiki-wrapper > .relative.overflow-auto {
+  /* 隐藏垂直滚动条 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.shiki-wrapper > .relative.overflow-auto::-webkit-scrollbar {
+  /* Chrome/Safari: 只隐藏垂直滚动条 */
+  height: 6px; /* 保留横向滚动条 */
+  width: 0; /* 隐藏垂直滚动条 */
+}
+
+.shiki-wrapper > .relative.overflow-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shiki-wrapper > .relative.overflow-auto::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 3px;
+}
+
+.shiki-wrapper > .relative.overflow-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
 /* ===== antd Tree 深色主题样式 ===== */
 .ant-tree {
   background-color: var(--color-card) !important;

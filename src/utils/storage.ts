@@ -161,14 +161,10 @@ export function getStorageSize(type: StorageType = 'local'): number {
 export const STORAGE_KEYS = {
   /** 用户信息 */
   USER_INFO: 'zsk_user_info',
-  /** 用户统计数据 */
-  USER_STATS: 'zsk_user_stats',
   /** 应用设置 */
   APP_SETTINGS: 'zsk_app_settings',
   /** 侧边栏状态 */
   SIDEBAR_STATE: 'zsk_sidebar_state',
   /** 最近搜索 */
   RECENT_SEARCH: 'zsk_recent_search',
-  /** 菜单缓存 */
-  MENU_CACHE: 'zsk_menu_cache',
 } as const

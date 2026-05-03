@@ -46,8 +46,6 @@ request.interceptors.request.use(
  */
 function handleLoginExpired(message?: string): void {
   removeStorage(STORAGE_KEYS.USER_INFO)
-  removeStorage(STORAGE_KEYS.USER_STATS)
-  removeStorage(STORAGE_KEYS.MENU_CACHE)
   clearAllCookies()
 
   if (typeof window !== 'undefined') {

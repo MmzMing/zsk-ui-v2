@@ -12,7 +12,7 @@ import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
 import { PenLine, Heart, BookMarked, Users, Bell, Shield } from 'lucide-react'
 import type { UserInfo } from '@/types/user.types'
 import type { SysUser } from '@/api/auth'
-import { useUserStore } from '@/stores/user'
+import { useCurrentUserStats } from '@/hooks'
 
 /**
  * Tab 类型
@@ -50,7 +50,7 @@ export function ProfileCard({
   className,
 }: ProfileCardProps) {
   const { t } = useTranslation('profile')
-  const { userStats } = useUserStore()
+  const { stats: userStats } = useCurrentUserStats()
 
   // ===== 9. 页面初始化与事件绑定 =====
   if (loading) {

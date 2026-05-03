@@ -3,10 +3,20 @@
  * 参考B站风格：Hover展开，头像放大展示，第一层名字，第二层点赞关注评论，第三层操作选项
  */
 
+// ===== 1. 依赖导入区域 =====
+// React 核心
 import { useState, useRef, useCallback } from 'react'
+
+// 路由
 import { useNavigate } from 'react-router-dom'
+
+// 动画
 import { motion, AnimatePresence } from 'framer-motion'
+
+// HeroUI 组件
 import { Avatar } from '@heroui/react'
+
+// 图标
 import { 
   HiOutlineUser, 
   HiOutlineCog, 
@@ -16,10 +26,26 @@ import {
   HiUsers,
   HiUser
 } from 'react-icons/hi'
+
+// 工具函数
 import { cn } from '@/utils'
+
+// 状态管理
 import { useUserStore } from '@/stores/user'
+
+// 国际化
 import { useTranslation } from 'react-i18next'
-import { useTheme } from '@/hooks'
+
+// Hooks
+import { useTheme, useCurrentUserStats } from '@/hooks'
+
+// 格式化数字
+function formatNumber(num: number): string {
+  if (num >= 10000) {
+    return `${(num / 10000).toFixed(1)}万`
+  }
+  return num.toString()
+}
 
 // 组件属性
 interface UserDropdownProps {
@@ -33,14 +59,6 @@ interface UserDropdownProps {
   className?: string
 }
 
-// 格式化数字
-function formatNumber(num: number): string {
-  if (num >= 10000) {
-    return `${(num / 10000).toFixed(1)}万`
-  }
-  return num.toString()
-}
-
 export default function UserDropdown({
   name = '用户',
   avatar,
@@ -49,7 +67,8 @@ export default function UserDropdown({
 }: UserDropdownProps) {
   const { t } = useTranslation('navigation')
   const navigate = useNavigate()
-  const { logout, userInfo, userStats } = useUserStore()
+  const { logout, userInfo } = useUserStore()
+  const { stats: userStats } = useCurrentUserStats()
   const { actualTheme } = useTheme()
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const triggerRef = useRef<HTMLDivElement>(null)

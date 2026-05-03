@@ -1,28 +1,15 @@
 /**
  * 菜单状态管理
- * 支持从后端获取菜单树数据，并使用30分钟过期缓存
- * 退出登录时自动清空缓存
+ * 仅使用 Zustand 内存态管理，不做 localStorage 缓存
+ * 前台和登录页不获取菜单，仅后台页面调用时从接口获取
  */
 
+// ===== 1. 依赖导入区域 =====
 import { create } from 'zustand'
 import type { MenuItem } from '@/constants/menu'
 import type { SysMenu } from '@/types/menu.types'
-import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS } from '@/utils/storage'
 import { getMenuTree } from '@/api/admin/menu'
 import { getIconsByName } from '@/utils/icons'
-
-// 缓存过期时间：30分钟（毫秒）
-const CACHE_EXPIRE_TIME = 30 * 60 * 1000
-
-/**
- * 菜单缓存数据结构
- */
-interface MenuCache {
-  /** 菜单数据 */
-  menus: SysMenu[]
-  /** 缓存时间戳 */
-  timestamp: number
-}
 
 /**
  * 菜单状态接口
@@ -34,14 +21,14 @@ interface MenuState {
   isLoading: boolean
   /** 加载错误 */
   error: Error | null
-  /** 缓存是否有效 */
-  isCacheValid: boolean
+  /** 是否已加载过 */
+  hasLoaded: boolean
 
-  /** 获取菜单数据（自动处理缓存） */
+  /** 获取菜单数据（从后端拉取） */
   fetchMenus: () => Promise<void>
-  /** 强制刷新菜单（忽略缓存） */
+  /** 强制刷新菜单 */
   refreshMenus: () => Promise<void>
-  /** 清空菜单缓存 */
+  /** 清空菜单数据（退出登录时调用） */
   clearMenuCache: () => void
 }
 
@@ -81,59 +68,54 @@ function sortMenusByOrder(menus: MenuItem[]): MenuItem[] {
 }
 
 /**
- * 从缓存加载菜单数据
+ * 菜单 Store
+ * 纯内存态，不持久化
  */
-function loadMenuCache(): MenuCache | null {
-  const cached = getStorageValue<MenuCache>(STORAGE_KEYS.MENU_CACHE)
-  if (!cached) return null
-
-  // 检查缓存是否过期（30分钟）
-  const now = Date.now()
-  if (now - cached.timestamp > CACHE_EXPIRE_TIME) {
-    removeStorage(STORAGE_KEYS.MENU_CACHE)
-    return null
-  }
-
-  return cached
-}
-
 export const useMenuStore = create<MenuState>()((set, get) => ({
   dynamicMenus: [],
   isLoading: false,
   error: null,
-  isCacheValid: false,
+  hasLoaded: false,
 
   /**
-   * 获取菜单数据（自动处理缓存）
-   * 如果缓存有效则使用缓存，否则从后端获取
+   * 获取菜单数据（从后端拉取）
+   * 如果已加载过且有数据，直接返回
    */
   fetchMenus: async () => {
-    const { isLoading, isCacheValid } = get()
+    const { isLoading, dynamicMenus, hasLoaded } = get()
     
     if (isLoading) return
     
-    // 检查缓存是否有效
-    const cached = loadMenuCache()
-    if (cached && !isCacheValid) {
-      // 使用缓存数据
-      const menuItems = cached.menus.map(menu => convertSysMenuToMenuItem(menu))
+    // 已加载且有数据则不重复请求
+    if (hasLoaded && dynamicMenus.length > 0) return
+
+    set({ isLoading: true, error: null })
+
+    try {
+      const sysMenus = await getMenuTree()
+      
+      // 转换为前端 MenuItem 格式
+      const menuItems = sysMenus.map(menu => convertSysMenuToMenuItem(menu))
       const sortedMenus = sortMenusByOrder(menuItems)
+
       set({
         dynamicMenus: sortedMenus,
         isLoading: false,
         error: null,
-        isCacheValid: true
+        hasLoaded: true
       })
-      return
+    } catch (error) {
+      console.error('获取菜单树失败：', error)
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error : new Error('获取菜单失败'),
+        hasLoaded: false
+      })
     }
-
-    // 从后端获取数据
-    await get().refreshMenus()
   },
 
   /**
-   * 强制刷新菜单（忽略缓存）
-   * 从后端获取最新数据并更新缓存
+   * 强制刷新菜单（忽略缓存，重新请求）
    */
   refreshMenus: async () => {
     const { isLoading } = get()
@@ -149,38 +131,30 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       const menuItems = sysMenus.map(menu => convertSysMenuToMenuItem(menu))
       const sortedMenus = sortMenusByOrder(menuItems)
 
-      // 保存到缓存
-      const cacheData: MenuCache = {
-        menus: sysMenus,
-        timestamp: Date.now()
-      }
-      setStorage(STORAGE_KEYS.MENU_CACHE, cacheData)
-
       set({
         dynamicMenus: sortedMenus,
         isLoading: false,
         error: null,
-        isCacheValid: true
+        hasLoaded: true
       })
     } catch (error) {
-      console.error('获取菜单树失败：', error)
+      console.error('刷新菜单树失败：', error)
       set({
         isLoading: false,
-        error: error instanceof Error ? error : new Error('获取菜单失败'),
-        isCacheValid: false
+        error: error instanceof Error ? error : new Error('刷新菜单失败'),
+        hasLoaded: false
       })
     }
   },
 
   /**
-   * 清空菜单缓存
+   * 清空菜单数据
    * 退出登录时调用
    */
   clearMenuCache: () => {
-    removeStorage(STORAGE_KEYS.MENU_CACHE)
     set({
       dynamicMenus: [],
-      isCacheValid: false,
+      hasLoaded: false,
       error: null
     })
   }

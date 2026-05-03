@@ -1,6 +1,10 @@
 /**
  * 字典缓存 Store
  * 使用 Zustand 管理字典数据缓存，配合版本号实现增量更新
+ *
+ * 策略：
+ * - 登录时：一次性获取全部字典数据（/cache/all），存入缓存
+ * - 使用时：通过 useDict 按需使用，校验版本后增量更新
  */
 
 import { create } from 'zustand'
@@ -46,9 +50,9 @@ interface DictStoreState {
   setCache: (dictType: string, cacheVO: DictCacheVO) => void
 
   /**
-   * 批量设置缓存数据（用于一次性加载全部）
+   * 批量设置缓存数据（用于登录时一次性加载全部）
    *
-   * @param allCache - 全部字典缓存数据
+   * @param allCache - 全部字典缓存数据（键为 dictType）
    */
   setBatchCache: (allCache: Record<string, DictCacheVO>) => void
 
@@ -60,7 +64,7 @@ interface DictStoreState {
   removeCache: (dictType: string) => void
 
   /**
-   * 清除所有缓存
+   * 清除所有缓存（退出登录时调用）
    */
   clearAllCache: () => void
 }

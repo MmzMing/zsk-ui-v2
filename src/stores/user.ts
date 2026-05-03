@@ -1,12 +1,14 @@
 /**
  * 用户状态管理
- * 使用 localStorage 的 zsk_user_info 来持久化用户状态，替代 zustand 的 persist middleware
+ * 
+ * 权限管理策略：
+ * - 权限列表（permissions）：仅存内存，不持久化
+ * - 用户信息（userInfo）：内存 + localStorage 双写，保证刷新不丢失
  */
 
 // ===== 1. 依赖导入区域 =====
 import { create } from 'zustand'
 import type { UserInfo, UserRole } from '@/types'
-import type { UserStats } from '@/api/profile'
 import { logout as logoutApi } from '@/api/auth'
 import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS, clearAllCookies } from '@/utils/storage'
 import { toast } from '@/utils/toast'
@@ -19,14 +21,10 @@ import { useMenuStore } from './menu'
  * 包含需要保存到 localStorage 的状态字段
  */
 interface PersistedState {
-  /** 用户信息 */
+  /** 用户信息（包含 roles 和 permissions） */
   userInfo: UserInfo | null
   /** 是否已登录 */
   isLoggedIn: boolean
-  /** 权限列表 */
-  permissions: string[]
-  /** 用户统计数据 */
-  userStats: UserStats | null
 }
 
 /**
@@ -43,10 +41,8 @@ interface UserState extends PersistedState {
   logout: () => void
   /** 设置加载状态 */
   setLoading: (loading: boolean) => void
-  /** 设置权限列表 */
+  /** 设置权限列表（内存态） */
   setPermissions: (permissions: string[]) => void
-  /** 设置用户统计数据 */
-  setUserStats: (stats: UserStats | null) => void
   /** 检查是否拥有指定角色 */
   hasRole: (roles: UserRole | UserRole[]) => boolean
   /** 检查是否拥有指定权限（满足任一即可） */
@@ -62,12 +58,10 @@ interface UserState extends PersistedState {
  * @returns 持久化状态对象
  */
 function loadPersistedState(): PersistedState {
-  const cached = getStorageValue<PersistedState>(STORAGE_KEYS.USER_INFO)
-  return cached || {
-    userInfo: null,
-    isLoggedIn: false,
-    permissions: [],
-    userStats: null,
+  const cached = getStorageValue<{ userInfo: UserInfo | null, isLoggedIn: boolean }>(STORAGE_KEYS.USER_INFO)
+  return {
+    userInfo: cached?.userInfo ?? null,
+    isLoggedIn: cached?.isLoggedIn ?? false,
   }
 }
 
@@ -75,8 +69,8 @@ function loadPersistedState(): PersistedState {
  * 保存持久化状态到 localStorage
  * @param state - 需要保存的状态对象
  */
-function savePersistedState(state: PersistedState): void {
-  setStorage(STORAGE_KEYS.USER_INFO, state)
+function savePersistedState(userInfo: UserInfo | null, isLoggedIn: boolean): void {
+  setStorage(STORAGE_KEYS.USER_INFO, { userInfo, isLoggedIn })
 }
 
 // ===== 4. 状态初始化区域 =====
@@ -100,13 +94,11 @@ export const useUserStore = create<UserState>()((set, get) => ({
    * @param user - 用户信息对象，null 表示清除
    */
   setUserInfo: (user) => {
-    const newState = {
-      ...get(),
+    set({
       userInfo: user,
       isLoggedIn: !!user,
-    }
-    set(newState)
-    savePersistedState(newState)
+    })
+    savePersistedState(user, !!user)
   },
 
   /**
@@ -122,17 +114,13 @@ export const useUserStore = create<UserState>()((set, get) => ({
       console.error('后端退出登录失败：', error)
     }
     removeStorage(STORAGE_KEYS.USER_INFO)
-    removeStorage(STORAGE_KEYS.USER_STATS)
     useMenuStore.getState().clearMenuCache()
     clearAllCookies()
-    const newState = {
+    set({
       userInfo: null,
       isLoggedIn: false,
-      permissions: [],
-      userStats: null,
       isLoading: false,
-    }
-    set(newState)
+    })
   },
 
   /**
@@ -145,29 +133,17 @@ export const useUserStore = create<UserState>()((set, get) => ({
     }),
 
   /**
-   * 设置权限列表
+   * 设置权限列表（仅内存态，不持久化）
+   * 权限信息仅存于 userInfo.permissions 中，页面刷新后会丢失，需重新请求
    * @param permissions - 权限字符串数组
    */
   setPermissions: (permissions) => {
-    const newState = {
-      ...get(),
-      permissions,
+    const { userInfo } = get()
+    if (userInfo) {
+      set({
+        userInfo: { ...userInfo, permissions },
+      })
     }
-    set(newState)
-    savePersistedState(newState)
-  },
-
-  /**
-   * 设置用户统计数据
-   * @param stats - 用户统计数据对象，null 表示清除
-   */
-  setUserStats: (stats) => {
-    const newState = {
-      ...get(),
-      userStats: stats,
-    }
-    set(newState)
-    savePersistedState(newState)
   },
 
   /**
