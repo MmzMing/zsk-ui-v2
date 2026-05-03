@@ -5,10 +5,10 @@
 
 // ===== 1. 依赖导入区域 =====
 import { create } from 'zustand'
-import type { UserInfo, TokenInfo, UserRole } from '@/types'
+import type { UserInfo, UserRole } from '@/types'
 import type { UserStats } from '@/api/profile'
 import { logout as logoutApi } from '@/api/auth'
-import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS } from '@/utils/storage'
+import { getStorageValue, setStorage, removeStorage, STORAGE_KEYS, clearAllCookies } from '@/utils/storage'
 import { toast } from '@/utils/toast'
 import { useMenuStore } from './menu'
 
@@ -21,8 +21,6 @@ import { useMenuStore } from './menu'
 interface PersistedState {
   /** 用户信息 */
   userInfo: UserInfo | null
-  /** Token 信息 */
-  tokenInfo: TokenInfo | null
   /** 是否已登录 */
   isLoggedIn: boolean
   /** 权限列表 */
@@ -41,8 +39,6 @@ interface UserState extends PersistedState {
 
   /** 设置用户信息 */
   setUserInfo: (user: UserInfo | null) => void
-  /** 设置 Token 信息 */
-  setTokenInfo: (token: TokenInfo | null) => void
   /** 退出登录 */
   logout: () => void
   /** 设置加载状态 */
@@ -69,7 +65,6 @@ function loadPersistedState(): PersistedState {
   const cached = getStorageValue<PersistedState>(STORAGE_KEYS.USER_INFO)
   return cached || {
     userInfo: null,
-    tokenInfo: null,
     isLoggedIn: false,
     permissions: [],
     userStats: null,
@@ -115,22 +110,9 @@ export const useUserStore = create<UserState>()((set, get) => ({
   },
 
   /**
-   * 设置 Token 信息
-   * @param token - Token 信息对象，null 表示清除
-   */
-  setTokenInfo: (token) => {
-    const newState = {
-      ...get(),
-      tokenInfo: token,
-    }
-    set(newState)
-    savePersistedState(newState)
-  },
-
-  /**
    * 退出登录
-   * 通知后端使 Token 失效，清除 localStorage、cookie 和状态管理中的用户信息
-   * 同时清空菜单缓存
+   * 调用后端注销接口，清除本地缓存和状态管理中的用户信息
+   * 同时清空菜单缓存和所有 Cookie
    */
   logout: async () => {
     try {
@@ -141,11 +123,10 @@ export const useUserStore = create<UserState>()((set, get) => ({
     }
     removeStorage(STORAGE_KEYS.USER_INFO)
     removeStorage(STORAGE_KEYS.USER_STATS)
-    removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
     useMenuStore.getState().clearMenuCache()
+    clearAllCookies()
     const newState = {
       userInfo: null,
-      tokenInfo: null,
       isLoggedIn: false,
       permissions: [],
       userStats: null,

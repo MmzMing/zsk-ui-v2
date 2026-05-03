@@ -50,9 +50,8 @@ export default function CallbackPage() {
       try {
         const res = await callbackApi(code, state)
 
-        // 保存 Token 和用户信息（过期时间由后端 Set-Cookie 控制）
-        setStorage(STORAGE_KEYS.TOKEN, res.accessToken, 'cookie')
-        setStorage(STORAGE_KEYS.USER_INFO, res, 'cookie')
+        // 保存用户信息（Cookie 由后端 Set-Cookie 控制）
+        setStorage(STORAGE_KEYS.USER_INFO, res, 'local')
         
         setUserInfo({
           id: res.userId,

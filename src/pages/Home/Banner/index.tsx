@@ -303,42 +303,28 @@ const VoyageStats = () => {
   const isLight = actualTheme === 'light'
   const [stats, setStats] = useState({
     uptime: '',
-    visitors: 0
+    visitors: 0,
+    status: 'running'
   })
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading] = useState(false)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
-  // 获取统计数据 - 从 API 或使用默认值
+  // TODO: 需要后端新增一个获取 Nginx 系统信息的接口，返回 uptime（运行时长秒数）、visitors（访问人数）、status（服务状态）
+  // 当前使用写死的默认值
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stats`)
-        if (response.ok) {
-          const data = await response.json()
-          setStats({
-            uptime: formatUptime(data.uptime || 0),
-            visitors: data.visitors || 0
-          })
-        } else {
-          // API 失败时使用默认值
-          setStats({
-            uptime: formatUptime(86400 * 30),
-            visitors: 12345
-          })
-        }
-      } catch {
-        // 网络异常时使用默认值
-        setStats({
-          uptime: formatUptime(86400 * 30),
-          visitors: 12345
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchStats()
+    setDefaultStats()
   }, [])
+
+  /**
+   * 使用默认统计数据
+   */
+  const setDefaultStats = () => {
+    setStats({
+      uptime: formatUptime(86400 * 30),
+      visitors: 12345,
+      status: 'running'
+    })
+  }
 
   /**
    * 格式化运行时长显示
@@ -367,6 +353,20 @@ const VoyageStats = () => {
     return num.toLocaleString()
   }
 
+  // 获取服务器状态显示文本
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case 'running':
+        return t('stats.statusValue', '一帆风顺')
+      case 'maintenance':
+        return t('stats.statusMaintenance', '维护中')
+      case 'error':
+        return t('stats.statusError', '异常')
+      default:
+        return t('stats.statusValue', '一帆风顺')
+    }
+  }
+
   // 统计数据项配置
   const statItems = [
     {
@@ -384,7 +384,7 @@ const VoyageStats = () => {
     {
       icon: Ship,
       label: t('stats.statusLabel', '航行状态'),
-      value: t('stats.statusValue', '一帆风顺'),
+      value: isLoading ? t('stats.loading', '加载中...') : getStatusText(stats.status),
       tooltip: t('stats.statusTooltip', '当前服务状态')
     }
   ]

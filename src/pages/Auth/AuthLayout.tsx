@@ -25,7 +25,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
     <div className="min-h-screen flex bg-content2/20 text-foreground">
       {/* 左侧区域 */}
       <div 
-        className="hidden lg:flex lg:basis-3/5 relative overflow-hidden bg-gradient-to-br from-content1 via-content1/80 to-content2/50 p-12 text-foreground border-r border-default-800" 
+        className="hidden lg:flex lg:basis-3/5 relative overflow-hidden bg-gradient-to-br from-content1 via-content1/80 to-content2/50 p-12 text-foreground border-r border-default-300/20" 
         style={{ 
           backgroundImage: 'url("data:image/svg+xml,%3Csvg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3Cpattern id="paper" width="100" height="100" patternUnits="userSpaceOnUse"%3E%3Cpath d="M0 0 L100 100 M100 0 L0 100" stroke="currentColor" stroke-width="0.5" opacity="0.1"/%3E%3Cpath d="M0 20 L100 20 M0 40 L100 40 M0 60 L100 60 M0 80 L100 80" stroke="currentColor" stroke-width="0.3" opacity="0.05"/%3E%3Cpath d="M20 0 L20 100 M40 0 L40 100 M60 0 L60 100 M80 0 L80 100" stroke="currentColor" stroke-width="0.3" opacity="0.05"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100%" height="100%" fill="url(%23paper)"/%3E%3C/svg%3E")' 
         }}

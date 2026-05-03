@@ -10,23 +10,20 @@ import axios, {
   type AxiosError,
 } from 'axios'
 import { API_CONFIG, type RequestConfig } from './config'
-import { getStorageValue, removeStorage } from '@/utils/storage'
+import { removeStorage, clearAllCookies } from '@/utils/storage'
 import { STORAGE_KEYS } from '@/utils/storage'
 import { toast } from '@/utils/toast'
 import type { ApiResponse } from '@/types'
 
 // 创建 axios 实例
-const request: AxiosInstance = axios.create(API_CONFIG)
+const request: AxiosInstance = axios.create({
+  ...API_CONFIG,
+  withCredentials: true, // 允许携带 Cookie
+})
 
 // 请求拦截器
 request.interceptors.request.use(
   (config: RequestConfig) => {
-    // 添加 Token，优先从 Cookie 读取
-    const token = getStorageValue<string>(STORAGE_KEYS.TOKEN, undefined, 'cookie')
-    if (token && config.withToken !== false) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-
     // 添加时间戳防止缓存
     if (config.method === 'get') {
       config.params = {
@@ -45,13 +42,13 @@ request.interceptors.request.use(
 
 /**
  * 处理登录过期
- * 仅在确认登录过期时调用（如 Token 失效），清除缓存并跳转登录页
+ * 仅在确认登录过期时调用（如 Cookie 失效），清除本地缓存、Cookie 并跳转登录页
  */
 function handleLoginExpired(message?: string): void {
-  removeStorage(STORAGE_KEYS.TOKEN, 'cookie')
   removeStorage(STORAGE_KEYS.USER_INFO)
   removeStorage(STORAGE_KEYS.USER_STATS)
   removeStorage(STORAGE_KEYS.MENU_CACHE)
+  clearAllCookies()
 
   if (typeof window !== 'undefined') {
     const currentPath = window.location.pathname
@@ -75,7 +72,7 @@ request.interceptors.response.use(
     const isSuccess = data.code === 0 || (data.code === 200 && data.success !== false)
     
     if (!isSuccess) {
-      // 检查业务层登录过期：仅 Token 失效（code=401 且含过期关键词）时跳转登录页
+      // 检查业务层登录过期：code=401 且含过期关键词时跳转登录页
       const isLoginExpired = data.code === 401 &&
         data.msg && (data.msg.includes('过期') || data.msg.includes('失效') || data.msg.includes('expired'))
 

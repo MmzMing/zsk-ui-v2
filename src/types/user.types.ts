@@ -122,13 +122,3 @@ export interface TurnstileResult {
   /** 校验凭证Token */
   verifyToken: string
 }
-
-// Token 信息
-export interface TokenInfo {
-  /** 访问令牌 */
-  accessToken: string
-  /** 刷新令牌 */
-  refreshToken: string
-  /** 过期时间戳 */
-  expiresAt: number
-}

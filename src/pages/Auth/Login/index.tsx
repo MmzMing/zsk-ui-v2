@@ -194,9 +194,9 @@ export default function LoginPage() {
 
         {/* 分隔线 */}
         <div className="flex items-center gap-4 w-full">
-          <Divider className="flex-1" />
+          <Divider className="flex-1 bg-default-300/20" />
           <span className="text-tiny text-default-400 font-medium">{t('login.orContinue')}</span>
-          <Divider className="flex-1" />
+          <Divider className="flex-1 bg-default-300/20" />
         </div>
 
         {/* 邮箱登录表单 */}
@@ -281,7 +281,7 @@ export default function LoginPage() {
         )}
 
         {/* 页脚隐私协议 */}
-        <div className="pt-6 border-t border-default-800 text-center text-xs text-default-400">
+        <div className="pt-6 border-t border-default-300/20 text-center text-xs text-default-400">
           {t('login.policyPrefix')}
           <Button
             variant="light"

@@ -97,6 +97,25 @@ export function removeStorage(key: string, type: StorageType = 'local'): void {
 }
 
 /**
+ * 清空 Cookie
+ * 遍历所有 Cookie 并逐一移除，同时处理根路径
+ */
+export function clearAllCookies(): void {
+  if (typeof document === 'undefined') return
+  const allCookies = document.cookie.split(';')
+  for (const cookie of allCookies) {
+    const eqPos = cookie.indexOf('=')
+    const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim()
+    if (name) {
+      Cookies.remove(name)
+      Cookies.remove(name, { path: '/' })
+      Cookies.remove(name, { path: '', domain: window.location.hostname })
+      Cookies.remove(name, { path: '/', domain: window.location.hostname })
+    }
+  }
+}
+
+/**
  * 清空存储
  * @param type - 存储类型，默认 'local'
  */
@@ -140,8 +159,6 @@ export function getStorageSize(type: StorageType = 'local'): number {
 }
 // 应用配置存储键名
 export const STORAGE_KEYS = {
-  /** 用户 Token（与后端设置的 Cookie 名称一致） */
-  TOKEN: 'access_token',
   /** 用户信息 */
   USER_INFO: 'zsk_user_info',
   /** 用户统计数据 */

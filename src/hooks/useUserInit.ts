@@ -3,7 +3,7 @@
  * 用于初始化用户登录状态，包含用户统计数据获取
  *
  * 功能特性：
- * - 自动检测用户登录状态（通过 Cookie 中的 Token）
+ * - 自动检测用户登录状态（通过 Cookie 认证）
  * - 优先使用本地缓存展示用户信息，同时异步刷新最新数据
  * - 接口返回 401 时清除本地缓存并跳转登录页
  * - 状态管理集成（Zustand）
@@ -16,7 +16,7 @@ import { useMenuStore } from '@/stores/menu'
 import { useDictAll } from '@/hooks/useDict'
 import { getCurrentUser } from '@/api/auth'
 import { getUserStats } from '@/api/profile'
-import { getStorageValue, removeStorage, STORAGE_KEYS } from '@/utils/storage'
+import { getStorageValue, removeStorage, STORAGE_KEYS, clearAllCookies } from '@/utils/storage'
 import type { UserInfo } from '@/types'
 import type { UserStats } from '@/api/profile'
 
@@ -76,14 +76,11 @@ export function useUserInit(): UseUserInitReturn {
     const initUser = async () => {
       setLoading(true)
       try {
-        // 从 Cookie 获取 Token，判断用户是否已登录
-        const token = getStorageValue<string>(STORAGE_KEYS.TOKEN, undefined, 'cookie')
+        // 尝试获取用户信息，如果成功说明 Cookie 认证有效
+        const isLoggedIn = await initUserInfo(setUserInfo, setPermissions)
 
-        // 只有当 Cookie 中有 token 时，才处理用户信息
-        if (token) {
-          // ===== 用户信息初始化 =====
-          await initUserInfo(setUserInfo, setPermissions)
-
+        // 仅已登录用户才加载用户统计数据、菜单和字典
+        if (isLoggedIn) {
           // ===== 用户统计数据初始化 =====
           await initUserStats(setUserStats)
 
@@ -115,11 +112,12 @@ export function useUserInit(): UseUserInitReturn {
  *
  * @param setUserInfo - 用户信息设置函数
  * @param setPermissions - 权限设置函数
+ * @returns 是否已登录
  */
 async function initUserInfo(
   setUserInfo: (user: UserInfo | null) => void,
   setPermissions: (permissions: string[]) => void
-): Promise<void> {
+): Promise<boolean> {
   // 如果本地有缓存，先使用缓存数据快速展示
   const cachedUserInfo = getStorageValue<{ userInfo: UserInfo, permissions: string[] }>(STORAGE_KEYS.USER_INFO)
   if (cachedUserInfo?.userInfo) {
@@ -127,7 +125,8 @@ async function initUserInfo(
     setPermissions(cachedUserInfo.permissions || [])
   }
 
-  // 异步请求最新数据刷新
+  // 无论是否有缓存，都尝试请求接口以验证 Cookie 是否有效
+  // 注：前端无法读取 HttpOnly Cookie，只能通过接口响应判断登录状态
   try {
     const loginUser = await getCurrentUser()
 
@@ -158,13 +157,19 @@ async function initUserInfo(
       // 更新状态
       setUserInfo(user)
       setPermissions(user.permissions)
+      return true
     }
+    return false
   } catch (error: unknown) {
     // 如果后端返回 401，说明 Token 已过期，清除本地缓存
     if ((error as { response?: { status?: number } })?.response?.status === 401) {
       handleLoginExpired(setUserInfo)
+      return false
     }
+    
     // 其他错误（如网络问题）保持现有缓存数据不变
+    // 有缓存说明之前登录过，返回 true 继续加载其他资源；无缓存则返回 false
+    return !!cachedUserInfo?.userInfo
   }
 }
 
@@ -193,7 +198,14 @@ async function initUserStats(
     return
   }
 
-  // 缓存不存在或已过期，调用接口获取最新统计数据
+  // 如果缓存不存在，检查是否登录过（通过用户信息缓存判断）
+  const cachedUserInfo = getStorageValue<{ userInfo: UserInfo }>(STORAGE_KEYS.USER_INFO)
+  if (!cachedUserInfo?.userInfo) {
+    // 未登录用户，不请求统计数据
+    return
+  }
+
+  // 缓存不存在但用户已登录，调用接口获取最新统计数据
   try {
     const statsResponse = await getUserStats()
 
@@ -213,7 +225,7 @@ async function initUserStats(
 
 /**
  * 处理登录过期逻辑
- * 清空缓存和状态，由后端驱动过期逻辑
+ * 清空缓存、Cookie 和状态，由后端驱动过期逻辑
  *
  * @param setUserInfo - 用户信息设置函数
  */
@@ -224,6 +236,7 @@ function handleLoginExpired(
   removeStorage(STORAGE_KEYS.USER_INFO)
   removeStorage(STORAGE_KEYS.USER_STATS)
   removeStorage(STORAGE_KEYS.MENU_CACHE)
+  clearAllCookies()
 
   // 清空状态管理中的用户信息
   setUserInfo(null)
