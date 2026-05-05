@@ -84,7 +84,7 @@ export function useDocumentDetail(noteId: string) {
     setLikeLoading(true)
     try {
       const res = await toggleDocHomeNoteLike(noteId)
-      handleInteractionUpdate({ isLiked: res.status, likeCount: res.count })
+      handleInteractionUpdate({ isLiked: res.status, likeCount: res.count ?? prev?.likeCount ?? 0 })
       if (res.status) {
         toast.success('已点赞')
       } else {
@@ -112,7 +112,7 @@ export function useDocumentDetail(noteId: string) {
     setFavLoading(true)
     try {
       const res = await toggleDocHomeNoteFavorite(noteId)
-      handleInteractionUpdate({ isFavorited: res.status, favoriteCount: res.count })
+      handleInteractionUpdate({ isFavorited: res.status, favoriteCount: res.count ?? prev?.favoriteCount ?? 0 })
       if (res.status) {
         toast.success('已收藏')
       } else {

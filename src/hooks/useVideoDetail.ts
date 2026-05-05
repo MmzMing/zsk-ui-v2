@@ -99,7 +99,7 @@ export function useVideoDetail(videoId: string) {
     setLikeLoading(true)
     try {
       const res = await toggleHomeVideoLike(videoId)
-      handleInteractionUpdate({ isLiked: res.status, likeCount: res.count })
+      handleInteractionUpdate({ isLiked: res.status, likeCount: res.count ?? prev?.likeCount ?? 0 })
       if (res.status) {
         toast.success('已点赞')
       } else {
@@ -127,7 +127,7 @@ export function useVideoDetail(videoId: string) {
     setFavLoading(true)
     try {
       const res = await toggleHomeVideoFavorite(videoId)
-      handleInteractionUpdate({ isFavorited: res.status, favoriteCount: res.count })
+      handleInteractionUpdate({ isFavorited: res.status, favoriteCount: res.count ?? prev?.favoriteCount ?? 0 })
       if (res.status) {
         toast.success('已收藏')
       } else {

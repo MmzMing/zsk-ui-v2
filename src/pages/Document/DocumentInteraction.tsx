@@ -37,10 +37,12 @@ interface DocumentInteractionProps {
  * @param n - 数字
  * @returns 格式化后的字符串
  */
-function formatCount(n: number): string {
-  if (n >= 10000) return `${(n / 10000).toFixed(1)}万`
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
-  return String(n)
+function formatCount(n: number | undefined | null): string {
+  const num = Number(n)
+  if (!Number.isFinite(num)) return '0'
+  if (num >= 10000) return `${(num / 10000).toFixed(1)}万`
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
+  return String(num)
 }
 
 // ===== 4. 导出区域 =====
