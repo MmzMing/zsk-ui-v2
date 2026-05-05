@@ -64,21 +64,24 @@ function handleLoginExpired(message?: string): void {
 // 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse & { success?: boolean }>) => {
-    const { data } = response
+    const { data, config } = response
 
-    // 检查业务状态码：兼容 code === 0（前端约定）和 code === 200（后端实际返回）
+    const skipAuthRedirect = (config as RequestConfig).skipAuthRedirect
+
     const isSuccess = data.code === 0 || (data.code === 200 && data.success !== false)
     
     if (!isSuccess) {
-      // 检查业务层登录过期：code=401 且含过期关键词时跳转登录页
       const isLoginExpired = data.code === 401 &&
         data.msg && (data.msg.includes('过期') || data.msg.includes('失效') || data.msg.includes('expired'))
 
       if (isLoginExpired) {
-        handleLoginExpired(data.msg)
+        if (!skipAuthRedirect) {
+          handleLoginExpired(data.msg)
+        }
       } else if (data.code === 401) {
-        // 鉴权失败（如权限不足），仅提示不跳转
-        toast.error(data.msg || '无访问权限')
+        if (!skipAuthRedirect) {
+          toast.error(data.msg || '无访问权限')
+        }
       }
       
       const error = new Error(data.msg || '请求失败')
@@ -94,8 +97,9 @@ request.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // HTTP 401 视为登录过期，清除缓存并跳转
-          handleLoginExpired()
+          if (!(error.config as RequestConfig).skipAuthRedirect) {
+            handleLoginExpired()
+          }
           break
         case 403:
           toast.error('没有权限访问该资源')

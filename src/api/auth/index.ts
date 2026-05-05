@@ -1,5 +1,6 @@
 import { get, post } from '../request'
 import type { LoginResult, MagicLinkRequest } from '@/types'
+import type { AxiosRequestConfig } from 'axios'
 
 /**
  * 用户信息
@@ -105,6 +106,6 @@ export function sendMagicLink(data: MagicLinkRequest) {
 }
 
 /** 获取当前登录用户信息 */
-export function getCurrentUser() {
-  return get<LoginUser>('/system/user/current')
+export function getCurrentUser(config?: AxiosRequestConfig & { skipAuthRedirect?: boolean }) {
+  return get<LoginUser>('/system/user/current', undefined, config)
 }

@@ -106,10 +106,9 @@ async function initUserInfo(
     }
   }
 
-  // 无论是否有缓存，都尝试请求接口以验证 Cookie 是否有效
-  // 注：前端无法读取 HttpOnly Cookie，只能通过接口响应判断登录状态
+  // 直接尝试请求接口验证登录状态，由后端 401 状态码判断是否已登录
   try {
-    const loginUser = await getCurrentUser()
+    const loginUser = await getCurrentUser({ skipAuthRedirect: true })
 
     // 验证返回数据的有效性
     if (loginUser && loginUser.sysUser) {

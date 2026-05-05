@@ -32,6 +32,8 @@ export interface RequestConfig extends InternalAxiosRequestConfig {
   retry?: boolean
   /** 重试次数 */
   retryCount?: number
+  /** 是否跳过 401 自动跳转登录页和 toast 提示（用于初始化静默探测） */
+  skipAuthRedirect?: boolean
 }
 
 // 环境变量类型声明
