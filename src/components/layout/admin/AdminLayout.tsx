@@ -38,7 +38,6 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
     contentPadding,
     pageTransition,
     allowTextSelection,
-    colorWeak,
     multiTab
   } = adminSettings
 
@@ -89,18 +88,6 @@ export default function AdminLayout({ className }: AdminLayoutProps) {
 
     return crumbs
   }, [location.pathname, findMenuItem])
-
-  // 处理色弱模式
-  useEffect(() => {
-    if (colorWeak) {
-      document.documentElement.style.filter = 'grayscale(80%)'
-    } else {
-      document.documentElement.style.filter = ''
-    }
-    return () => {
-      document.documentElement.style.filter = ''
-    }
-  }, [colorWeak])
 
   // 处理文字选择
   useEffect(() => {
