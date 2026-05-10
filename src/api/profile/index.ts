@@ -175,5 +175,6 @@ export async function updateSystemUserInfo(data: Partial<SysUser>, file?: File):
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    timeout: 300000,
   })
 }

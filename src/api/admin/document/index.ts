@@ -206,7 +206,10 @@ export async function uploadDocNoteDtlFile(noteId: string, file: File): Promise<
   const response = await request.post<ApiResponse<boolean>>(
     '/document/docNoteDtl/upload',
     formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } }
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 300000
+    }
   )
   return response.data.data!
 }

@@ -111,7 +111,8 @@ export async function uploadDocVideoFile(
   const response = await request.post<ApiResponse<boolean>>('/document/docVideo/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
-    }
+    },
+    timeout: 300000
   })
   return response.data.data!
 }

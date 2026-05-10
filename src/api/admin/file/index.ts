@@ -128,7 +128,8 @@ export async function uploadDocFile(file: File): Promise<DocFile> {
   const response = await request.post<ApiResponse<DocFile & { url?: string }>>('/document/docFiles/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
-    }
+    },
+    timeout: 300000
   })
   
   const data = response.data.data!
