@@ -246,34 +246,16 @@ npm run build
 # 将 dist/ 目录内容部署到服务器即可
 ```
 
-### 2. Nginx 部署示例
+### 2. Nginx (OpenResty) 部署
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    root /path/to/dist;
-    index index.html;
+完整配置见 [/nginx.conf](/nginx.conf)，主要包含：
 
-    # 处理前端路由（单页应用）
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # 静态资源缓存
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # API 代理（如需同域部署）
-    location /api/ {
-        proxy_pass http://backend-server:8080/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
+- **前端路由**：`try_files` 支持 SPA 单页应用
+- **API 反向代理**：`/api/` → `http://127.0.0.1:8080/api/`（zsk-api）
+- **OSS 反向代理**：`/oss/` → `http://192.168.101.129:9000/`（zsk-oss / MinIO）
+- **静态资源缓存**：JS/CSS/图片/字体等 1 年强缓存
+- **上传限制**：`client_max_body_size 500M`
+- **代理超时**：300s（connect/send/read）
 
 ### 3. Docker 部署
 
